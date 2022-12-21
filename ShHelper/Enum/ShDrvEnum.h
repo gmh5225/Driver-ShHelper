@@ -11,6 +11,8 @@ typedef enum _SH_POOL_TYPE {
 
 	// other pool types
 	NONE_SPECIAL,
+	ANSI_POOL,
+	UNICODE_POOL,
 	AllPoolTypeCount
 }SH_POOL_TYPE, *PSH_POOL_TYPE;
 

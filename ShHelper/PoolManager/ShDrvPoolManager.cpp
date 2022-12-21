@@ -1,8 +1,8 @@
 #include <ShDrvInc.h>
 
-#define POOL_ENTRY_INITIALIZE(Entry, type)\
+#define POOL_ENTRY_INITIALIZE(Entry, type, Size)\
 Entry->PoolType = type;\
-Entry->PoolSize = PAGE_SIZE;\
+Entry->PoolSize = Size;\
 Entry->bUsed = false;
 
 NTSTATUS ShDrvPoolManager::Initialize()
@@ -27,7 +27,7 @@ NTSTATUS ShDrvPoolManager::Initialize()
 	for (auto i = 0; i < GlobalPoolTypeCount; i++)
 	{
 		auto PoolEntry = &g_Pools->PoolEntry[i];
-		POOL_ENTRY_INITIALIZE(PoolEntry, (SH_POOL_TYPE)i);
+		POOL_ENTRY_INITIALIZE(PoolEntry, (SH_POOL_TYPE)i, PAGE_SIZE);
 
 		Status = ShDrvMemory::AllocatePool<PVOID>(PAGE_SIZE, &PoolEntry->Buffer);
 		if(!NT_SUCCESS(Status)) { END }
@@ -36,7 +36,14 @@ NTSTATUS ShDrvPoolManager::Initialize()
 	// Allocate another pool
 	for (auto i = GlobalPoolTypeCount + 1; i < AllPoolTypeCount; i++)
 	{
-		Status = AllocatePoolEntry((SH_POOL_TYPE)i, PAGE_SIZE);
+		if (i == ANSI_POOL || i == UNICODE_POOL)
+		{
+			Status = AllocatePoolEntry((SH_POOL_TYPE)i, 260);
+		}
+		else
+		{
+			Status = AllocatePoolEntry((SH_POOL_TYPE)i, PAGE_SIZE);
+		}
 		if (!NT_SUCCESS(Status)) { break; }
 	}
 
@@ -55,7 +62,7 @@ NTSTATUS ShDrvPoolManager::AllocatePoolEntry(IN SH_POOL_TYPE PoolType, IN ULONG 
 	for (auto i = 0; i < SH_POOL_ENTRY_MAX_COUNT; i++)
 	{ 
 		auto PoolEntry = &g_Pools->PoolEntry[StartIndex + i]; 
-		POOL_ENTRY_INITIALIZE(PoolEntry, PoolType); 
+		POOL_ENTRY_INITIALIZE(PoolEntry, PoolType, PoolSize); 
 		Status = ShDrvMemory::AllocatePool<PVOID>(PoolSize, &PoolEntry->Buffer);
 		if (!NT_SUCCESS(Status)) { break; }
 	}
@@ -80,7 +87,7 @@ NTSTATUS ShDrvPoolManager::FreePoolEntry(IN PVOID Buffer, IN BOOLEAN bReuse)
 			
 			if (bReuse == false)
 			{
-				FREE_POOL(Buffer);
+				FREE_POOLEX(Buffer);
 				ShDrvMemory::AllocatePool<PVOID>(Entry->PoolSize, &Entry->Buffer);
 			}
 
@@ -131,9 +138,9 @@ VOID ShDrvPoolManager::Finalize()
 		for (auto i = 0; i < g_Pools->PoolCount; i++)
 		{
 			auto Entry = &g_Pools->PoolEntry[i];
-			FREE_POOL(Entry->Buffer);
+			FREE_POOLEX(Entry->Buffer);
 		}
-		FREE_POOL(g_Pools->PoolEntry);
-		FREE_POOL(g_Pools);
+		FREE_POOLEX(g_Pools->PoolEntry);
+		FREE_POOLEX(g_Pools);
 	}
 }

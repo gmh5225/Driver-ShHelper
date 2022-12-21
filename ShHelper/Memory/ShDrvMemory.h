@@ -1,7 +1,7 @@
 #ifndef _SHDRVMEMORY_H_
 #define _SHDRVMEMORY_H_
 
-#define FREE_POOL(ptr) if(ptr != nullptr) ExFreePool(ptr)
+#define FREE_POOLEX(ptr) if(ptr != nullptr) ExFreePool(ptr)
 
 namespace ShDrvMemory {
 	template <typename T>
