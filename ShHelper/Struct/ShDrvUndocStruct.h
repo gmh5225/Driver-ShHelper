@@ -1,0 +1,6 @@
+#ifndef _SHDRVUNDOCSTRUCT_H_
+#define _SHDRVUNDOCSTRUCT_H_
+
+
+
+#endif // !_SHDRVUNDOCSTRUCT_H_
