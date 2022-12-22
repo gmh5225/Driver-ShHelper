@@ -2,6 +2,8 @@
 #define _SHDRVUTIL_H_
 
 using namespace ShDrvFuncDef;
+using namespace ShDrvUndocSystem;
+using namespace ShDrvUndocPeb;
 
 #define LOCK_EXCLUSIVE(ptr, type)\
 KeEnterCriticalRegion();\
@@ -25,27 +27,62 @@ Status += ShDrvUtil::GetRoutineAddress<Prefix::RoutineName##_t>(L#RoutineName, &
 Status += ShDrvUtil::GetRoutineAddress<type>(L#VarName, &g_Variables->##VarName);
 
 namespace ShDrvUtil {
+/********************************************************************************************
+* String utility
+********************************************************************************************/
+#define StringCompare ShDrvUtil::StringCompareA
+#define StringCopy ShDrvUtil::StringCopyA
+#define StringCat ShDrvUtil::StringConcatenateA
+
+	BOOLEAN StringCompareA(
+		IN PSTR Source, 
+		IN PSTR Dest );
+
+	BOOLEAN StringCompareW(
+		IN PWSTR Source, 
+		IN PWSTR Dest );
+
+	NTSTATUS StringCopyA(
+		OUT NTSTRSAFE_PSTR Dest, 
+		IN NTSTRSAFE_PCSTR Source );
+
+	NTSTATUS StringCopyW(
+		OUT NTSTRSAFE_PWSTR Dest, 
+		IN NTSTRSAFE_PCWSTR Source );
+	
+	NTSTATUS StringConcatenateA(
+		OUT NTSTRSAFE_PSTR Dest, 
+		IN NTSTRSAFE_PCSTR Source );
+
+	NTSTATUS StringConcatenateW(
+		OUT NTSTRSAFE_PWSTR Dest, 
+		IN NTSTRSAFE_PCWSTR Source );
+
+/********************************************************************************************
+* Core utility
+********************************************************************************************/
 	VOID Sleep(IN ULONG Microsecond);
 
-#define StringCompare ShDrvUtil::StringCompareA
-	BOOLEAN StringCompareA(IN PCSTR Source, IN PCSTR Dest);
-	BOOLEAN StringCompareW(IN PWSTR Source, IN PWSTR Dest);
+	PVOID GetKernelBaseAddress(
+		IN PCSTR ModuleName, 
+		IN SH_GET_BASE_METHOD Method = QueryModuleInfo );
 
-#define StringCopy ShDrvUtil::StringCopyA
-	NTSTATUS StringCopyA(IN OUT NTSTRSAFE_PSTR Dest, IN NTSTRSAFE_PCSTR Source);
-	NTSTATUS StringCopyW(IN OUT NTSTRSAFE_PWSTR Dest, IN NTSTRSAFE_PCWSTR Source);
-	
+	NTSTATUS GetSystemModuleInformation(
+		IN PCSTR ModuleName, 
+		OUT PSYSTEM_MODULE_ENTRY ModuleInfomration );
 
-#define StringConcatenate ShDrvUtil::StringConcatenateA
-	NTSTATUS StringConcatenateA(IN OUT NTSTRSAFE_PSTR Dest, IN NTSTRSAFE_PCSTR Source);
-	NTSTATUS StringConcatenateW(IN OUT NTSTRSAFE_PWSTR Dest, IN NTSTRSAFE_PCWSTR Source);
-
+	PLDR_DATA_TABLE_ENTRY GetModuleInformation(
+		IN PCSTR ModuleName, 
+		IN HANDLE ProcessId = nullptr );
 
 	template <typename T>
-	NTSTATUS GetRoutineAddress(IN PWSTR Name, OUT T* Routine)
+	NTSTATUS GetRoutineAddress(
+		IN PWSTR Name, 
+		OUT T* Routine )
 	{
+#if TRACE_LOG_DEPTH & TRACE_UTIL
 		TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
-
+#endif
 		if (Name == nullptr || Routine == nullptr) { return STATUS_INVALID_PARAMETER; }
 		auto Status = STATUS_SUCCESS;
 		UNICODE_STRING RoutineName = { 0, };
@@ -56,6 +93,7 @@ namespace ShDrvUtil {
 
 		*Routine = reinterpret_cast<T>(MmGetSystemRoutineAddress(&RoutineName));
 		if (*Routine == nullptr) { return STATUS_UNSUCCESSFUL; }
+
 		return STATUS_SUCCESS;
 	}
 }

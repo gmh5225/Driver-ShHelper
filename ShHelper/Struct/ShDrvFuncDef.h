@@ -815,6 +815,10 @@ namespace ShDrvFuncDef {
 	}
 }
 
+namespace ShDrvAsmFunc {
+	typedef PVOID(*Asm_GetRoutineAddress)(PWSTR RoutineName);
+}
+
 
 EXTERN_C_START
 

@@ -8,6 +8,9 @@
 #define SH_TAG 'PLHS'
 
 namespace ShCommon {
+
+#define ADD_OFFSET(p, v, t) ShCommon::CalcOffset<t>(p, v)
+#define SUB_OFFSET(p, v, t) ShCommon::CalcOffset<t>(p, v, true) 
 	template<typename T>
 	T CalcOffset(IN PVOID Address, IN ULONG64 Offset, IN bool bSub = false)
 	{

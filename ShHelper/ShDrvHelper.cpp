@@ -9,17 +9,17 @@ PSH_POOL_INFORMATION g_Pools;
 //#pragma alloc_text("INIT", DriverEntry)
 NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
 {
+#if TRACE_LOG_DEPTH & TRACE_ENTRY
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
-
+#endif
 	auto Status = STATUS_SUCCESS;
 	
 	DriverObject->DriverUnload = HelperFinalize;
 
 	Status = DriverInitialize();
-	if (!NT_SUCCESS(Status)) { ShDrvPoolManager::Finalize(); END }
+	if (!NT_SUCCESS(Status)) { ShDrvPoolManager::Finalize(); ERROR_END }
 
-	Log("Loaded driver\n");
-
+	Log("Loaded driver");
 
 FINISH:
 	return Status;
@@ -27,16 +27,20 @@ FINISH:
 
 VOID HelperFinalize(PDRIVER_OBJECT DriverObject)
 {
+#if TRACE_LOG_DEPTH & TRACE_ENTRY
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#endif
 
 	ShDrvPoolManager::Finalize();
 
-	Log("Driver unload\n");
+	Log("Driver unload");
 }
 
 NTSTATUS DriverInitialize()
 {
+#if TRACE_LOG_DEPTH & TRACE_ENTRY
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#endif
 
 	auto Status = STATUS_SUCCESS;
 	
@@ -44,9 +48,8 @@ NTSTATUS DriverInitialize()
 	if (!NT_SUCCESS(Status)) 
 	{
 		ShDrvPoolManager::Finalize();
-		END 
+		ERROR_END 
 	}
-
 
 	GET_GLOBAL_POOL(g_Routines, GLOBAL_ROUTINES);
 	GET_GLOBAL_POOL(g_Variables, GLOBAL_VARIABLES);
@@ -58,6 +61,7 @@ NTSTATUS DriverInitialize()
 	g_Variables->KUserSharedData = reinterpret_cast<PKUSER_SHARED_DATA>(KUSER_SHARED_DATA_ADDRESS);
 	g_Variables->BuildNumber = g_Variables->KUserSharedData->NtBuildNumber;
 
+	g_Variables->SystemBaseAddress = ShDrvUtil::GetKernelBaseAddress("ntoskrnl.exe");
 	
 FINISH:
 	return Status;

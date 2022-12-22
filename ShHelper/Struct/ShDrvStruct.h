@@ -9,6 +9,7 @@ using namespace ShDrvFuncDef;
 
 #define SH_ROUTINE_MEMBER(RoutineName, Prefix)\
 Prefix::RoutineName##_t RoutineName
+#define SH_ROUTINE_CALL(RoutineName) g_Routines->##RoutineName
 
 PACK_START(1)
 typedef struct _SH_GLOBAL_ROUTINES {
@@ -134,9 +135,9 @@ PACK_END
 * Extern global variable
 ********************************************************************************************/
 
-EXTERN_C PSH_GLOBAL_ROUTINES  g_Routines;
-EXTERN_C PSH_GLOBAL_VARIABLES g_Variables;
-EXTERN_C PSH_GLOBAL_OFFSETS   g_Offsets;
-EXTERN_C PSH_POOL_INFORMATION g_Pools;
+extern PSH_GLOBAL_ROUTINES  g_Routines;
+extern PSH_GLOBAL_VARIABLES g_Variables;
+extern PSH_GLOBAL_OFFSETS   g_Offsets;
+extern PSH_POOL_INFORMATION g_Pools;
 
 #endif // !_SHDRVSTRUCT_H_

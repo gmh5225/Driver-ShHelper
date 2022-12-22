@@ -16,4 +16,9 @@ typedef enum _SH_POOL_TYPE {
 	AllPoolTypeCount
 }SH_POOL_TYPE, *PSH_POOL_TYPE;
 
+typedef enum _SH_GET_BASE_METHOD {
+	LoadedModuleList = 0,
+	QueryModuleInfo,
+}SH_GET_BASE_METHOD, *PSH_GET_BASE_METHOD;
+
 #endif // !_SHDRVENUM_H_

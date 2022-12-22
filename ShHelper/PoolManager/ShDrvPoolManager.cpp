@@ -7,13 +7,16 @@ Entry->bUsed = false;
 
 NTSTATUS ShDrvPoolManager::Initialize()
 {
+#if TRACE_LOG_DEPTH & TRACE_POOL
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#endif
 
 	auto Status = STATUS_SUCCESS;
 
 	if (g_Pools == nullptr)
 	{
-		if(!NT_SUCCESS(ShDrvMemory::AllocatePool<PSH_POOL_INFORMATION>(SH_POOL_INFORMATION_SIZE, &g_Pools))) { END }
+		Status = ShDrvMemory::AllocatePool<PSH_POOL_INFORMATION>(SH_POOL_INFORMATION_SIZE, &g_Pools);
+		if (!NT_SUCCESS(Status)) { ERROR_END }
 	}
 	
 	KeInitializeSpinLock(&g_Pools->Lock);
@@ -23,7 +26,8 @@ NTSTATUS ShDrvPoolManager::Initialize()
 	g_Pools->PoolCount      = ((AllPoolTypeCount - GlobalPoolTypeCount - 1) * SH_POOL_ENTRY_MAX_COUNT) + GlobalPoolTypeCount;
 	g_Pools->TotalEntrySize = SH_POOL_ENTRY_SIZE * g_Pools->PoolCount;
 	
-	if(!NT_SUCCESS(ShDrvMemory::AllocatePool<PSH_POOL_ENTRY>(g_Pools->TotalEntrySize, &g_Pools->PoolEntry))) { END }
+	Status = ShDrvMemory::AllocatePool<PSH_POOL_ENTRY>(g_Pools->TotalEntrySize, &g_Pools->PoolEntry);
+	if(!NT_SUCCESS(Status)) { ERROR_END }
 	
 	// Allocate global pool 
 	for (auto i = 0; i < GlobalPoolTypeCount; i++)
@@ -32,7 +36,7 @@ NTSTATUS ShDrvPoolManager::Initialize()
 		POOL_ENTRY_INITIALIZE(PoolEntry, (SH_POOL_TYPE)i, PAGE_SIZE);
 
 		Status = ShDrvMemory::AllocatePool<PVOID>(PAGE_SIZE, &PoolEntry->Buffer);
-		if(!NT_SUCCESS(Status)) { END }
+		if(!NT_SUCCESS(Status)) { ERROR_END }
 	}
 
 	// Allocate another pool
@@ -40,13 +44,13 @@ NTSTATUS ShDrvPoolManager::Initialize()
 	{
 		if (i == ANSI_POOL || i == UNICODE_POOL)
 		{
-			Status = AllocatePoolEntry((SH_POOL_TYPE)i, 260);
+			Status = AllocatePoolEntry((SH_POOL_TYPE)i, STR_MAX_LENGTH);
 		}
 		else
 		{
 			Status = AllocatePoolEntry((SH_POOL_TYPE)i, PAGE_SIZE);
 		}
-		if (!NT_SUCCESS(Status)) { break; }
+		if (!NT_SUCCESS(Status)) { ERROR_END }
 	}
 
 FINISH:
@@ -55,7 +59,9 @@ FINISH:
 
 NTSTATUS ShDrvPoolManager::AllocatePoolEntry(IN SH_POOL_TYPE PoolType, IN ULONG PoolSize)
 {
+#if TRACE_LOG_DEPTH & TRACE_POOL
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#endif
 
 	auto Status = STATUS_SUCCESS;
 
@@ -66,7 +72,7 @@ NTSTATUS ShDrvPoolManager::AllocatePoolEntry(IN SH_POOL_TYPE PoolType, IN ULONG 
 		auto PoolEntry = &g_Pools->PoolEntry[StartIndex + i]; 
 		POOL_ENTRY_INITIALIZE(PoolEntry, PoolType, PoolSize); 
 		Status = ShDrvMemory::AllocatePool<PVOID>(PoolSize, &PoolEntry->Buffer);
-		if (!NT_SUCCESS(Status)) { break; }
+		if (!NT_SUCCESS(Status)) { ERROR_END }
 	}
 
 FINISH:
@@ -75,9 +81,12 @@ FINISH:
 
 NTSTATUS ShDrvPoolManager::FreePoolEntry(IN PVOID Buffer, IN BOOLEAN bReuse)
 {
+#if TRACE_LOG_DEPTH & TRACE_POOL
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#endif
 
 	auto Status = STATUS_SUCCESS;
+	BOOLEAN bFound = false;
 	KIRQL CurrentIrql = KeGetCurrentIrql();
 	
 	if (g_Pools == nullptr || Buffer == nullptr) { return STATUS_INVALID_PARAMETER; }
@@ -89,6 +98,7 @@ NTSTATUS ShDrvPoolManager::FreePoolEntry(IN PVOID Buffer, IN BOOLEAN bReuse)
 		auto Entry = &g_Pools->PoolEntry[i];
 		if (Entry->Buffer == Buffer)
 		{
+			bFound = true;
 			RtlSecureZeroMemory(Buffer, Entry->PoolSize);
 			
 			if (bReuse == false)
@@ -103,6 +113,8 @@ NTSTATUS ShDrvPoolManager::FreePoolEntry(IN PVOID Buffer, IN BOOLEAN bReuse)
 		}
 	}
 
+	if (bFound == false && MmIsAddressValid(Buffer)) { FREE_POOLEX(Buffer); }
+
 	SPIN_UNLOCK(&g_Pools->Lock);
 
 	return Status;
@@ -110,7 +122,9 @@ NTSTATUS ShDrvPoolManager::FreePoolEntry(IN PVOID Buffer, IN BOOLEAN bReuse)
 
 PVOID ShDrvPoolManager::GetPool(IN SH_POOL_TYPE PoolType)
 {
+#if TRACE_LOG_DEPTH & TRACE_POOL
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#endif
 	
 	if (g_Pools == nullptr) { return nullptr; }
 
@@ -145,7 +159,9 @@ PVOID ShDrvPoolManager::GetPool(IN SH_POOL_TYPE PoolType)
 
 VOID ShDrvPoolManager::Finalize()
 {
+#if TRACE_LOG_DEPTH & TRACE_POOL
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#endif
 	KIRQL CurrentIrql = KeGetCurrentIrql();
 
 	if (g_Pools != nullptr)
