@@ -1,5 +1,18 @@
 #include <ShDrvInc.h>
 
+VOID ShDrvUtil::Sleep(IN ULONG Microsecond)
+{
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+
+	if (Microsecond <= 0) { return; }
+	
+	KEVENT Event = { 0, };
+	LARGE_INTEGER Time = { 0, };
+	KeInitializeEvent(&Event, NotificationEvent, false);
+	Time = RtlConvertLongToLargeInteger((LONG)-10000 * Microsecond);
+	KeWaitForSingleObject(&Event, DelayExecution, KernelMode, false, &Time);
+}
+
 BOOLEAN ShDrvUtil::StringCompareA(IN PCSTR Source, IN PCSTR Dest)
 {
     TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);

@@ -238,6 +238,85 @@ namespace ShDrvUndocEnum {
 	}SYSTEM_INFORMATION_CLASS;
 
 	//======================================================
+	// Process Information Class
+	//======================================================
+	typedef enum _PROCESS_INFORMATION_CLASS {
+		ProcessBasicInformation,
+		ProcessQuotaLimits,
+		ProcessIoCounters,
+		ProcessVmCounters,
+		ProcessTimes,
+		ProcessBasePriority,
+		ProcessRaisePriority,
+		ProcessDebugPort,
+		ProcessExceptionPort,
+		ProcessAccessToken,
+		ProcessLdtInformation,
+		ProcessLdtSize,
+		ProcessDefaultHardErrorMode,
+		ProcessIoPortHandlers,
+		ProcessPooledUsageAndLimits,
+		ProcessWorkingSetWatch,
+		ProcessUserModeIOPL,
+		ProcessEnableAlignmentFaultFixup,
+		ProcessPriorityClass,
+		ProcessWx86Information,
+		ProcessHandleCount,
+		ProcessAffinityMask,
+		ProcessPriorityBoost,
+		MaxProcessInfoClass
+	} PROCESS_INFORMATION_CLASS, * PPROCESS_INFORMATION_CLASS;
+
+	//======================================================
+	// Thread Information Class
+	//======================================================
+	typedef enum _THREAD_INFORMATION_CLASS {
+		ThreadBasicInformation,
+		ThreadTimes,
+		ThreadPriority,
+		ThreadBasePriority,
+		ThreadAffinityMask,
+		ThreadImpersonationToken,
+		ThreadDescriptorTableEntry,
+		ThreadEnableAlignmentFaultFixup,
+		ThreadEventPair_Reusable,
+		ThreadQuerySetWin32StartAddress,
+		ThreadZeroTlsCell,
+		ThreadPerformanceCount,
+		ThreadAmILastThread,
+		ThreadIdealProcessor,
+		ThreadPriorityBoost,
+		ThreadSetTlsArrayAddress,
+		ThreadIsIoPending,
+		ThreadHideFromDebugger,
+		ThreadBreakOnTermination,
+		ThreadSwitchLegacyState,
+		ThreadIsTerminated,
+		ThreadLastSystemCall,
+		ThreadIoPriority,
+		ThreadCycleTime,
+		ThreadPagePriority,
+		ThreadActualBasePriority,
+		ThreadTebInformation,
+		ThreadCSwitchMon,
+		ThreadCSwitchPmu,
+		ThreadWow64Context,
+		ThreadGroupInformation,
+		ThreadUmsInformation,
+		ThreadCounterProfiling,
+		ThreadIdealProcessorEx,
+		ThreadCpuAccountingInformation,
+		ThreadSuspendCount,
+		ThreadHeterogeneousCpuPolicy,
+		ThreadContainerId,
+		ThreadNameInformation,
+		ThreadSelectedCpuSets,
+		ThreadSystemThreadInformation,
+		ThreadActualGroupAffinity,
+		MaxThreadInfoClass
+	}THREAD_INFORMATION_CLASS, *PTHREAD_INFORMATION_CLASS;
+
+	//======================================================
 	// Memory Information Class
 	//======================================================
 	typedef enum _REDEF_MEMORY_INFORMATION_CLASS

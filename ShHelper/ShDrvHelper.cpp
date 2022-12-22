@@ -2,6 +2,7 @@
 
 PSH_GLOBAL_ROUTINES  g_Routines;
 PSH_GLOBAL_VARIABLES g_Variables;
+PSH_GLOBAL_OFFSETS   g_Offsets;
 PSH_POOL_INFORMATION g_Pools;
 
 // LLVM is not support
@@ -18,6 +19,7 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
 	if (!NT_SUCCESS(Status)) { ShDrvPoolManager::Finalize(); END }
 
 	Log("Loaded driver\n");
+
 
 FINISH:
 	return Status;
@@ -45,18 +47,17 @@ NTSTATUS DriverInitialize()
 		END 
 	}
 
-	g_Routines = reinterpret_cast<PSH_GLOBAL_ROUTINES>(ShDrvPoolManager::GetPool(GLOBAL_ROUTINES));
-	if (g_Routines == nullptr) { Status = STATUS_UNSUCCESSFUL; END }
 
-	g_Variables = reinterpret_cast<PSH_GLOBAL_VARIABLES>(ShDrvPoolManager::GetPool(GLOBAL_VARIABLES));
-	if (g_Variables == nullptr) { Status = STATUS_UNSUCCESSFUL; END }
+	GET_GLOBAL_POOL(g_Routines, GLOBAL_ROUTINES);
+	GET_GLOBAL_POOL(g_Variables, GLOBAL_VARIABLES);
+	GET_GLOBAL_POOL(g_Offsets, GLOBAL_OFFSETS);
 
 	GET_EXPORT_ROUTINE(PsGetProcessPeb, Ps);
-
 	GET_EXPORT_VARIABLE(PsLoadedModuleList, PLIST_ENTRY);
 
 	g_Variables->KUserSharedData = reinterpret_cast<PKUSER_SHARED_DATA>(KUSER_SHARED_DATA_ADDRESS);
 	g_Variables->BuildNumber = g_Variables->KUserSharedData->NtBuildNumber;
+
 	
 FINISH:
 	return Status;

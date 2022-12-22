@@ -16,6 +16,8 @@ NTSTATUS ShDrvPoolManager::Initialize()
 		if(!NT_SUCCESS(ShDrvMemory::AllocatePool<PSH_POOL_INFORMATION>(SH_POOL_INFORMATION_SIZE, &g_Pools))) { END }
 	}
 	
+	KeInitializeSpinLock(&g_Pools->Lock);
+
 	g_Pools->StartIndex     = GlobalPoolTypeCount;
 	g_Pools->PoolTypeCount  = AllPoolTypeCount - 1;
 	g_Pools->PoolCount      = ((AllPoolTypeCount - GlobalPoolTypeCount - 1) * SH_POOL_ENTRY_MAX_COUNT) + GlobalPoolTypeCount;
@@ -76,7 +78,11 @@ NTSTATUS ShDrvPoolManager::FreePoolEntry(IN PVOID Buffer, IN BOOLEAN bReuse)
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 
 	auto Status = STATUS_SUCCESS;
+	KIRQL CurrentIrql = KeGetCurrentIrql();
+	
 	if (g_Pools == nullptr || Buffer == nullptr) { return STATUS_INVALID_PARAMETER; }
+
+	SPIN_LOCK(&g_Pools->Lock);
 
 	for (auto i = 0; i < g_Pools->PoolCount; i++)
 	{
@@ -88,13 +94,16 @@ NTSTATUS ShDrvPoolManager::FreePoolEntry(IN PVOID Buffer, IN BOOLEAN bReuse)
 			if (bReuse == false)
 			{
 				FREE_POOLEX(Buffer);
-				ShDrvMemory::AllocatePool<PVOID>(Entry->PoolSize, &Entry->Buffer);
+				Status = ShDrvMemory::AllocatePool<PVOID>(Entry->PoolSize, &Entry->Buffer);
+				if (!NT_SUCCESS(Status)) { Entry->bUsed = true; }
 			}
 
 			Entry->bUsed = false;
 			break;
 		}
 	}
+
+	SPIN_UNLOCK(&g_Pools->Lock);
 
 	return Status;
 }
@@ -106,6 +115,10 @@ PVOID ShDrvPoolManager::GetPool(IN SH_POOL_TYPE PoolType)
 	if (g_Pools == nullptr) { return nullptr; }
 
 	PVOID Result = nullptr;
+	KIRQL CurrentIrql = KeGetCurrentIrql();
+	
+	SPIN_LOCK(&g_Pools->Lock);
+
 	if (PoolType < GlobalPoolTypeCount)
 	{
 		Result = g_Pools->PoolEntry[PoolType].Buffer;
@@ -125,22 +138,27 @@ PVOID ShDrvPoolManager::GetPool(IN SH_POOL_TYPE PoolType)
 			}
 		}
 	}
-	
+
+	SPIN_UNLOCK(&g_Pools->Lock);
 	return Result;
 }
 
 VOID ShDrvPoolManager::Finalize()
 {
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+	KIRQL CurrentIrql = KeGetCurrentIrql();
 
 	if (g_Pools != nullptr)
 	{
+		SPIN_LOCK(&g_Pools->Lock);
+
 		for (auto i = 0; i < g_Pools->PoolCount; i++)
 		{
 			auto Entry = &g_Pools->PoolEntry[i];
 			FREE_POOLEX(Entry->Buffer);
 		}
 		FREE_POOLEX(g_Pools->PoolEntry);
+		SPIN_UNLOCK(&g_Pools->Lock);
 		FREE_POOLEX(g_Pools);
 	}
 }

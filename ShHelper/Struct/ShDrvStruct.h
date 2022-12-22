@@ -24,6 +24,8 @@ PACK_END
 
 PACK_START(1)
 typedef struct _SH_GLOBAL_VARIABLES{
+	KSPIN_LOCK Lock;
+
 	PDRIVER_OBJECT DriverObject;
 	PDEVICE_OBJECT DeviceObject;
 
@@ -40,6 +42,64 @@ typedef struct _SH_GLOBAL_VARIABLES{
 }SH_GLOBAL_VARIABLES, *PSH_GLOBAL_VARIABLES;
 PACK_END
 
+/********************************************************************************************
+* Global offsets structure
+********************************************************************************************/
+
+PACK_START(1)
+typedef struct _SH_GLOBAL_OFFSETS {
+	struct {
+		ULONG DirectoryTableBase;
+		ULONG ThreadListHead;
+		ULONG ProcessLock;
+		ULONG UserDirectoryTableBase;
+	}KPROCESS;
+
+	struct {
+		ULONG ProcessLock;
+		ULONG UniqueProcessId;
+		ULONG ActiveProcessLinks;
+		ULONG Peb;
+		ULONG ObjectTable;
+		ULONG DebugPort;
+		ULONG WoW64Process;
+		ULONG ThreadListHead;
+		ULONG ActiveThreads;
+		ULONG ExitStatus;
+		ULONG VadRoot;
+		ULONG ThreadListLock;
+	}EPROCESS;
+
+	struct {
+		ULONG InitialStack;
+		ULONG StackLimit;
+		ULONG StackBase;
+		ULONG ThreadLock;
+		ULONG KernelStack;
+		ULONG ApcState;
+		ULONG Teb;
+		ULONG State;
+		ULONG Process;
+		ULONG ThreadListEntry;
+	}KTHREAD;
+
+	struct {
+		ULONG StartAddress;
+		ULONG Cid;
+		ULONG Win32StartAddress;
+		ULONG ThreadListEntry;
+		ULONG ThreadLock;
+		ULONG CrossThreadFlags;
+		ULONG SameThreadPassiveFlags;
+		ULONG ExitStatus;
+		ULONG UserFsBase;
+		ULONG UserGsBase;
+	}ETHREAD;
+
+#define SH_GLOBAL_OFFSETS_SIZE sizeof(SH_GLOBAL_OFFSETS)
+}SH_GLOBAL_OFFSETS, *PSH_GLOBAL_OFFSETS;
+
+PACK_END
 
 /********************************************************************************************
 * Pool manager structure
@@ -58,6 +118,7 @@ PACK_END
 
 PACK_START(1)
 typedef struct _SH_POOL_INFORMATION {
+	KSPIN_LOCK     Lock;
 	ULONG          PoolTypeCount;
 	ULONG          PoolCount;
 	ULONG          TotalEntrySize;
@@ -75,6 +136,7 @@ PACK_END
 
 EXTERN_C PSH_GLOBAL_ROUTINES  g_Routines;
 EXTERN_C PSH_GLOBAL_VARIABLES g_Variables;
+EXTERN_C PSH_GLOBAL_OFFSETS   g_Offsets;
 EXTERN_C PSH_POOL_INFORMATION g_Pools;
 
 #endif // !_SHDRVSTRUCT_H_

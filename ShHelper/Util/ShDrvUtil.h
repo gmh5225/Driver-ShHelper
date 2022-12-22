@@ -3,16 +3,30 @@
 
 using namespace ShDrvFuncDef;
 
-#define LOCK_OBJECT(ptr, type)  ExAcquire##type##Exclusive(p)
-#define UNLOCK_OBJECT(ptr,type) ExxRelease##type##Exclusive(p)
+#define LOCK_EXCLUSIVE(ptr, type)\
+KeEnterCriticalRegion();\
+ExAcquire##type##Exclusive(ptr)
+#define UNLOCK_EXCLUSIVE(ptr,type)\
+KeLeaveCriticalRegion();\
+ExRelease##type##Exclusive(ptr)
+#define LOCK_SHARED(ptr, type)\
+KeEnterCriticalRegion();\
+ExAcquire##type##Shared(ptr)
+#define UNLOCK_SHARED(ptr,type)\
+KeLeaveCriticalRegion();\
+ExRelease##type##Shared(ptr)
+
+#define SPIN_LOCK(ptr) if(CurrentIrql == DISPATCH_LEVEL) KeAcquireSpinLockAtDpcLevel(ptr); else KeAcquireSpinLock(ptr, &CurrentIrql);
+#define SPIN_UNLOCK(ptr) KeReleaseSpinLock(ptr, CurrentIrql)
 
 #define GET_EXPORT_ROUTINE(RoutineName, Prefix)\
 Status += ShDrvUtil::GetRoutineAddress<Prefix::RoutineName##_t>(L#RoutineName, &g_Routines->##RoutineName);
-
 #define GET_EXPORT_VARIABLE(VarName, type)\
 Status += ShDrvUtil::GetRoutineAddress<type>(L#VarName, &g_Variables->##VarName);
 
 namespace ShDrvUtil {
+	VOID Sleep(IN ULONG Microsecond);
+
 #define StringCompare ShDrvUtil::StringCompareA
 	BOOLEAN StringCompareA(IN PCSTR Source, IN PCSTR Dest);
 	BOOLEAN StringCompareW(IN PWSTR Source, IN PWSTR Dest);

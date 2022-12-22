@@ -815,4 +815,35 @@ namespace ShDrvFuncDef {
 	}
 }
 
+
+EXTERN_C_START
+
+NTSYSAPI NTSTATUS NTAPI
+ZwQuerySystemInformation(
+	IN SYSTEM_INFORMATION_CLASS SystemInformationClass,
+	OUT PVOID SystemInformation,
+	IN ULONG SystemInformationLength,
+	OUT PULONG ReturnLength OPTIONAL
+);
+
+NTSYSAPI PIMAGE_NT_HEADERS NTAPI
+RtlImageNtHeader(
+	IN PVOID ModuleAddress
+);
+
+NTSYSAPI PVOID NTAPI
+RtlImageDirectoryEntryToData(
+	IN PVOID BaseAddress,
+	IN BOOLEAN MappedAsImage,
+	IN USHORT Directory,
+	OUT PULONG Size
+);
+
+NTSYSAPI PVOID NTAPI
+RtlFindExportedRoutineByName(
+	IN PVOID ImageBase,
+	IN PCHAR RoutineName
+);
+
+EXTERN_C_END
 #endif // !_SHDRVFUNCDEF_H_

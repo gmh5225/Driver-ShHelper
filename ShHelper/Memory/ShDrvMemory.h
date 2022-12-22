@@ -9,11 +9,11 @@ namespace ShDrvMemory {
 	{
 		TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 
-		if (Size == 0 || Pool == nullptr) { return false; }
+		if (Size == 0 || Pool == nullptr) { return STATUS_UNSUCCESSFUL; }
 		*Pool = (T)ExAllocatePoolWithTag(NonPagedPool, Size, SH_TAG);
-		if (*Pool == nullptr) { return false; }
+		if (*Pool == nullptr) { return STATUS_UNSUCCESSFUL; }
 		RtlSecureZeroMemory(*Pool, Size);
-		return true;
+		return STATUS_SUCCESS;
 	}
 }
 
