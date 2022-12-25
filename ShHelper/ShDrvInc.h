@@ -4,15 +4,16 @@
 #define TRACE_LOG 1
 #define DEBUG_LOG 1
 
-#define TRACE_ALL       0xFF
-#define TRACE_OFF       0x00
-#define TRACE_ENTRY     0x01
-#define TRACE_UTIL      0x02
-#define TRACE_POOL      0x04
-#define TRACE_MEMORY    0x08
+#define TRACE_OFF       0x0000
+#define TRACE_ENTRY     0x0001
+#define TRACE_UTIL      0x0002
+#define TRACE_POOL      0x0004
+#define TRACE_MEMORY    0x0008
+#define TRACE_CORE      0x0010
+#define TRACE_PE        0x0020
+#define TRACE_ALL       0xFFFF
 
-#define TRACE_LOG_DEPTH TRACE_ALL 
-
+#define TRACE_LOG_DEPTH TRACE_OFF 
 
 #define ASM_START _asm {
 #define ASM_END   }
@@ -26,8 +27,8 @@
 #endif
 
 #if DEBUG_LOG
-#define Log(...)       DbgPrintEx( DPFLTR_SYSTEM_ID,DPFLTR_ERROR_LEVEL, "[ShHelper] " __VA_ARGS__ ); PlainLog("\n");
-#define ErrLog(...)    DbgPrintEx( DPFLTR_SYSTEM_ID, DPFLTR_ERROR_LEVEL, "[ShHelper Error] " __VA_ARGS__ ); PlainLog("\n");
+#define Log(...)       DbgPrintEx( DPFLTR_SYSTEM_ID,DPFLTR_ERROR_LEVEL, "[SH_LOG] " __VA_ARGS__ ); PlainLog("\n");
+#define ErrLog(...)    DbgPrintEx( DPFLTR_SYSTEM_ID, DPFLTR_ERROR_LEVEL, "[SH_ERR] " __VA_ARGS__ ); PlainLog("\n");
 #define PlainLog(...)  DbgPrintEx( DPFLTR_SYSTEM_ID,DPFLTR_ERROR_LEVEL, __VA_ARGS__ )
 #define DetailLog(...) DbgPrintEx( DPFLTR_SYSTEM_ID,DPFLTR_ERROR_LEVEL, "\t\t[*] " __VA_ARGS__ ); PlainLog("\n");
 #define NtErrLog(Caller, Status) ErrLog("%s : 0x%X", Caller, Status)
@@ -60,6 +61,11 @@
 #include <Struct/ShDrvStruct.h>
 
 #include <Memory/ShDrvMemory.h>
+
+#include <Pe/ShDrvPe.h>
+
+#include <Core/ShDrvCore.h>
+
 #include <Util/ShDrvUtil.h>
 
 #include <PoolManager/ShDrvPoolManager.h>

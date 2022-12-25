@@ -1,7 +1,7 @@
 #ifndef _SHDRVUNDOCENUM_H_
 #define _SHDRVUNDOCENUM_H_
 
-namespace ShDrvUndocEnum {
+namespace UNDOC_ENUM {
 
 	//======================================================
 	// System Information Class

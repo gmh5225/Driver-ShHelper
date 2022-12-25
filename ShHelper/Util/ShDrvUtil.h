@@ -2,8 +2,8 @@
 #define _SHDRVUTIL_H_
 
 using namespace ShDrvFuncDef;
-using namespace ShDrvUndocSystem;
-using namespace ShDrvUndocPeb;
+using namespace UNDOC_SYSTEM;
+using namespace UNDOC_PEB;
 
 #define LOCK_EXCLUSIVE(ptr, type)\
 KeEnterCriticalRegion();\
@@ -31,8 +31,9 @@ namespace ShDrvUtil {
 * String utility
 ********************************************************************************************/
 #define StringCompare ShDrvUtil::StringCompareA
-#define StringCopy ShDrvUtil::StringCopyA
-#define StringCat ShDrvUtil::StringConcatenateA
+#define StringCopy    ShDrvUtil::StringCopyA
+#define StringCat     ShDrvUtil::StringConcatenateA
+#define StringLength  ShDrvUtil::StringLengthA
 
 	BOOLEAN StringCompareA(
 		IN PSTR Source, 
@@ -44,36 +45,39 @@ namespace ShDrvUtil {
 
 	NTSTATUS StringCopyA(
 		OUT NTSTRSAFE_PSTR Dest, 
-		IN NTSTRSAFE_PCSTR Source );
+		IN  NTSTRSAFE_PCSTR Source );
 
 	NTSTATUS StringCopyW(
 		OUT NTSTRSAFE_PWSTR Dest, 
-		IN NTSTRSAFE_PCWSTR Source );
+		IN  NTSTRSAFE_PCWSTR Source );
 	
 	NTSTATUS StringConcatenateA(
 		OUT NTSTRSAFE_PSTR Dest, 
-		IN NTSTRSAFE_PCSTR Source );
+		IN  NTSTRSAFE_PCSTR Source );
 
 	NTSTATUS StringConcatenateW(
 		OUT NTSTRSAFE_PWSTR Dest, 
-		IN NTSTRSAFE_PCWSTR Source );
+		IN  NTSTRSAFE_PCWSTR Source );
+
+	NTSTATUS StringToUnicode(
+		IN PSTR Source,
+		OUT PUNICODE_STRING Dest
+	);
+
+	NTSTATUS WStringToAnsiString(
+		IN  PWSTR Source,
+		OUT PANSI_STRING Dest
+	);
+
+	SIZE_T StringLengthA(IN PSTR Source);
+	SIZE_T StringLengthW(IN PWSTR Source);
 
 /********************************************************************************************
 * Core utility
 ********************************************************************************************/
 	VOID Sleep(IN ULONG Microsecond);
 
-	PVOID GetKernelBaseAddress(
-		IN PCSTR ModuleName, 
-		IN SH_GET_BASE_METHOD Method = QueryModuleInfo );
-
-	NTSTATUS GetSystemModuleInformation(
-		IN PCSTR ModuleName, 
-		OUT PSYSTEM_MODULE_ENTRY ModuleInfomration );
-
-	PLDR_DATA_TABLE_ENTRY GetModuleInformation(
-		IN PCSTR ModuleName, 
-		IN HANDLE ProcessId = nullptr );
+	PEPROCESS GetProcessByProcessId(IN HANDLE ProcessId);
 
 	template <typename T>
 	NTSTATUS GetRoutineAddress(
@@ -95,6 +99,15 @@ namespace ShDrvUtil {
 		if (*Routine == nullptr) { return STATUS_UNSUCCESSFUL; }
 
 		return STATUS_SUCCESS;
+	}
+
+	template <typename T>
+	NTSTATUS GetRoutineAddressEx(
+		IN PWSTR Name,
+		OUT T* Routine,
+		IN PVOID ImageBase = nullptr OPTIONAL)
+	{
+
 	}
 }
 

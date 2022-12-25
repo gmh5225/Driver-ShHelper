@@ -1,19 +1,7 @@
 #include <ShDrvInc.h>
 
-VOID ShDrvUtil::Sleep(IN ULONG Microsecond)
-{
-#if TRACE_LOG_DEPTH & TRACE_UTIL
-	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
-#endif
-
-	if (Microsecond <= 0) { return; }
-	
-	KEVENT Event = { 0, };
-	LARGE_INTEGER Time = { 0, };
-	KeInitializeEvent(&Event, NotificationEvent, false);
-	Time = RtlConvertLongToLargeInteger((LONG)-10000 * Microsecond);
-	KeWaitForSingleObject(&Event, DelayExecution, KernelMode, false, &Time);
-}
+using namespace UNDOC_SYSTEM;
+using namespace UNDOC_PEB;
 
 BOOLEAN ShDrvUtil::StringCompareA(
 	IN PSTR Source, 
@@ -105,110 +93,96 @@ NTSTATUS ShDrvUtil::StringConcatenateW(
 	return Status;
 }
 
-PVOID ShDrvUtil::GetKernelBaseAddress(
-	IN PCSTR ModuleName, 
-	IN SH_GET_BASE_METHOD Method )
-{
-#if TRACE_LOG_DEPTH & TRACE_UTIL
-	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
-#endif
-	
-	auto Status = STATUS_SUCCESS;
-	PVOID Result = nullptr;
-
-	switch (Method)
-	{
-	case LoadedModuleList:
-	{
-		break;
-	}
-
-	case QueryModuleInfo:
-	{
-		SYSTEM_MODULE_ENTRY ModuleInformation = { 0, };
-		Status = GetSystemModuleInformation(ModuleName, &ModuleInformation); 
-		if(!NT_SUCCESS(Status)){ ERROR_END }
-
-		Result = ModuleInformation.ImageBase;
-		break;
-	}
-
-	default: break;
-	}
-	
-
-FINISH:
-	return Result;
-}
-
-NTSTATUS ShDrvUtil::GetSystemModuleInformation(
-	IN PCSTR ModuleName, 
-	OUT PSYSTEM_MODULE_ENTRY ModuleInfomration )
+NTSTATUS ShDrvUtil::StringToUnicode(
+	IN PSTR Source, 
+	OUT PUNICODE_STRING Dest )
 {
 #if TRACE_LOG_DEPTH & TRACE_UTIL
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #endif
 
 	auto Status = STATUS_SUCCESS;
-	auto ReturnLength = 0ul;
-	auto NumberOfModules = 0;
-	PSTR CompareName = nullptr;
-	PSTR TargetName = nullptr;
-	PSYSTEM_MODULE_INFORMATION SystemInformation = nullptr;
-	PSYSTEM_MODULE_ENTRY ModuleEntry = nullptr;
+	ANSI_STRING SourceString = { 0, };
 
-	if (ModuleName == nullptr) { ERROR_END }
+	if (Source == nullptr || Dest == nullptr) { return STATUS_INVALID_PARAMETER; }
 
-	TargetName = reinterpret_cast<PSTR>(ALLOC_POOL(ANSI_POOL));
-	Status = StringCopy(TargetName, ModuleName);
+	RtlInitAnsiString(&SourceString, Source);
+	
+	Dest->MaximumLength = RtlxAnsiStringToUnicodeSize(&SourceString);
+
+	Status = RtlAnsiStringToUnicodeString(Dest, &SourceString, false);
 	if (!NT_SUCCESS(Status)) { ERROR_END }
-	
-	Status = ZwQuerySystemInformation(SystemModuleInformation, nullptr, ReturnLength, &ReturnLength);
-	if (Status == STATUS_INFO_LENGTH_MISMATCH)
-	{
-		if (ReturnLength > PAGE_SIZE) 
-		{
-			Status = ShDrvMemory::AllocatePool<PSYSTEM_MODULE_INFORMATION>(ReturnLength, &SystemInformation);
-			if (!NT_SUCCESS(Status)) { ERROR_END }
-		}
-		else
-		{
-			SystemInformation = reinterpret_cast<PSYSTEM_MODULE_INFORMATION>(ALLOC_POOL(NONE_SPECIAL));
-		}
-		Status = ZwQuerySystemInformation(SystemModuleInformation, SystemInformation, ReturnLength, &ReturnLength);
-		if (!NT_SUCCESS(Status)) { ERROR_END }
-	}
-	else{ ERROR_END }
-
-	Status = STATUS_NOT_FOUND;
-
-	NumberOfModules = SystemInformation->Count;
-	for (auto i = 0; i < NumberOfModules; i++)
-	{
-		ModuleEntry = &SystemInformation->Module[i];
-		CompareName = strrchr(ModuleEntry->FullPathName, '\\') + 1;
-		if (StringCompare(TargetName, CompareName) == true)
-		{
-			Status = STATUS_SUCCESS;
-			RtlCopyMemory(ModuleInfomration, ModuleEntry, SYSTEM_MODULE_ENTRY_SIZE);
-			break;
-		}
-	}
 
 FINISH:
-	FREE_POOL(TargetName);
-	FREE_POOL(SystemInformation);
 	return Status;
 }
 
-PLDR_DATA_TABLE_ENTRY ShDrvUtil::GetModuleInformation(
-	IN PCSTR ModuleName, 
-	IN HANDLE ProcessId )
+NTSTATUS ShDrvUtil::WStringToAnsiString(
+	IN PWSTR Source, 
+	OUT PANSI_STRING Dest )
 {
 #if TRACE_LOG_DEPTH & TRACE_UTIL
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #endif
 
-	return PLDR_DATA_TABLE_ENTRY();
+	auto Status = STATUS_SUCCESS;
+	UNICODE_STRING SourceString = { 0, };
+
+	if (Source == nullptr || Dest == nullptr) { return STATUS_INVALID_PARAMETER; }
+
+	RtlInitUnicodeString(&SourceString, Source);
+
+	Dest->MaximumLength = RtlxUnicodeStringToAnsiSize(&SourceString);
+
+	Status = RtlUnicodeStringToAnsiString(Dest, &SourceString, false);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+FINISH:
+	return Status;
 }
 
+SIZE_T ShDrvUtil::StringLengthA(IN PSTR Source)
+{
+	auto Length = 0ull;
+	RtlStringCchLengthA(Source, NTSTRSAFE_MAX_LENGTH, &Length);
+	return Length;
+}
+
+SIZE_T ShDrvUtil::StringLengthW(IN PWSTR Source)
+{
+	auto Length = 0ull;
+	RtlStringCchLengthW(Source, NTSTRSAFE_MAX_LENGTH, &Length);
+	return Length;
+}
+
+VOID ShDrvUtil::Sleep(IN ULONG Microsecond)
+{
+#if TRACE_LOG_DEPTH & TRACE_UTIL
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#endif
+
+	if (Microsecond <= 0) { return; }
+
+	KEVENT Event = { 0, };
+	LARGE_INTEGER Time = { 0, };
+	KeInitializeEvent(&Event, NotificationEvent, false);
+	Time = RtlConvertLongToLargeInteger((LONG)-10000 * Microsecond);
+	KeWaitForSingleObject(&Event, DelayExecution, KernelMode, false, &Time);
+}
+
+PEPROCESS ShDrvUtil::GetProcessByProcessId(IN HANDLE ProcessId)
+{
+#if TRACE_LOG_DEPTH & TRACE_UTIL
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#endif
+	auto Status = STATUS_INVALID_PARAMETER;
+	PEPROCESS Process = nullptr;
+	
+	if(ProcessId == nullptr) { ERROR_END }
+
+	Status = PsLookupProcessByProcessId(ProcessId, &Process);
+	if(!NT_SUCCESS(Status)) { ERROR_END }
+
+FINISH:
+	return Process;
+}

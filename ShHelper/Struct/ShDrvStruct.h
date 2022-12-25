@@ -11,9 +11,13 @@ using namespace ShDrvFuncDef;
 Prefix::RoutineName##_t RoutineName
 #define SH_ROUTINE_CALL(RoutineName) g_Routines->##RoutineName
 
+#define SH_VARIABLE_MEMBER(VarName, type) type VarName
+
 PACK_START(1)
 typedef struct _SH_GLOBAL_ROUTINES {
+	SH_ROUTINE_MEMBER(PsGetProcessImageFileName, Ps);
 	SH_ROUTINE_MEMBER(PsGetProcessPeb, Ps);
+	SH_ROUTINE_MEMBER(PsGetProcessWow64Process, Ps);
 
 #define SH_GLOBAL_ROUTINES_SIZE sizeof(SH_GLOBAL_ROUTINES)
 }SH_GLOBAL_ROUTINES, *PSH_GLOBAL_ROUTINES;
@@ -25,18 +29,18 @@ PACK_END
 
 PACK_START(1)
 typedef struct _SH_GLOBAL_VARIABLES{
-	KSPIN_LOCK Lock;
+	SH_VARIABLE_MEMBER(Lock, KSPIN_LOCK);
 
-	PDRIVER_OBJECT DriverObject;
-	PDEVICE_OBJECT DeviceObject;
+	SH_VARIABLE_MEMBER(DriverObject, PDRIVER_OBJECT);
+	SH_VARIABLE_MEMBER(DeviceObject, PDEVICE_OBJECT);
 
-	ULONG BuildNumber;
-	PVOID SystemBaseAddress;
-	PVOID SystemEndAddress;
-	ULONG64 SystemDirBase;
+	SH_VARIABLE_MEMBER(BuildNumber, ULONG);
+	SH_VARIABLE_MEMBER(SystemBaseAddress, PVOID);
+	SH_VARIABLE_MEMBER(SystemEndAddress, PVOID);
+	SH_VARIABLE_MEMBER(SystemDirBase, ULONG64);
 
-	PKUSER_SHARED_DATA KUserSharedData;
-	PLIST_ENTRY PsLoadedModuleList;
+	SH_VARIABLE_MEMBER(KUserSharedData, PKUSER_SHARED_DATA);
+	SH_VARIABLE_MEMBER(PsLoadedModuleList, PLIST_ENTRY);
 
 #define KUSER_SHARED_DATA_ADDRESS 0xFFFFF78000000000
 #define SH_GLOBAL_VARIABLES_SIZE sizeof(SH_GLOBAL_VARIABLES)

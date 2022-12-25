@@ -49,6 +49,12 @@
     <ClInclude Include="PoolManager\ShDrvPoolManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Pe\ShDrvPe.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ShDrvCore.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ShDrvHelper.cpp">
@@ -61,6 +67,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="PoolManager\ShDrvPoolManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Pe\ShDrvPe.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\ShDrvCore.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

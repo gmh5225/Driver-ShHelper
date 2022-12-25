@@ -23,7 +23,7 @@
 #define WINDOWS_11_21H2 22000
 #define WINDOWS_11_22H2 22621
 
-namespace ShDrvUndocSystem {
+namespace UNDOC_SYSTEM {
 	//======================================================
 	// System Basic Information (SystemBasicInformation, ...)
 	//======================================================
@@ -39,7 +39,7 @@ namespace ShDrvUndocSystem {
 		ULONG_PTR    MaximumUserModeAddress;
 		KAFFINITY    ActiveProcessorsAffinityMask;
 		CHAR         NumberOfProcessors;
-#define SYSTEM_BASIC_INFORMATION_SIZE sizeof(ShDrvUndocSystem::SYSTEM_BASIC_INFORMATION)
+#define SYSTEM_BASIC_INFORMATION_SIZE sizeof(UNDOC_SYSTEM::SYSTEM_BASIC_INFORMATION)
 	}SYSTEM_BASIC_INFORMATION, * PSYSTEM_BASIC_INFORMATION;
 
 	//======================================================
@@ -80,7 +80,7 @@ namespace ShDrvUndocSystem {
 		LARGE_INTEGER      ReadTransferCount;                // 00E8h - 00F0h
 		LARGE_INTEGER      WriteTransferCount;               // 00F0h - 00F8h
 		LARGE_INTEGER      OtherTransferCount;               // 00F8h - 0100h
-#define SYSTEM_PROCESS_INFORMATION_SIZE sizeof(ShDrvUndocSystem::SYSTEM_PROCESS_INFORMATION)
+#define SYSTEM_PROCESS_INFORMATION_SIZE sizeof(UNDOC_SYSTEM::SYSTEM_PROCESS_INFORMATION)
 	}SYSTEM_PROCESS_INFORMATION, * PSYSTEM_PROCESS_INFORMATION;
 
 	//======================================================
@@ -98,7 +98,7 @@ namespace ShDrvUndocSystem {
 		ULONG          ContextSwitches;
 		ULONG          ThreadState;
 		ULONG          WaitReason;
-#define SYSTEM_THREAD_INFORMATION_SIZE sizeof(ShDrvUndocSystem::SYSTEM_THREAD_INFORMATION)
+#define SYSTEM_THREAD_INFORMATION_SIZE sizeof(UNDOC_SYSTEM::SYSTEM_THREAD_INFORMATION)
 	} SYSTEM_THREAD_INFORMATION, * PSYSTEM_THREAD_INFORMATION;
 	
 	//======================================================
@@ -113,7 +113,7 @@ namespace ShDrvUndocSystem {
 		ULONG64                     Reserved2;
 		ULONG64                     Reserved3;
 		ULONG64                     Reserved4;
-#define SYSTEM_EXTENDED_THREAD_INFORMATION_SIZE sizeof(ShDrvUndocSystem::SYSTEM_EXTENDED_THREAD_INFORMATION)
+#define SYSTEM_EXTENDED_THREAD_INFORMATION_SIZE sizeof(UNDOC_SYSTEM::SYSTEM_EXTENDED_THREAD_INFORMATION)
 	}SYSTEM_EXTENDED_THREAD_INFORMATION, *PSYSTEM_EXTENDED_THREAD_INFORMATION;
 
 	//======================================================
@@ -131,7 +131,7 @@ namespace ShDrvUndocSystem {
 		USHORT  LoadCount;
 		USHORT  OffsetToFileName;
 		CHAR    FullPathName[256];
-#define SYSTEM_MODULE_ENTRY_SIZE sizeof(ShDrvUndocSystem::SYSTEM_MODULE_ENTRY)
+#define SYSTEM_MODULE_ENTRY_SIZE sizeof(UNDOC_SYSTEM::SYSTEM_MODULE_ENTRY)
 	} SYSTEM_MODULE_ENTRY, * PSYSTEM_MODULE_ENTRY;
 
 	//======================================================
@@ -141,7 +141,7 @@ namespace ShDrvUndocSystem {
 	{
 		ULONG                  Count;
 		SYSTEM_MODULE_ENTRY    Module[ANYSIZE_ARRAY];
-#define SYSTEM_MODULE_INFORMATION_SIZE sizeof(ShDrvUndocSystem::SYSTEM_MODULE_INFORMATION)
+#define SYSTEM_MODULE_INFORMATION_SIZE sizeof(UNDOC_SYSTEM::SYSTEM_MODULE_INFORMATION)
 	} SYSTEM_MODULE_INFORMATION, * PSYSTEM_MODULE_INFORMATION;
 
 	//======================================================
@@ -156,7 +156,7 @@ namespace ShDrvUndocSystem {
 		USHORT   ObjectTypeIndex;
 		ULONG    HandleAttributes;
 		ULONG    Reserved;
-#define SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX_SIZE sizeof(ShDrvUndocSystem::SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX)
+#define SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX_SIZE sizeof(UNDOC_SYSTEM::SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX)
 	}SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX, * PSYSTEM_HANDLE_TABLE_ENTRY_INFO_EX;
 
 	//======================================================
@@ -166,7 +166,7 @@ namespace ShDrvUndocSystem {
 		ULONG64 NumberOfHandles;
 		ULONG64 Reserved;
 		SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX Handles[ANYSIZE_ARRAY];
-#define SYSTEM_HANDLE_INFORMATION_EX_SIZE sizeof(ShDrvUndocSystem::SYSTEM_HANDLE_INFORMATION_EX)
+#define SYSTEM_HANDLE_INFORMATION_EX_SIZE sizeof(UNDOC_SYSTEM::SYSTEM_HANDLE_INFORMATION_EX)
 	}SYSTEM_HANDLE_INFORMATION_EX, * PSYSTEM_HANDLE_INFORMATION_EX;
 
 	//======================================================
@@ -175,7 +175,7 @@ namespace ShDrvUndocSystem {
 	typedef struct _SYSTEM_KERNEL_DEBUGGER_INFORMATION{
 		BOOLEAN KernelDebuggerEnabled;
 		BOOLEAN KernelDebuggerNotPresent;
-#define SYSTEM_KERNEL_DEBUGGER_INFORMATION_SIZE sizeof(ShDrvUndocSystem::SYSTEM_KERNEL_DEBUGGER_INFORMATION)
+#define SYSTEM_KERNEL_DEBUGGER_INFORMATION_SIZE sizeof(UNDOC_SYSTEM::SYSTEM_KERNEL_DEBUGGER_INFORMATION)
 	}SYSTEM_KERNEL_DEBUGGER_INFORMATION, *PSYSTEM_KERNEL_DEBUGGER_INFORMATION;
 
 	//======================================================
@@ -185,7 +185,7 @@ namespace ShDrvUndocSystem {
 		BOOLEAN DebuggerAllowed;
 		BOOLEAN DebuggerEnabled;
 		BOOLEAN DebuggerPresent;
-#define SYSTEM_KERNEL_DEBUGGER_INFORMATION_EX_SIZE sizeof(ShDrvUndocSystem::SYSTEM_KERNEL_DEBUGGER_INFORMATION_EX)
+#define SYSTEM_KERNEL_DEBUGGER_INFORMATION_EX_SIZE sizeof(UNDOC_SYSTEM::SYSTEM_KERNEL_DEBUGGER_INFORMATION_EX)
 	}SYSTEM_KERNEL_DEBUGGER_INFORMATION_EX, * PSYSTEM_KERNEL_DEBUGGER_INFORMATION_EX;
 
 	//======================================================
@@ -201,7 +201,7 @@ namespace ShDrvUndocSystem {
 			ULONG TagUlong;
 			PVOID ProcessChagedQuota;
 		};
-#define SYSTEM_POOL_ENTRY_SIZE sizeof(ShDrvUndocSystem::SYSTEM_POOL_ENTRY)
+#define SYSTEM_POOL_ENTRY_SIZE sizeof(UNDOC_SYSTEM::SYSTEM_POOL_ENTRY)
 	}SYSTEM_POOL_ENTRY, * PSYSTEM_POOL_ENTRY;
 
 	//======================================================
@@ -215,7 +215,7 @@ namespace ShDrvUndocSystem {
 		UCHAR               Spare0;
 		ULONG               NumberOfEntries;
 		SYSTEM_POOL_ENTRY   Entries[ANYSIZE_ARRAY];
-#define SYSTEM_POOL_INFORMATION_SIZE sizeof(ShDrvUndocSystem::SYSTEM_POOL_INFORMATION)
+#define SYSTEM_POOL_INFORMATION_SIZE sizeof(UNDOC_SYSTEM::SYSTEM_POOL_INFORMATION)
 	}SYSTEM_POOL_INFORMATION, * PSYSTEM_POOL_INFORMATION;
 
 	//======================================================
@@ -231,7 +231,7 @@ namespace ShDrvUndocSystem {
 			UCHAR     Tag[4];
 			ULONG     TagULong;
 		};
-#define SYSTEM_BIGPOOL_ENTRY_SIZE sizeof(ShDrvUndocSystem::SYSTEM_BIGPOOL_ENTRY)
+#define SYSTEM_BIGPOOL_ENTRY_SIZE sizeof(UNDOC_SYSTEM::SYSTEM_BIGPOOL_ENTRY)
 	} SYSTEM_BIGPOOL_ENTRY, * PSYSTEM_BIGPOOL_ENTRY;
 
 	//======================================================
@@ -240,12 +240,11 @@ namespace ShDrvUndocSystem {
 	typedef struct _SYSTEM_BIGPOOL_INFORMATION {
 		ULONG Count;
 		SYSTEM_BIGPOOL_ENTRY AllocatedInfo[ANYSIZE_ARRAY];
-#define SYSTEM_BIGPOOL_INFORMATION_SIZE sizeof(ShDrvUndocSystem::SYSTEM_BIGPOOL_INFORMATION)
+#define SYSTEM_BIGPOOL_INFORMATION_SIZE sizeof(UNDOC_SYSTEM::SYSTEM_BIGPOOL_INFORMATION)
 	} SYSTEM_BIGPOOL_INFORMATION, * PSYSTEM_BIGPOOL_INFORMATION;
 }
 
-namespace ShDrvUndocPeb {
-PACK_START(1)
+namespace UNDOC_PEB {
 	typedef struct _RTL_PROCESS_MODULE_INFORMATION
 	{
 		HANDLE Section;         // Not filled in
@@ -258,14 +257,14 @@ PACK_START(1)
 		USHORT LoadCount;
 		USHORT OffsetToFileName;
 		UCHAR  FullPathName[MAXIMUM_FILENAME_LENGTH];
-#define RTL_PROCESS_MODULE_INFORMATION_SIZE sizeof(ShDrvUndocPeb::RTL_PROCESS_MODULE_INFORMATION)
+#define RTL_PROCESS_MODULE_INFORMATION_SIZE sizeof(UNDOC_PEB::RTL_PROCESS_MODULE_INFORMATION)
 	} RTL_PROCESS_MODULE_INFORMATION, * PRTL_PROCESS_MODULE_INFORMATION;
 
 	typedef struct _RTL_PROCESS_MODULES
 	{
 		ULONG NumberOfModules;
 		RTL_PROCESS_MODULE_INFORMATION Modules[ANYSIZE_ARRAY];
-#define RTL_PROCESS_MODULES_SIZE sizeof(ShDrvUndocPeb::RTL_PROCESS_MODULES)
+#define RTL_PROCESS_MODULES_SIZE sizeof(UNDOC_PEB::RTL_PROCESS_MODULES)
 	} RTL_PROCESS_MODULES, * PRTL_PROCESS_MODULES;
 
 	typedef struct _RTL_USER_PROCESS_PARAMETERS {
@@ -273,20 +272,20 @@ PACK_START(1)
 		PVOID Reserved2[10];
 		UNICODE_STRING ImagePathName;
 		UNICODE_STRING CommandLine;
-#define RTL_USER_PROCESS_PARAMETERS_SIZE sizeof(ShDrvUndocPeb::RTL_USER_PROCESS_PARAMETERS)
+#define RTL_USER_PROCESS_PARAMETERS_SIZE sizeof(UNDOC_PEB::RTL_USER_PROCESS_PARAMETERS)
 	} RTL_USER_PROCESS_PARAMETERS, * PRTL_USER_PROCESS_PARAMETERS;
 
 	typedef struct _LDR_DATA_TABLE_ENTRY
 	{
-		LIST_ENTRY InLoadOrderLinks;
-		LIST_ENTRY InMemoryOrderLinks;
-		LIST_ENTRY InInitializationOrderLinks;
+		LIST_ENTRY InLoadOrderModuleList;
+		LIST_ENTRY InMemoryOrderModuleList;
+		LIST_ENTRY InInitializationOrderModuleList;
 		PVOID DllBase;
 		PVOID EntryPoint;
 		ULONG SizeOfImage;
 		UNICODE_STRING FullDllName;
 		UNICODE_STRING BaseDllName;
-#define LDR_DATA_TABLE_ENTRY_SIZE sizeof(ShDrvUndocPeb::LDR_DATA_TABLE_ENTRY)
+#define LDR_DATA_TABLE_ENTRY_SIZE sizeof(UNDOC_PEB::LDR_DATA_TABLE_ENTRY)
 	}LDR_DATA_TABLE_ENTRY, * PLDR_DATA_TABLE_ENTRY;
 
 	typedef struct _PEB_LDR_DATA
@@ -300,7 +299,7 @@ PACK_START(1)
 		PVOID EntryInProgress;
 		UCHAR ShutdownInProgress;
 		PVOID ShutdownThreadId;
-#define PEB_LDR_DATA_SIZE sizeof(ShDrvUndocPeb::PEB_LDR_DATA)
+#define PEB_LDR_DATA_SIZE sizeof(UNDOC_PEB::PEB_LDR_DATA)
 	}PEB_LDR_DATA, * PPEB_LDR_DATA;
 
 	typedef struct _PEB {
@@ -324,37 +323,40 @@ PACK_START(1)
 		UCHAR Reserved11[128];
 		PVOID Reserved12[1];
 		ULONG SessionId;
+#define PEB_SIZE sizeof(UNDOC_PEB::PEB)
 	} PEB, * PPEB;
 
+PACK_START(4)
 	typedef struct _LDR_DATA_TABLE_ENTRY32 {
 		LIST_ENTRY32 InLoadOrderModuleList;
-		LIST_ENTRY32 InMemoryOrderLinks;
-		LIST_ENTRY32 InInitializationOrderLinks;
+		LIST_ENTRY32 InMemoryOrderModuleList;
+		LIST_ENTRY32 InInitializationOrderModuleList;
 		ULONG DllBase;
 		ULONG EntryPoint;
 		ULONG SizeOfImage;
 		UNICODE_STRING32 FullDllName;
 		UNICODE_STRING32 BaseDllName;
-
-	}LDR_DATA_TABLE_ENTRY32, PLDR_DATA_TABLE_ENTRY32;
+#define LDR_DATA_TABLE_ENTRY32_SIZE sizeof(UNDOC_PEB::LDR_DATA_TABLE_ENTRY32)
+	}LDR_DATA_TABLE_ENTRY32, * PLDR_DATA_TABLE_ENTRY32;
 
 	typedef struct _PEB_LDR_DATA32 {
 		UCHAR Reserved1[12];
 		LIST_ENTRY32 InLoadOrderModuleList;
-
+#define PEB_LDR_DATA32_SIZE sizeof(UNDOC_PEB::PEB_LDR_DATA32)
 	}PEB_LDR_DATA32, * PPEB_LDR_DATA32;
 
 	typedef struct _PEB32 {
 		UCHAR Reserved1[12];
 		PEB_LDR_DATA32* Ldr;
-
+#define PEB32_SIZE sizeof(UNDOC_PEB::PEB32)
 	}PEB32, * PPEB32;
+PACK_END
 
 	typedef struct _EWOW64PROCESS {
 		PPEB32 Peb;
 		ULONG Machine;
+#define EWOW64PROCESS_SIZE sizeof(UNDOC_PEB::EWOW64PROCESS)
 	}EWOW64PROCESS, * PEWOW64PROCESS;
-PACK_END
 }
 
 

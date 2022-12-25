@@ -12,8 +12,14 @@ if(ptr == nullptr) { Status = STATUS_UNSUCCESSFUL; END }
 
 namespace ShDrvPoolManager {
 	NTSTATUS Initialize();
-	NTSTATUS AllocatePoolEntry(IN SH_POOL_TYPE PoolType, IN ULONG PoolSize);
-	NTSTATUS FreePoolEntry(IN PVOID Buffer, IN BOOLEAN bReuse = false);
+
+	NTSTATUS AllocatePoolEntry(
+		IN SH_POOL_TYPE PoolType, 
+		IN ULONG PoolSize );
+
+	NTSTATUS FreePoolEntry(
+		IN PVOID Buffer, 
+		IN BOOLEAN bReuse = false );
 
 	PVOID    GetPool(IN SH_POOL_TYPE PoolType);
 

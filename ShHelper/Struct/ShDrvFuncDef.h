@@ -1,7 +1,7 @@
 #ifndef _SHDRVFUNCDEF_H_
 #define _SHDRVFUNCDEF_H_
 
-using namespace ShDrvUndocEnum;
+using namespace UNDOC_ENUM;
 
 namespace ShDrvFuncDef {
 	//======================================================
@@ -21,7 +21,11 @@ namespace ShDrvFuncDef {
 			IN PEPROCESS Process
 			);
 
-		typedef PPEB(NTAPI* PsGetProcessPeb_t)(
+		typedef UNDOC_PEB::PPEB(NTAPI* PsGetProcessPeb_t)(
+			IN PEPROCESS Process
+			);
+
+		typedef UNDOC_PEB::PPEB32(NTAPI* PsGetProcessWow64Process_t)(
 			IN PEPROCESS Process
 			);
 
@@ -32,10 +36,6 @@ namespace ShDrvFuncDef {
 		typedef PVOID(NTAPI* PsGetProcessDebugPort_t)(
 			IN PEPROCESS Process
 			);
-
-		typedef PVOID(NTAPI* PsGetProcessWow64Process_t)(
-			IN PEPROCESS Process
-			); // return _EWOW64PROCESS*
 
 		typedef BOOLEAN(NTAPI* PsGetProcessExitProcessCalled_t)(
 			IN PEPROCESS Process
@@ -813,10 +813,6 @@ namespace ShDrvFuncDef {
 			IN ULONG Alignment
 			);
 	}
-}
-
-namespace ShDrvAsmFunc {
-	typedef PVOID(*Asm_GetRoutineAddress)(PWSTR RoutineName);
 }
 
 

@@ -57,7 +57,9 @@ FINISH:
 	return Status;
 }
 
-NTSTATUS ShDrvPoolManager::AllocatePoolEntry(IN SH_POOL_TYPE PoolType, IN ULONG PoolSize)
+NTSTATUS ShDrvPoolManager::AllocatePoolEntry(
+	IN SH_POOL_TYPE PoolType, 
+	IN ULONG PoolSize )
 {
 #if TRACE_LOG_DEPTH & TRACE_POOL
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
@@ -79,7 +81,9 @@ FINISH:
 	return Status;
 }
 
-NTSTATUS ShDrvPoolManager::FreePoolEntry(IN PVOID Buffer, IN BOOLEAN bReuse)
+NTSTATUS ShDrvPoolManager::FreePoolEntry(
+	IN PVOID Buffer, 
+	IN BOOLEAN bReuse )
 {
 #if TRACE_LOG_DEPTH & TRACE_POOL
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
