@@ -13,7 +13,7 @@
 #define TRACE_PE        0x0020
 #define TRACE_ALL       0xFFFF
 
-#define TRACE_LOG_DEPTH TRACE_OFF 
+#define TRACE_LOG_DEPTH TRACE_ALL 
 
 #define ASM_START _asm {
 #define ASM_END   }
@@ -56,6 +56,7 @@
 #include <Enum/ShDrvUndocEnum.h>
 #include <Enum/ShDrvEnum.h>
 
+#include <Struct/ShDrvIntel.h>
 #include <Struct/ShDrvUndocStruct.h>
 #include <Struct/ShDrvFuncDef.h>
 #include <Struct/ShDrvStruct.h>

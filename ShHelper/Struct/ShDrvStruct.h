@@ -41,6 +41,7 @@ typedef struct _SH_GLOBAL_VARIABLES{
 
 	SH_VARIABLE_MEMBER(KUserSharedData, PKUSER_SHARED_DATA);
 	SH_VARIABLE_MEMBER(PsLoadedModuleList, PLIST_ENTRY);
+	SH_VARIABLE_MEMBER(PsLoadedModuleResource, PERESOURCE);
 
 #define KUSER_SHARED_DATA_ADDRESS 0xFFFFF78000000000
 #define SH_GLOBAL_VARIABLES_SIZE sizeof(SH_GLOBAL_VARIABLES)
@@ -55,8 +56,10 @@ PACK_START(1)
 typedef struct _SH_GLOBAL_OFFSETS {
 	struct {
 		ULONG DirectoryTableBase;
+#define DIR_BASE_OFFSET 0x28
 		ULONG ThreadListHead;
 		ULONG ProcessLock;
+#define PROCESS_LOCK_OFFSET 0x40
 		ULONG UserDirectoryTableBase;
 	}KPROCESS;
 

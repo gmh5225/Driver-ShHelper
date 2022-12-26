@@ -10,6 +10,7 @@ NTSTATUS ShDrvPoolManager::Initialize()
 #if TRACE_LOG_DEPTH & TRACE_POOL
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #endif
+	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
 	auto Status = STATUS_SUCCESS;
 
@@ -64,6 +65,7 @@ NTSTATUS ShDrvPoolManager::AllocatePoolEntry(
 #if TRACE_LOG_DEPTH & TRACE_POOL
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #endif
+	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
 	auto Status = STATUS_SUCCESS;
 
@@ -88,6 +90,7 @@ NTSTATUS ShDrvPoolManager::FreePoolEntry(
 #if TRACE_LOG_DEPTH & TRACE_POOL
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #endif
+	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
 	auto Status = STATUS_SUCCESS;
 	BOOLEAN bFound = false;
@@ -129,7 +132,8 @@ PVOID ShDrvPoolManager::GetPool(IN SH_POOL_TYPE PoolType)
 #if TRACE_LOG_DEPTH & TRACE_POOL
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #endif
-	
+	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return nullptr; }
+
 	if (g_Pools == nullptr) { return nullptr; }
 
 	PVOID Result = nullptr;

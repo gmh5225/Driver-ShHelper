@@ -1,64 +1,80 @@
 #ifndef _SHDRVPE_H_
 #define _SHDRVPE_H_
 
-typedef struct _SH_PE_BASE{
-	PVOID                    PeHeader;
+typedef struct _SH_PE_HEADER{
+	PVOID                    ImageBase;
+	PVOID                    ImageHeader;
 	PIMAGE_DOS_HEADER        DosHeader;
 	PIMAGE_NT_HEADERS        NtHeaders;
 	PIMAGE_FILE_HEADER       FileHeader;
 	PIMAGE_OPTIONAL_HEADER   OptionalHeader;
 	PIMAGE_SECTION_HEADER    SectionHeader;
-	PIMAGE_EXPORT_DIRECTORY  ExportDirectory;
 	PVOID                    ImageEnd;
-#define SH_PE_BASE_SIZE sizeof(SH_PE_BASE)
-}SH_PE_BASE, *PSH_PE_BASE;
+#define SH_PE_HEADER_SIZE sizeof(SH_PE_HEADER)
+}SH_PE_HEADER, *PSH_PE_HEADER;
 
-typedef struct _SH_PE_BASE32 {
-	PVOID                      PeHeader;
+typedef struct _SH_PE_HEADER32 {
+	ULONG                      ImageBase;
+	PVOID                      ImageHeader;
 	PIMAGE_DOS_HEADER          DosHeader;
 	PIMAGE_NT_HEADERS32        NtHeaders;
 	PIMAGE_FILE_HEADER         FileHeader;
 	PIMAGE_OPTIONAL_HEADER32   OptionalHeader;
 	PIMAGE_SECTION_HEADER      SectionHeader;
-	PIMAGE_EXPORT_DIRECTORY    ExportDirectory;
 	ULONG                      ImageEnd;
-#define SH_PE_BASE32_SIZE sizeof(SH_PE_BASE32)
-}SH_PE_BASE32, * PSH_PE_BASE32;
+#define SH_PE_HEADER32_SIZE sizeof(SH_PE_HEADER32)
+}SH_PE_HEADER32, * PSH_PE_HEADER32;
 
-class PeTest {
+class ShDrvPe {
 public:
-	PeTest() {};
-	~PeTest() 
+	ShDrvPe() {};
+	~ShDrvPe() 
 	{
-		if (Pe != nullptr) { ShDrvMemory::Delete(Pe->PeHeader); };
-		if (Pe32 != nullptr) { ShDrvMemory::Delete(Pe32->PeHeader); };
+		if (Pe != nullptr) { ShDrvMemory::Delete(Pe->ImageHeader); };
+		if (Pe32 != nullptr) { ShDrvMemory::Delete(Pe32->ImageHeader); };
 		ShDrvMemory::Delete(Pe);
 		ShDrvMemory::Delete(Pe32);
 	};
 
 	NTSTATUS Initialize(IN PVOID ImageBase, IN PEPROCESS Process, IN BOOLEAN b32bit = false );
 	
-	PEPROCESS     GetProcess() { return Process; }
-	PVOID         GetImageBase() { return ImageBase; }
-	PSH_PE_BASE   GetPeData() { return Pe; }
-	PSH_PE_BASE32 GetPe32Data() { return Pe32; }
+	PEPROCESS     GetProcess() { 
+		if (!bInit)	{ return nullptr; } 
+		return Process; }
+	PVOID         GetImageBase() { 
+		if (!bInit) { return nullptr; }
+		return ImageBase; }
+	PSH_PE_HEADER   GetPeData() {
+		if (!bInit) { return nullptr; }
+		return Pe; }
+	PSH_PE_HEADER32 GetPe32Data() {
+		if (!bInit) { return nullptr; }
+		return Pe32; }
+	PIMAGE_NT_HEADERS   GetNtHeader() {
+		if (!bInit) { return nullptr; }
+		return Pe->NtHeaders;	};
+	PIMAGE_NT_HEADERS32 GetNtHeader32() {
+		if (!bInit) { return nullptr; }
+		return Pe32->NtHeaders;	};
 
 	BOOLEAN       ValidPeCheck();
 	ULONG         GetSectionCount();
-	PIMAGE_NT_HEADERS   GetNtHeader() { return Pe->NtHeaders; };
-	PIMAGE_NT_HEADERS32 GetNtHeader32() { return Pe32->NtHeaders; };
-
-
-private:
-	PEPROCESS      Process;
-	KAPC_STATE     ApcState;
-	BOOLEAN        b32bit;
-	PVOID          ImageBase;
-	PSH_PE_BASE    Pe;
-	PSH_PE_BASE32  Pe32;
+	ULONG         GetExportCountByName();
+	ULONG64       GetAddressByExport(IN PCSTR RoutineName);
 
 private:
-	VOID InitializeEx();
+	BOOLEAN          bInit;
+	PEPROCESS        Process;
+	KAPC_STATE       ApcState;
+	BOOLEAN          b32bit;
+	PVOID            ImageBase;
+	PSH_PE_HEADER    Pe;
+	PSH_PE_HEADER32  Pe32;
+
+	PIMAGE_EXPORT_DIRECTORY ExportDirectory;
+
+private:
+	NTSTATUS InitializeEx();
 	VOID Attach() { KeStackAttachProcess(Process, &ApcState); }
 	VOID Detach() { KeUnstackDetachProcess(&ApcState); }
 };

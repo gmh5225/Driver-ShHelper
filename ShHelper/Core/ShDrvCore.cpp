@@ -48,6 +48,7 @@ NTSTATUS ShDrvCore::GetSystemModuleInformation(
 #if TRACE_LOG_DEPTH & TRACE_CORE
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #endif
+	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
 	auto Status = STATUS_INVALID_PARAMETER;
 	auto ReturnLength = 0ul;
@@ -56,7 +57,7 @@ NTSTATUS ShDrvCore::GetSystemModuleInformation(
 	PSTR TargetName = nullptr;
 	PSYSTEM_MODULE_INFORMATION SystemInformation = nullptr;
 	PSYSTEM_MODULE_ENTRY ModuleEntry = nullptr;
-
+	
 	if (ModuleName == nullptr) { ERROR_END }
 
 	TargetName = reinterpret_cast<PSTR>(ALLOC_POOL(ANSI_POOL));
@@ -108,19 +109,27 @@ NTSTATUS ShDrvCore::GetSystemModuleInformationEx(
 #if TRACE_LOG_DEPTH & TRACE_CORE
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #endif
+	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
+
 	auto Status = STATUS_INVALID_PARAMETER;
 
 	PSTR TargetName = nullptr;
 	UNICODE_STRING TargetString = { 0, };
 	PLIST_ENTRY NextEntry = nullptr;
 	PLDR_DATA_TABLE_ENTRY ModuleEntry = nullptr;
+	PERESOURCE ResourceLock = nullptr;
 
 	if (ModuleName == nullptr || ModuleInformation == nullptr) { ERROR_END }
-	if (g_Variables->PsLoadedModuleList == nullptr)
+	if (g_Variables->PsLoadedModuleList == nullptr || g_Variables->PsLoadedModuleResource == nullptr)
 	{
 		Status = ShDrvUtil::GetRoutineAddress<PLIST_ENTRY>(L"PsLoadedModuleList", &g_Variables->PsLoadedModuleList);
-	}
+		if(!NT_SUCCESS(Status)) { ERROR_END }
 
+		Status = ShDrvUtil::GetRoutineAddress<PERESOURCE>(L"PsLoadedModuleResource", &g_Variables->PsLoadedModuleResource);
+		if (!NT_SUCCESS(Status)) { ERROR_END }
+	}
+	
+	ResourceLock = reinterpret_cast<PERESOURCE>(&g_Variables->PsLoadedModuleResource);
 	TargetName = reinterpret_cast<PSTR>(ALLOC_POOL(ANSI_POOL));
 	Status = StringCopy(TargetName, ModuleName);
 	if (!NT_SUCCESS(Status)) { ERROR_END }
@@ -130,6 +139,8 @@ NTSTATUS ShDrvCore::GetSystemModuleInformationEx(
 	Status = ShDrvUtil::StringToUnicode(TargetName, &TargetString);
 	if (!NT_SUCCESS(Status)) { ERROR_END }
 
+	LOCK_RESOURCE(ResourceLock, 1);
+
 	NextEntry = g_Variables->PsLoadedModuleList->Flink;
 
 	while (g_Variables->PsLoadedModuleList != NextEntry)
@@ -138,6 +149,7 @@ NTSTATUS ShDrvCore::GetSystemModuleInformationEx(
 		if (MmIsAddressValid(ModuleEntry) == false)
 		{
 			Status = STATUS_UNSUCCESSFUL;
+			UNLOCK_RESOURCE(ResourceLock);
 			ERROR_END
 		}
 
@@ -149,7 +161,7 @@ NTSTATUS ShDrvCore::GetSystemModuleInformationEx(
 
 		NextEntry = NextEntry->Flink;
 	}
-
+	UNLOCK_RESOURCE(ResourceLock);
 
 FINISH:
 	FREE_POOL(TargetString.Buffer);
@@ -165,6 +177,8 @@ NTSTATUS ShDrvCore::GetProcessModuleInformation(
 #if TRACE_LOG_DEPTH & TRACE_CORE
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #endif
+	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
+
 	auto Status = STATUS_INVALID_PARAMETER;
 
 	KAPC_STATE ApcState = { 0, };
@@ -228,6 +242,8 @@ NTSTATUS ShDrvCore::GetProcessModuleInformation32(
 #if TRACE_LOG_DEPTH & TRACE_CORE
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #endif
+	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
+
 	auto Status = STATUS_INVALID_PARAMETER;
 
 	KAPC_STATE ApcState = { 0, };
@@ -285,6 +301,8 @@ NTSTATUS ShDrvCore::GetProcessLdrHead(
 #if TRACE_LOG_DEPTH & TRACE_CORE
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #endif
+	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
+
 	auto Status = STATUS_INVALID_PARAMETER;
 	UNDOC_PEB::PPEB Peb = nullptr;
 	KAPC_STATE ApcState = { 0, };
@@ -323,6 +341,8 @@ NTSTATUS ShDrvCore::GetProcessLdrHead32(
 #if TRACE_LOG_DEPTH & TRACE_CORE
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #endif
+	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
+
 	auto Status = STATUS_INVALID_PARAMETER;
 
 	UNDOC_PEB::PPEB32 Peb = nullptr;
@@ -335,7 +355,7 @@ NTSTATUS ShDrvCore::GetProcessLdrHead32(
 	if (Peb == nullptr) { ERROR_END }
 
 	KeStackAttachProcess(Process, &ApcState);
-
+	
 	__try
 	{
 		ProbeForRead(Peb, PEB32_SIZE, 1);
@@ -359,6 +379,8 @@ BOOLEAN ShDrvCore::IsWow64Process(IN PEPROCESS Process)
 #if TRACE_LOG_DEPTH & TRACE_CORE
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #endif
+	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
+
 	BOOLEAN Result = false;
 
 	if (SH_ROUTINE_CALL(PsGetProcessWow64Process)(Process) != nullptr)

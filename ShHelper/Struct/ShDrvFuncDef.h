@@ -15,7 +15,11 @@ namespace ShDrvFuncDef {
 
 		typedef HANDLE(NTAPI* PsGetCurrentProcessId_t)();
 
-		typedef PVOID(NTAPI* PsGetCurrentProcessWow64Process_t)(); // return _EWOW64PROCESS*
+		typedef PVOID(NTAPI* PsGetCurrentProcessWow64Process_t)(); 
+
+		typedef PVOID(NTAPI* PsGetProcessWin32WindowStation_t)(
+			IN PEPROCESS Process
+			);
 
 		typedef BOOLEAN(NTAPI* PsIsProcessBeingDebugged_t)(
 			IN PEPROCESS Process

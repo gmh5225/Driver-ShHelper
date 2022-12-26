@@ -1,8 +1,6 @@
 #ifndef _SHDRVPOOLMANAGER_H_
 #define _SHDRVPOOLMANAGER_H_
 
-#define STR_MAX_LENGTH 260 
-
 #define ALLOC_POOL(Type) ShDrvPoolManager::GetPool(Type)
 #define FREE_POOL(ptr)   ShDrvPoolManager::FreePoolEntry(ptr)
 
