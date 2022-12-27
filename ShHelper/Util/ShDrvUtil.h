@@ -30,10 +30,12 @@ KeLeaveCriticalRegion();\
 ExReleaseResource(ptr);
 
 #define SPIN_LOCK(ptr) if(CurrentIrql == DISPATCH_LEVEL) KeAcquireSpinLockAtDpcLevel(ptr); else KeAcquireSpinLock(ptr, &CurrentIrql);
+
 #define SPIN_UNLOCK(ptr) KeReleaseSpinLock(ptr, CurrentIrql)
 
 #define GET_EXPORT_ROUTINE(RoutineName, Prefix)\
 Status += ShDrvUtil::GetRoutineAddress<Prefix::RoutineName##_t>(L#RoutineName, &g_Routines->##RoutineName);
+
 #define GET_EXPORT_VARIABLE(VarName, type)\
 Status += ShDrvUtil::GetRoutineAddress<type>(L#VarName, &g_Variables->##VarName);
 
@@ -42,6 +44,10 @@ Status += ShDrvUtil::GetRoutineAddressEx<Prefix::RoutineName##_t>(#RoutineName, 
 
 #define GET_EXPORT_VARIABLE_EX(RoutineName, ImageBase, type)\
 Status += ShDrvUtil::GetRoutineAddressEx<type>(#RoutineName, &g_Variables->##RoutineName, ImageBase);
+
+#define GET_GLOBAL_OFFSET(type, member, var) var = g_Offsets->##type.##member
+#define SET_GLOBAL_OFFSET(type, member, value) g_Offsets->##type.##member = value
+#define CHECK_GLOBAL_OFFSET(type, member) Status = g_Offsets->##type.##member > 0x00 ? STATUS_SUCCESS : STATUS_NOT_SUPPORTED
 
 namespace ShDrvUtil {
 /********************************************************************************************
@@ -95,11 +101,15 @@ namespace ShDrvUtil {
 /********************************************************************************************
 * Core utility
 ********************************************************************************************/
+#define MILLISECOND 1000
+#define MICROSECOND 1000000
+
 #define PAGING_TRAVERSE(name, entry)\
 if(!NT_SUCCESS(ShDrvUtil::GetPagingStructureEntry(TableBase, LinearAddress.name##Physical, &EntryAddress))) { ERROR_END } \
 entry.AsUInt = EntryAddress.AsUInt; TableBase = entry.PageFrameNumber << 12;
 
-	VOID Sleep(IN ULONG Microsecond);
+	VOID Sleep(IN ULONG Milliseconds);
+	VOID PrintElapsedTime(IN PCSTR FunctionName, IN PLARGE_INTEGER PreCounter, IN PLARGE_INTEGER Frequency);
 
 	PEPROCESS GetProcessByProcessId(IN HANDLE ProcessId);
 
@@ -135,19 +145,23 @@ entry.AsUInt = EntryAddress.AsUInt; TableBase = entry.PageFrameNumber << 12;
 		TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #endif
 		if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
+		SAVE_CURRENT_COUNTER;
+		auto Status = STATUS_INVALID_PARAMETER;
 
-		if (Name == nullptr || Routine == nullptr) { return STATUS_INVALID_PARAMETER; }
-		auto Status = STATUS_SUCCESS;
+		if (Name == nullptr || Routine == nullptr) { ERROR_END }
+
 		UNICODE_STRING RoutineName = { 0, };
 		RtlInitUnicodeString(&RoutineName, Name);
 		
 		Status = RtlUnicodeStringValidate(&RoutineName);
-		if (!NT_SUCCESS(Status)) { return Status; }
+		if (!NT_SUCCESS(Status)) { ERROR_END }
 
 		*Routine = reinterpret_cast<T>(MmGetSystemRoutineAddress(&RoutineName));
-		if (*Routine == nullptr) { return STATUS_UNSUCCESSFUL; }
+		if (*Routine == nullptr) { Status = STATUS_UNSUCCESSFUL; ERROR_END }
 
-		return STATUS_SUCCESS;
+	FINISH:
+		PRINT_ELAPSED;
+		return Status;
 	}
 
 	template <typename T>
@@ -159,6 +173,7 @@ entry.AsUInt = EntryAddress.AsUInt; TableBase = entry.PageFrameNumber << 12;
 #if TRACE_LOG_DEPTH & TRACE_UTIL
 		TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #endif
+		SAVE_CURRENT_COUNTER;
 		auto Status = STATUS_INVALID_PARAMETER;
 		ShDrvPe* Pe = nullptr;
 
@@ -178,6 +193,7 @@ entry.AsUInt = EntryAddress.AsUInt; TableBase = entry.PageFrameNumber << 12;
 
 	FINISH:
 		ShDrvMemory::Delete(Pe);
+		PRINT_ELAPSED;
 		return Status;
 	}
 }

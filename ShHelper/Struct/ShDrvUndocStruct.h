@@ -2,26 +2,26 @@
 #define _SHDRVUNDOCSTRUCT_H_
 
 // https://learn.microsoft.com/ko-kr/windows/release-health/release-information
-#define WINDOWS_7       7600
-#define WINDOWS_7_SP1   7601
-#define WINDOWS_8       9200
-#define WINDOWS_8_1     9600
-#define WINDOWS_10_1507 10240
-#define WINDOWS_10_1511 10586
-#define WINDOWS_10_1607 14393
-#define WINDOWS_10_1703 15063
-#define WINDOWS_10_1709 16299
-#define WINDOWS_10_1803 17134
-#define WINDOWS_10_1809 17763
-#define WINDOWS_10_1903 18362
-#define WINDOWS_10_1909 18363
-#define WINDOWS_10_20H1 19041
-#define WINDOWS_10_20H2 19042
-#define WINDOWS_10_21H1 19043
-#define WINDOWS_10_21H2 19044
-#define WINDOWS_10_22H2 19045
-#define WINDOWS_11_21H2 22000
-#define WINDOWS_11_22H2 22621
+//#define WINDOWS_7       7600
+//#define WINDOWS_7_SP1   7601
+//#define WINDOWS_8       9200
+//#define WINDOWS_8_1     9600
+//#define WINDOWS_10_1507 10240
+//#define WINDOWS_10_1511 10586
+//#define WINDOWS_10_1607 14393
+//#define WINDOWS_10_1703 15063
+//#define WINDOWS_10_1709 16299
+//#define WINDOWS_10_1803 17134
+//#define WINDOWS_10_1809 17763
+//#define WINDOWS_10_1903 18362
+//#define WINDOWS_10_1909 18363
+//#define WINDOWS_10_20H1 19041
+//#define WINDOWS_10_20H2 19042
+//#define WINDOWS_10_21H1 19043
+//#define WINDOWS_10_21H2 19044
+//#define WINDOWS_10_22H2 19045
+//#define WINDOWS_11_21H2 22000
+//#define WINDOWS_11_22H2 22621
 
 namespace UNDOC_SYSTEM {
 	//======================================================

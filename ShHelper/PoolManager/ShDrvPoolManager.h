@@ -8,6 +8,11 @@
 ptr = reinterpret_cast<PSH_##type>(ShDrvPoolManager::GetPool(type));\
 if(ptr == nullptr) { Status = STATUS_UNSUCCESSFUL; END }
 
+#define POOL_ENTRY_INITIALIZE(Entry, type, Size)\
+Entry->PoolType = type;\
+Entry->PoolSize = Size;\
+Entry->bUsed = false;
+
 namespace ShDrvPoolManager {
 	NTSTATUS Initialize();
 

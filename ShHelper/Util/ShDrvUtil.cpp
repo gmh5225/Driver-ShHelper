@@ -12,15 +12,21 @@ BOOLEAN ShDrvUtil::StringCompareA(
 #endif
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return false; }
 
-    if (Source == nullptr || Dest == nullptr) { return false; }
-
-    ANSI_STRING SourceString = { 0, };
-    ANSI_STRING DestString   = { 0, };
+	SAVE_CURRENT_COUNTER;
+	ANSI_STRING SourceString = { 0, };
+	ANSI_STRING DestString = { 0, };
+	BOOLEAN Result = false;
+    
+	if (Source == nullptr || Dest == nullptr) { END }
 
     RtlInitAnsiString(&SourceString, Source);
 	RtlInitAnsiString(&DestString, Dest);
 	
-    return RtlEqualString(&SourceString, &DestString, true);
+	Result = RtlEqualString(&SourceString, &DestString, true);
+
+FINISH:
+	PRINT_ELAPSED;
+	return Result;
 }
 
 BOOLEAN ShDrvUtil::StringCompareW(
@@ -32,15 +38,21 @@ BOOLEAN ShDrvUtil::StringCompareW(
 #endif
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return false; }
 
-	if (Source == nullptr || Dest == nullptr) { return false; }
-
+	SAVE_CURRENT_COUNTER;
 	UNICODE_STRING SourceString = { 0, };
 	UNICODE_STRING DestString = { 0, };
+	BOOLEAN Result = false;
+
+	if (Source == nullptr || Dest == nullptr) { END }
 
 	RtlInitUnicodeString(&SourceString, Source);
 	RtlInitUnicodeString(&DestString, Dest);
 
-	return RtlEqualUnicodeString(&SourceString, &DestString, true);
+	Result = RtlEqualUnicodeString(&SourceString, &DestString, true);
+
+FINISH:
+	PRINT_ELAPSED;
+	return Result;
 }
 
 NTSTATUS ShDrvUtil::StringCopyA(
@@ -52,8 +64,11 @@ NTSTATUS ShDrvUtil::StringCopyA(
 #endif
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
+	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_SUCCESS;
 	Status = RtlStringCchCopyA(Dest, STR_MAX_LENGTH, Source);
+
+	PRINT_ELAPSED;
 	return Status;
 }
 
@@ -66,8 +81,11 @@ NTSTATUS ShDrvUtil::StringCopyW(
 #endif
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
+	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_SUCCESS;
 	Status = RtlStringCchCopyW(Dest, STR_MAX_LENGTH, Source);
+
+	PRINT_ELAPSED;
 	return Status;
 }
 
@@ -80,8 +98,11 @@ NTSTATUS ShDrvUtil::StringConcatenateA(
 #endif
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
+	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_SUCCESS;
 	Status = RtlStringCchCatA(Dest, NTSTRSAFE_MAX_LENGTH, Source);
+
+	PRINT_ELAPSED;
 	return Status;
 }
 
@@ -94,8 +115,11 @@ NTSTATUS ShDrvUtil::StringConcatenateW(
 #endif
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
+	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_SUCCESS;
 	Status = RtlStringCchCatW(Dest, NTSTRSAFE_MAX_LENGTH, Source);
+
+	PRINT_ELAPSED;
 	return Status;
 }
 
@@ -108,10 +132,11 @@ NTSTATUS ShDrvUtil::StringToUnicode(
 #endif
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
-	auto Status = STATUS_SUCCESS;
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
 	ANSI_STRING SourceString = { 0, };
 
-	if (Source == nullptr || Dest == nullptr) { return STATUS_INVALID_PARAMETER; }
+	if (Source == nullptr || Dest == nullptr) { ERROR_END }
 
 	RtlInitAnsiString(&SourceString, Source);
 	
@@ -121,6 +146,7 @@ NTSTATUS ShDrvUtil::StringToUnicode(
 	if (!NT_SUCCESS(Status)) { ERROR_END }
 
 FINISH:
+	PRINT_ELAPSED;
 	return Status;
 }
 
@@ -133,10 +159,11 @@ NTSTATUS ShDrvUtil::WStringToAnsiString(
 #endif
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
-	auto Status = STATUS_SUCCESS;
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
 	UNICODE_STRING SourceString = { 0, };
 
-	if (Source == nullptr || Dest == nullptr) { return STATUS_INVALID_PARAMETER; }
+	if (Source == nullptr || Dest == nullptr) { ERROR_END }
 
 	RtlInitUnicodeString(&SourceString, Source);
 
@@ -146,15 +173,19 @@ NTSTATUS ShDrvUtil::WStringToAnsiString(
 	if (!NT_SUCCESS(Status)) { ERROR_END }
 
 FINISH:
+	PRINT_ELAPSED;
 	return Status;
 }
 
 SIZE_T ShDrvUtil::StringLengthA(IN PSTR Source)
 {
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return 0; }
-
+	
+	SAVE_CURRENT_COUNTER;
 	auto Length = 0ull;
 	RtlStringCchLengthA(Source, NTSTRSAFE_MAX_LENGTH, &Length);
+
+	PRINT_ELAPSED;
 	return Length;
 }
 
@@ -162,24 +193,56 @@ SIZE_T ShDrvUtil::StringLengthW(IN PWSTR Source)
 {
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return 0; }
 
+	SAVE_CURRENT_COUNTER;
 	auto Length = 0ull;
 	RtlStringCchLengthW(Source, NTSTRSAFE_MAX_LENGTH, &Length);
+
+	PRINT_ELAPSED;
 	return Length;
 }
 
-VOID ShDrvUtil::Sleep(IN ULONG Microsecond)
+VOID ShDrvUtil::Sleep(IN ULONG Milliseconds)
 {
 #if TRACE_LOG_DEPTH & TRACE_UTIL
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #endif
 
-	if (Microsecond <= 0) { return; }
+	if (Milliseconds <= 0) { return; }
 
+	SAVE_CURRENT_COUNTER;
 	KEVENT Event = { 0, };
 	LARGE_INTEGER Time = { 0, };
 	KeInitializeEvent(&Event, NotificationEvent, false);
-	Time = RtlConvertLongToLargeInteger((LONG)-10000 * Microsecond);
+	Time = RtlConvertLongToLargeInteger((LONG)-10000 * Milliseconds);
 	KeWaitForSingleObject(&Event, DelayExecution, KernelMode, false, &Time);
+
+	PRINT_ELAPSED;
+}
+
+VOID ShDrvUtil::PrintElapsedTime(IN PCSTR FunctionName, IN PLARGE_INTEGER PreCounter, IN PLARGE_INTEGER Frequency)
+{
+//#if TRACE_LOG_DEPTH & TRACE_UTIL
+//	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+//#endif
+	if (PreCounter == nullptr || Frequency == nullptr) { return; }
+	if (Frequency->QuadPart == 0) { return; }
+	LARGE_INTEGER CurrentCounter = { 0, };
+	LARGE_INTEGER DiffCounter = { 0, };
+	ULONG Integral = 0;
+	ULONG Fractional = 0;
+
+	CurrentCounter = KeQueryPerformanceCounter(nullptr);
+
+	DiffCounter.QuadPart = CurrentCounter.QuadPart - PreCounter->QuadPart;
+	DiffCounter.QuadPart *= MICROSECOND;
+
+	if (DiffCounter.QuadPart <= 0) { return; }
+	
+	DiffCounter.QuadPart /= Frequency->QuadPart;
+	Integral   = DiffCounter.QuadPart / MICROSECOND;
+	Fractional = DiffCounter.QuadPart % MICROSECOND;
+
+	DetailLog("Elapsed Time : %.2d.%.4d sec (%d ¥ìs) :: %s", Integral, Fractional, DiffCounter.QuadPart, FunctionName);
 }
 
 PEPROCESS ShDrvUtil::GetProcessByProcessId(IN HANDLE ProcessId)
@@ -189,6 +252,7 @@ PEPROCESS ShDrvUtil::GetProcessByProcessId(IN HANDLE ProcessId)
 #endif
 	if (KeGetCurrentIrql() > APC_LEVEL) { return nullptr; }
 
+	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 	PEPROCESS Process = nullptr;
 	
@@ -198,6 +262,7 @@ PEPROCESS ShDrvUtil::GetProcessByProcessId(IN HANDLE ProcessId)
 	if(!NT_SUCCESS(Status)) { ERROR_END }
 
 FINISH:
+	PRINT_ELAPSED;
 	return Process;
 }
 
@@ -208,6 +273,7 @@ PEPROCESS ShDrvUtil::GetProcessByImageFileName(IN PCSTR ProcessName)
 #endif
 	if (KeGetCurrentIrql() > APC_LEVEL) { return nullptr; }
 
+	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 
 	PEPROCESS Process = nullptr;
@@ -234,6 +300,7 @@ PEPROCESS ShDrvUtil::GetProcessByImageFileName(IN PCSTR ProcessName)
 
 FINISH:
 	FREE_POOL(TargetName);
+	PRINT_ELAPSED;
 	return Process;
 }
 
@@ -244,6 +311,8 @@ NTSTATUS ShDrvUtil::GetPhysicalAddress(
 #if TRACE_LOG_DEPTH & TRACE_UTIL
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #endif
+
+	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 	if(VirtualAddress == nullptr || PhysicalAddress == nullptr) { ERROR_END }
 	PHYSICAL_ADDRESS Result = { 0, };
@@ -251,6 +320,7 @@ NTSTATUS ShDrvUtil::GetPhysicalAddress(
 	if (Result.QuadPart == 0) { Status = STATUS_UNSUCCESSFUL; }
 
 FINISH:
+	PRINT_ELAPSED;
 	return Status;
 }
 
@@ -262,6 +332,7 @@ NTSTATUS ShDrvUtil::GetPhysicalAddressEx(
 #if TRACE_LOG_DEPTH & TRACE_UTIL
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #endif
+	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 	CR3 Cr3 = { 0, };
 	switch (Mode)
@@ -280,6 +351,7 @@ NTSTATUS ShDrvUtil::GetPhysicalAddressEx(
 	}
 	}
 
+	PRINT_ELAPSED;
 	return Status;
 }
 
@@ -293,6 +365,7 @@ NTSTATUS ShDrvUtil::GetPhysicalAddressInternal(
 #endif
 	if (KeGetCurrentIrql() > APC_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
+	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 	if (Cr3 == nullptr || VirtualAddress == nullptr || PhysicalAddress == nullptr) { ERROR_END }
 
@@ -357,6 +430,7 @@ NTSTATUS ShDrvUtil::GetPhysicalAddressInternal(
 	Status = STATUS_SUCCESS;
 
 FINISH:
+	PRINT_ELAPSED;
 	return Status;
 }
 
@@ -370,6 +444,7 @@ NTSTATUS ShDrvUtil::GetPagingStructureEntry(
 #endif
 	if (KeGetCurrentIrql() > APC_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
+	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 	if (Entry == nullptr) { ERROR_END }
 
@@ -386,5 +461,6 @@ NTSTATUS ShDrvUtil::GetPagingStructureEntry(
 	Status = MmCopyMemory(&Entry->AsUInt, CopyAddress, sizeof(ULONG64), MM_COPY_MEMORY_PHYSICAL, &ReturnSize);
 
 FINISH:
+	PRINT_ELAPSED;
 	return Status;
 }

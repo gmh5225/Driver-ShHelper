@@ -2,11 +2,12 @@
 
 BOOLEAN ShDrvMemory::IsUserMemorySpace(IN PVOID Address)
 {
-	if ((ULONG64)Address <= END_USER_MEMORY_SPACE)
-	{
-		return true;
-	}
-	return false;
+	SAVE_CURRENT_COUNTER;
+	BOOLEAN Result = 0;
+	Result = (ULONG64)Address <= END_USER_MEMORY_SPACE ? true : false;
+
+	PRINT_ELAPSED;
+	return Result;
 }
 
 NTSTATUS ShDrvMemory::ReadMemory(
@@ -20,6 +21,7 @@ NTSTATUS ShDrvMemory::ReadMemory(
 #endif
 	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
+	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 	CHECK_RWMEMORY_PARAM;
 	CHECK_RWMEMORY_BUFFER;
@@ -49,6 +51,7 @@ NTSTATUS ShDrvMemory::ReadMemory(
 	}
 
 FINISH:
+	PRINT_ELAPSED;
 	return Status;
 }
 
@@ -63,6 +66,7 @@ NTSTATUS ShDrvMemory::WriteMemory(
 #endif
 	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
+	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 	CHECK_RWMEMORY_PARAM;
 	CHECK_RWMEMORY_BUFFER;
@@ -93,6 +97,7 @@ NTSTATUS ShDrvMemory::WriteMemory(
 
 
 FINISH:
+	PRINT_ELAPSED;
 	return Status;
 }
 
@@ -106,6 +111,7 @@ NTSTATUS ShDrvMemory::ReadMemoryNormal(
 #endif
 	if (KeGetCurrentIrql() > APC_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
+	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 	MM_COPY_ADDRESS CopyAddress = { 0, };
 	ULONG64 ReturnSize = 0;
@@ -118,6 +124,7 @@ NTSTATUS ShDrvMemory::ReadMemoryNormal(
 	Status = MmCopyMemory(Buffer, CopyAddress, Size, MM_COPY_MEMORY_VIRTUAL, &ReturnSize);
 
 FINISH:
+	PRINT_ELAPSED;
 	return Status;
 }
 
@@ -131,6 +138,7 @@ NTSTATUS ShDrvMemory::ReadPhysicalMemory(
 #endif
 	if (KeGetCurrentIrql() > APC_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
+	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 	PHYSICAL_ADDRESS PhysicalAddress = { 0, };
 	MM_COPY_ADDRESS CopyAddress = { 0, };
@@ -156,6 +164,7 @@ NTSTATUS ShDrvMemory::ReadPhysicalMemory(
 	if (!NT_SUCCESS(Status)) { ERROR_END }
 
 FINISH:
+	PRINT_ELAPSED;
 	return Status;
 }
 
@@ -169,6 +178,7 @@ NTSTATUS ShDrvMemory::ReadMemoryEx(
 #endif
 	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
+	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 	CHECK_RWMEMORY_PARAM;
 	CHECK_RWMEMORY_BUFFER;
@@ -177,6 +187,7 @@ NTSTATUS ShDrvMemory::ReadMemoryEx(
 	Status = SafeCopyMemoryInternal(Address, Buffer, Size);
 
 FINISH:
+	PRINT_ELAPSED;
 	return Status;
 }
 
@@ -190,6 +201,7 @@ NTSTATUS ShDrvMemory::WriteMemoryNormal(
 #endif
 	if (KeGetCurrentIrql() > APC_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
+	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 	CHECK_RWMEMORY_PARAM;
 	CHECK_RWMEMORY_BUFFER;
@@ -198,6 +210,7 @@ NTSTATUS ShDrvMemory::WriteMemoryNormal(
 	Status = SafeCopyMemory(Buffer, Size, Address);
 	
 FINISH:
+	PRINT_ELAPSED;
 	return Status;
 }
 
@@ -211,6 +224,7 @@ NTSTATUS ShDrvMemory::WritePhysicalMemory(
 #endif
 	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
+	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 	PHYSICAL_ADDRESS PhysicalAddress = { 0, };
 
@@ -236,6 +250,7 @@ NTSTATUS ShDrvMemory::WritePhysicalMemory(
 	MmUnmapIoSpace(MappingAddress, Size);
 
 FINISH:
+	PRINT_ELAPSED;
 	return Status;
 }
 
@@ -249,6 +264,7 @@ NTSTATUS ShDrvMemory::WriteMemoryEx(
 #endif
 	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
+	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 	CHECK_RWMEMORY_PARAM;
 	CHECK_RWMEMORY_BUFFER;
@@ -257,6 +273,7 @@ NTSTATUS ShDrvMemory::WriteMemoryEx(
 	Status = SafeCopyMemoryInternal(Buffer, Address, Size);
 
 FINISH:
+	PRINT_ELAPSED;
 	return Status;
 }
 
@@ -270,6 +287,7 @@ NTSTATUS ShDrvMemory::SafeCopyMemory(
 #endif
 	if (KeGetCurrentIrql() > APC_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
+	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 
 	if(Source == nullptr || Size == 0 || Dest == nullptr) { ERROR_END }
@@ -310,6 +328,7 @@ NTSTATUS ShDrvMemory::SafeCopyMemory(
 
 
 FINISH:
+	PRINT_ELAPSED;
 	return Status;
 }
 
@@ -323,6 +342,7 @@ NTSTATUS ShDrvMemory::SafeCopyMemoryInternal(
 #endif
 	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
+	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 
 	PMDL  Mdl = nullptr;
@@ -364,5 +384,6 @@ NTSTATUS ShDrvMemory::SafeCopyMemoryInternal(
 
 FINISH:
 	if (Mdl != nullptr) { IoFreeMdl(Mdl); }
+	PRINT_ELAPSED;
 	return Status;
 }

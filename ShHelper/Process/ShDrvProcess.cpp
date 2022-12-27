@@ -5,13 +5,17 @@ NTSTATUS ShDrvProcess::Initialize(IN HANDLE ProcessId)
 #if TRACE_LOG_DEPTH & TRACE_PROCESS
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #endif
+	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 	if(ProcessId == (HANDLE)4) { ERROR_END }
 
 	this->Process = ShDrvUtil::GetProcessByProcessId(ProcessId);
 	if(this->Process == nullptr) { ERROR_END }
 
-	this->ProcessLock = nullptr;  // todo
+	CHECK_GLOBAL_OFFSET(EPROCESS, ProcessLock);
+	if(!NT_SUCCESS(Status)) { ERROR_END }
+
+	this->ProcessLock = ADD_OFFSET(Process, g_Offsets->EPROCESS.ProcessLock, EX_PUSH_LOCK*);
 	this->ProcessId = ProcessId;
 	this->bAttached = false;
 	RtlSecureZeroMemory(&this->ApcState, sizeof(KAPC_STATE));
@@ -21,6 +25,7 @@ NTSTATUS ShDrvProcess::Initialize(IN HANDLE ProcessId)
 	Status = STATUS_SUCCESS;
 
 FINISH:
+	PRINT_ELAPSED;
 	return Status;
 }
 
@@ -29,6 +34,7 @@ NTSTATUS ShDrvProcess::Initialize(IN PEPROCESS Process)
 #if TRACE_LOG_DEPTH & TRACE_PROCESS
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #endif
+	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 	if(Process == PsInitialSystemProcess) { ERROR_END }
 
@@ -45,6 +51,7 @@ NTSTATUS ShDrvProcess::Initialize(IN PEPROCESS Process)
 	Status = STATUS_SUCCESS;
 
 FINISH:
+	PRINT_ELAPSED;
 	return Status;
 }
 
@@ -57,6 +64,7 @@ NTSTATUS ShDrvProcess::GetProcessModuleInformation(
 #endif
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
+	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 
 	PSTR TargetName = nullptr;
@@ -108,6 +116,7 @@ FINISH:
 	Detach();
 	FREE_POOL(TargetString.Buffer);
 	FREE_POOL(TargetName);
+	PRINT_ELAPSED;
 	return Status;
 }
 
@@ -120,6 +129,7 @@ NTSTATUS ShDrvProcess::GetProcessModuleInformation32(
 #endif
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
+	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 
 	PSTR TargetName = nullptr;
@@ -166,6 +176,7 @@ FINISH:
 	Detach();
 	FREE_POOL(TargetString.Buffer);
 	FREE_POOL(TargetName);
+	PRINT_ELAPSED;
 	return Status;
 }
 
@@ -176,6 +187,7 @@ BOOLEAN ShDrvProcess::IsWow64Process(IN PEPROCESS Process)
 #endif
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
+	SAVE_CURRENT_COUNTER;
 	BOOLEAN Result = false;
 
 	if (SH_ROUTINE_CALL(PsGetProcessWow64Process)(Process) != nullptr)
@@ -184,6 +196,7 @@ BOOLEAN ShDrvProcess::IsWow64Process(IN PEPROCESS Process)
 	}
 
 FINISH:
+	PRINT_ELAPSED;
 	return Result;
 }
 
@@ -198,6 +211,7 @@ NTSTATUS ShDrvProcess::ReadProcessMemory(
 #endif
 	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
+	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 	
 	CHECK_RWMEMORY_PARAM;
@@ -220,6 +234,7 @@ NTSTATUS ShDrvProcess::ReadProcessMemory(
 
 FINISH:
 	Detach();
+	PRINT_ELAPSED;
 	return Status;
 }
 
@@ -231,6 +246,7 @@ NTSTATUS ShDrvProcess::WriteProcessMemory(
 {
 	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
+	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 
 	CHECK_RWMEMORY_PARAM;
@@ -249,6 +265,7 @@ NTSTATUS ShDrvProcess::WriteProcessMemory(
 
 FINISH:
 	Detach();
+	PRINT_ELAPSED;
 	return Status;
 }
 
@@ -259,6 +276,7 @@ NTSTATUS ShDrvProcess::GetProcessLdrHead(OUT PLIST_ENTRY LdrList)
 #endif
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
+	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 	UNDOC_PEB::PPEB Peb = nullptr;
 	PLIST_ENTRY ListEntryHead = nullptr;
@@ -280,12 +298,13 @@ NTSTATUS ShDrvProcess::GetProcessLdrHead(OUT PLIST_ENTRY LdrList)
 		Status = STATUS_SUCCESS;
 	}
 	__except (EXCEPTION_EXECUTE_HANDLER) {
-		ErrLog("%s", __FUNCTION__);
-		Status = STATUS_UNSUCCESSFUL;
+		Status = STATUS_ACCESS_VIOLATION;
+		ERROR_END
 	}
 
 FINISH:
 	Detach();
+	PRINT_ELAPSED;
 	return Status;
 }
 
@@ -296,6 +315,7 @@ NTSTATUS ShDrvProcess::GetProcessLdrHead32(OUT PULONG LdrList)
 #endif
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
+	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 
 	UNDOC_PEB::PPEB32 Peb = nullptr;
@@ -317,12 +337,13 @@ NTSTATUS ShDrvProcess::GetProcessLdrHead32(OUT PULONG LdrList)
 		Status = STATUS_SUCCESS;
 	}
 	__except (EXCEPTION_EXECUTE_HANDLER) {
-		ErrLog("%s", __FUNCTION__);
-		Status = STATUS_UNSUCCESSFUL;
+		Status = STATUS_ACCESS_VIOLATION;
+		ERROR_END
 	}
 
 FINISH:
 	Detach();
+	PRINT_ELAPSED;
 	return Status;
 }
 
@@ -333,14 +354,19 @@ NTSTATUS ShDrvProcess::Attach()
 #endif
 	if (KeGetCurrentIrql() >= DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
+	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 	if (Process == nullptr || bAttached == true || bAttachedEx == true) { ERROR_END }
 	
 	KeStackAttachProcess(Process, &ApcState);
 	bAttached = true;
+
+	LOCK_EXCLUSIVE(ProcessLock, PushLock);
+
 	Status = STATUS_SUCCESS;
 
 FINISH:
+	PRINT_ELAPSED;
 	return Status;
 }
 
@@ -351,17 +377,21 @@ NTSTATUS ShDrvProcess::AttachEx()
 #endif
 	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
+	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 	if(MmIsAddressValid(ProcessDirBase) == false || bAttached == true || bAttachedEx == true) { ERROR_END }
 	if(*ProcessDirBase == 0) { ERROR_END }
 
 	OldCr3 = __readcr3();
+
 	__writecr3(*ProcessDirBase);
-	
 	bAttachedEx = true;
+
+	LOCK_EXCLUSIVE(ProcessLock, PushLock);
 
 	Status = STATUS_SUCCESS;
 FINISH:
+	PRINT_ELAPSED;
 	return Status;
 }
 
@@ -372,8 +402,11 @@ NTSTATUS ShDrvProcess::Detach()
 #endif
 	if (KeGetCurrentIrql() >= DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
+	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 	if (Process == nullptr || bAttached == false) { ERROR_END }
+
+	UNLOCK_EXCLUSIVE(ProcessLock, PushLock);
 
 	KeUnstackDetachProcess(&ApcState);
 	bAttached = false;
@@ -381,6 +414,7 @@ NTSTATUS ShDrvProcess::Detach()
 	Status = STATUS_SUCCESS;
 
 FINISH:
+	PRINT_ELAPSED;
 	return Status;
 }
 
@@ -391,15 +425,18 @@ NTSTATUS ShDrvProcess::DetachEx()
 #endif
 	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
+	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 	if (MmIsAddressValid(ProcessDirBase) == false || Process == nullptr || bAttachedEx == false) { ERROR_END }
 	if (*ProcessDirBase == 0) { ERROR_END }
 
-	__writecr3(OldCr3);
+	UNLOCK_EXCLUSIVE(ProcessLock, PushLock);
 
+	__writecr3(OldCr3);
 	bAttachedEx = false;
 
 	Status = STATUS_SUCCESS;
 FINISH:
+	PRINT_ELAPSED;
 	return Status;
 }

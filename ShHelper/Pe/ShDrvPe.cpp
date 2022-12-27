@@ -8,12 +8,15 @@ NTSTATUS ShDrvPe::Initialize(
 #if TRACE_LOG_DEPTH & TRACE_PE
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #endif
+
+	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
-	if (ImageBase == nullptr || Process == nullptr) { return Status; }
+	if (ImageBase == nullptr || Process == nullptr) { ERROR_END }
 
 	this->Process   = Process;
 	this->ApcState  = { 0, };
 	this->ImageBase = ImageBase;
+	this->bAttached = false;
 	this->b32bit    = b32bit;
 
 	this->Pe = ShDrvCore::New<SH_PE_HEADER>();
@@ -32,6 +35,7 @@ NTSTATUS ShDrvPe::Initialize(
 	this->bInit = true;
 
 FINISH:
+	PRINT_ELAPSED;
 	return Status;
 }
 
@@ -40,9 +44,11 @@ BOOLEAN ShDrvPe::ValidPeCheck()
 #if TRACE_LOG_DEPTH & TRACE_PE
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #endif
+
+	SAVE_CURRENT_COUNTER;
 	BOOLEAN Result = false;
 
-	if (bInit == false) { return false; }
+	if (bInit == false) { END }
 
 	if (b32bit)
 	{
@@ -55,6 +61,8 @@ BOOLEAN ShDrvPe::ValidPeCheck()
 		Result = Pe->NtHeaders->Signature == IMAGE_NT_SIGNATURE ? true : false;
 	}
 
+FINISH:
+	PRINT_ELAPSED;
 	return Result;
 }
 
@@ -64,16 +72,22 @@ ULONG ShDrvPe::GetSectionCount()
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #endif
 
-	if (bInit == false) { return 0; }
+	SAVE_CURRENT_COUNTER;
+	ULONG Result = 0;
+	if (bInit == false) { END }
 
 	if (b32bit)
 	{
-		return Pe32->FileHeader->NumberOfSections;
+		Result = Pe32->FileHeader->NumberOfSections;
 	}
 	else 
 	{ 
-		return Pe->FileHeader->NumberOfSections; 
+		Result = Pe->FileHeader->NumberOfSections; 
 	}
+
+FINISH:
+	PRINT_ELAPSED;
+	return Result;
 }
 
 ULONG ShDrvPe::GetExportCountByName()
@@ -83,15 +97,18 @@ ULONG ShDrvPe::GetExportCountByName()
 #endif
 	if (KeGetCurrentIrql() >= DISPATCH_LEVEL) { return 0; }
 
-	if (bInit == false || ExportDirectory == nullptr) { return 0; }
-	auto ResultCount = 0ul;
+	SAVE_CURRENT_COUNTER;
+	ULONG Result = 0;
+
+	if (bInit == false || ExportDirectory == nullptr) { END }
 
 	Attach();
-	ResultCount = ExportDirectory->NumberOfNames;
+	Result = ExportDirectory->NumberOfNames;
 
 FINISH:
 	Detach();
-	return ResultCount;
+	PRINT_ELAPSED;
+	return Result;
 }
 
 ULONG64 ShDrvPe::GetAddressByExport(IN PCSTR RoutineName)
@@ -101,9 +118,9 @@ ULONG64 ShDrvPe::GetAddressByExport(IN PCSTR RoutineName)
 #endif
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return 0; }
 
-	if (bInit == false || ExportDirectory == nullptr) { return 0; }
-
-	auto Result = 0ull;
+	SAVE_CURRENT_COUNTER;
+	ULONG64 Result = 0;
+	if (bInit == false || ExportDirectory == nullptr) { END }
 
 	Attach();
 	auto AddressOfName = ADD_OFFSET(ImageBase, ExportDirectory->AddressOfNames, PULONG);
@@ -121,6 +138,7 @@ ULONG64 ShDrvPe::GetAddressByExport(IN PCSTR RoutineName)
 
 FINISH:
 	Detach();
+	PRINT_ELAPSED;
 	return Result;
 }
 
@@ -131,6 +149,7 @@ NTSTATUS ShDrvPe::InitializeEx()
 #endif
 	if (KeGetCurrentIrql() > APC_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
+	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_SUCCESS;
 	ULONG ReturnSize = 0;
 	Attach();
@@ -192,5 +211,6 @@ NTSTATUS ShDrvPe::InitializeEx()
 
 FINISH:
 	Detach();
+	PRINT_ELAPSED;
 	return Status;
 }

@@ -1,10 +1,5 @@
 #include <ShDrvInc.h>
 
-#define POOL_ENTRY_INITIALIZE(Entry, type, Size)\
-Entry->PoolType = type;\
-Entry->PoolSize = Size;\
-Entry->bUsed = false;
-
 NTSTATUS ShDrvPoolManager::Initialize()
 {
 #if TRACE_LOG_DEPTH & TRACE_POOL
@@ -12,7 +7,8 @@ NTSTATUS ShDrvPoolManager::Initialize()
 #endif
 	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
-	auto Status = STATUS_SUCCESS;
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
 
 	if (g_Pools == nullptr)
 	{
@@ -55,6 +51,7 @@ NTSTATUS ShDrvPoolManager::Initialize()
 	}
 
 FINISH:
+	PRINT_ELAPSED;
 	return Status;
 }
 
@@ -67,7 +64,8 @@ NTSTATUS ShDrvPoolManager::AllocatePoolEntry(
 #endif
 	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
-	auto Status = STATUS_SUCCESS;
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
 
 	auto StartIndex = (PoolType - g_Pools->StartIndex - 1) * SH_POOL_ENTRY_MAX_COUNT + g_Pools->StartIndex;
 
@@ -80,6 +78,7 @@ NTSTATUS ShDrvPoolManager::AllocatePoolEntry(
 	}
 
 FINISH:
+	PRINT_ELAPSED;
 	return Status;
 }
 
@@ -92,11 +91,12 @@ NTSTATUS ShDrvPoolManager::FreePoolEntry(
 #endif
 	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
-	auto Status = STATUS_SUCCESS;
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
 	BOOLEAN bFound = false;
 	KIRQL CurrentIrql = KeGetCurrentIrql();
 	
-	if (g_Pools == nullptr || Buffer == nullptr) { return STATUS_INVALID_PARAMETER; }
+	if (g_Pools == nullptr || Buffer == nullptr) { return ERROR_END; }
 
 	SPIN_LOCK(&g_Pools->Lock);
 
@@ -124,6 +124,10 @@ NTSTATUS ShDrvPoolManager::FreePoolEntry(
 
 	SPIN_UNLOCK(&g_Pools->Lock);
 
+	Status = STATUS_SUCCESS;
+
+FINISH:
+	PRINT_ELAPSED;
 	return Status;
 }
 
@@ -136,6 +140,7 @@ PVOID ShDrvPoolManager::GetPool(IN SH_POOL_TYPE PoolType)
 
 	if (g_Pools == nullptr) { return nullptr; }
 
+	SAVE_CURRENT_COUNTER;
 	PVOID Result = nullptr;
 	KIRQL CurrentIrql = KeGetCurrentIrql();
 	
@@ -162,6 +167,8 @@ PVOID ShDrvPoolManager::GetPool(IN SH_POOL_TYPE PoolType)
 	}
 
 	SPIN_UNLOCK(&g_Pools->Lock);
+
+	PRINT_ELAPSED;
 	return Result;
 }
 
@@ -170,6 +177,7 @@ VOID ShDrvPoolManager::Finalize()
 #if TRACE_LOG_DEPTH & TRACE_POOL
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #endif
+	SAVE_CURRENT_COUNTER;
 	KIRQL CurrentIrql = KeGetCurrentIrql();
 
 	if (g_Pools != nullptr)
@@ -185,4 +193,6 @@ VOID ShDrvPoolManager::Finalize()
 		SPIN_UNLOCK(&g_Pools->Lock);
 		FREE_POOLEX(g_Pools);
 	}
+
+	PRINT_ELAPSED;
 }

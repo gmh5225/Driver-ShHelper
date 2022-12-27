@@ -54,12 +54,14 @@ PACK_END
 
 PACK_START(1)
 typedef struct _SH_GLOBAL_OFFSETS {
+#define DIR_BASE_OFFSET 0x28
+
 	struct {
 		ULONG DirectoryTableBase;
-#define DIR_BASE_OFFSET 0x28
 		ULONG ThreadListHead;
 		ULONG ProcessLock;
-#define PROCESS_LOCK_OFFSET 0x40
+		ULONG StackCount;
+		ULONG ProcessListEntry;
 		ULONG UserDirectoryTableBase;
 	}KPROCESS;
 
@@ -67,6 +69,8 @@ typedef struct _SH_GLOBAL_OFFSETS {
 		ULONG ProcessLock;
 		ULONG UniqueProcessId;
 		ULONG ActiveProcessLinks;
+		ULONG AddressCreationLock;
+		ULONG Win32WindowStation;
 		ULONG Peb;
 		ULONG ObjectTable;
 		ULONG DebugPort;

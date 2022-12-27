@@ -66,6 +66,7 @@ private:
 	BOOLEAN          bInit;
 	PEPROCESS        Process;
 	KAPC_STATE       ApcState;
+	BOOLEAN          bAttached;
 	BOOLEAN          b32bit;
 	PVOID            ImageBase;
 	PSH_PE_HEADER    Pe;
@@ -75,8 +76,17 @@ private:
 
 private:
 	NTSTATUS InitializeEx();
-	VOID Attach() { KeStackAttachProcess(Process, &ApcState); }
-	VOID Detach() { KeUnstackDetachProcess(&ApcState); }
+	VOID Attach() { 
+		KeStackAttachProcess(Process, &ApcState); 
+		bAttached = true; 
+	}
+	VOID Detach() {
+		if (bAttached)
+		{
+			KeUnstackDetachProcess(&ApcState);
+			bAttached = false;
+		}
+	}
 };
 
 #endif // !_SHDRVPE_H_
