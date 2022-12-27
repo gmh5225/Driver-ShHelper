@@ -17,25 +17,53 @@ namespace ShDrvCore {
 		IN  PCSTR ModuleName,
 		OUT PLDR_DATA_TABLE_ENTRY ModuleInformation);
 
-	NTSTATUS GetProcessModuleInformation(
-		IN  PCSTR ModuleName,
-		IN  PEPROCESS Process,
-		OUT PLDR_DATA_TABLE_ENTRY ModuleInformation);
+	template <typename T>
+	NTSTATUS AllocatePool(
+		IN SIZE_T Size,
+		OUT T* Pool)
+	{
+#if TRACE_LOG_DEPTH & TRACE_MEMORY
+		TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#endif
+		if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
-	NTSTATUS GetProcessModuleInformation32(
-		IN  PCSTR ModuleName,
-		IN  PEPROCESS Process,
-		OUT PLDR_DATA_TABLE_ENTRY32 ModuleInformation);
+		if (Size == 0 || Pool == nullptr) { return STATUS_UNSUCCESSFUL; }
+		*Pool = (T)ExAllocatePoolWithTag(NonPagedPool, Size, SH_TAG);
+		if (*Pool == nullptr) { return STATUS_UNSUCCESSFUL; }
+		RtlSecureZeroMemory(*Pool, Size);
+		return STATUS_SUCCESS;
+	}
 
-	NTSTATUS GetProcessLdrHead(
-		IN  PEPROCESS Process,
-		OUT PLIST_ENTRY LdrList);
+	template <typename T>
+	T* New()
+	{
+#if TRACE_LOG_DEPTH & TRACE_MEMORY
+		TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#endif
+		if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return nullptr; }
 
-	NTSTATUS GetProcessLdrHead32(
-		IN  PEPROCESS Process,
-		OUT PULONG LdrList);
+		auto Status = STATUS_SUCCESS;
+		PVOID ClassPool = nullptr;
+		Status = AllocatePool<PVOID>(sizeof(T), &ClassPool);
+		if (!NT_SUCCESS(Status)) { return nullptr; }
 
-	BOOLEAN IsWow64Process(IN PEPROCESS Process);
+		return reinterpret_cast<T*>(ClassPool);
+	}
+
+	template <typename T>
+	VOID Delete(T* Instance)
+	{
+#if TRACE_LOG_DEPTH & TRACE_MEMORY
+		TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#endif
+		if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return; }
+
+		if (Instance != nullptr)
+		{
+			Instance->~T();
+			FREE_POOLEX(Instance);
+		}
+	}
 }
 
 #endif // !_SHDRVCORE_H_

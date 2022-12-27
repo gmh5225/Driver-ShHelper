@@ -30,10 +30,10 @@ public:
 	ShDrvPe() {};
 	~ShDrvPe() 
 	{
-		if (Pe != nullptr) { ShDrvMemory::Delete(Pe->ImageHeader); };
-		if (Pe32 != nullptr) { ShDrvMemory::Delete(Pe32->ImageHeader); };
-		ShDrvMemory::Delete(Pe);
-		ShDrvMemory::Delete(Pe32);
+		if (Pe != nullptr) { ShDrvCore::Delete(Pe->ImageHeader); };
+		if (Pe32 != nullptr) { ShDrvCore::Delete(Pe32->ImageHeader); };
+		ShDrvCore::Delete(Pe);
+		ShDrvCore::Delete(Pe32);
 	};
 
 	NTSTATUS Initialize(IN PVOID ImageBase, IN PEPROCESS Process, IN BOOLEAN b32bit = false );

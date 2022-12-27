@@ -163,6 +163,7 @@
     <ClInclude Include="Memory\ShDrvMemory.h" />
     <ClInclude Include="Pe\ShDrvPe.h" />
     <ClInclude Include="PoolManager\ShDrvPoolManager.h" />
+    <ClInclude Include="Process\ShDrvProcess.h" />
     <ClInclude Include="ShDrvInc.h" />
     <ClInclude Include="ShDrvHelper.h" />
     <ClInclude Include="Struct\ShDrvFuncDef.h" />
@@ -176,6 +177,7 @@
     <ClCompile Include="Memory\ShDrvMemory.cpp" />
     <ClCompile Include="Pe\ShDrvPe.cpp" />
     <ClCompile Include="PoolManager\ShDrvPoolManager.cpp" />
+    <ClCompile Include="Process\ShDrvProcess.cpp" />
     <ClCompile Include="ShDrvHelper.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>

@@ -16,13 +16,13 @@ NTSTATUS ShDrvPe::Initialize(
 	this->ImageBase = ImageBase;
 	this->b32bit    = b32bit;
 
-	this->Pe = ShDrvMemory::New<SH_PE_HEADER>();
-	this->Pe32 = ShDrvMemory::New<SH_PE_HEADER32>();
+	this->Pe = ShDrvCore::New<SH_PE_HEADER>();
+	this->Pe32 = ShDrvCore::New<SH_PE_HEADER32>();
 
 	if (Pe == nullptr || Pe32 == nullptr)
 	{
-		ShDrvMemory::Delete(Pe);
-		ShDrvMemory::Delete(Pe32);
+		ShDrvCore::Delete(Pe);
+		ShDrvCore::Delete(Pe32);
 		return Status;
 	}
 
@@ -157,7 +157,7 @@ NTSTATUS ShDrvPe::InitializeEx()
 	{
 		auto DosHeader = reinterpret_cast<PIMAGE_DOS_HEADER>(ImageBase);
 		auto NtHeaders = RtlImageNtHeader(ImageBase);
-		Status = ShDrvMemory::AllocatePool<PVOID>(NtHeaders->OptionalHeader.SizeOfHeaders, &Pe->ImageHeader);
+		Status = ShDrvCore::AllocatePool<PVOID>(NtHeaders->OptionalHeader.SizeOfHeaders, &Pe->ImageHeader);
 		if(!NT_SUCCESS(Status)) { ERROR_END }
 		RtlCopyMemory(Pe->ImageHeader, ImageBase, NtHeaders->OptionalHeader.SizeOfHeaders);
 
@@ -174,7 +174,7 @@ NTSTATUS ShDrvPe::InitializeEx()
 	{
 		auto DosHeader = reinterpret_cast<PIMAGE_DOS_HEADER>(ImageBase);
 		auto NtHeaders = ADD_OFFSET(ImageBase, DosHeader->e_lfanew, PIMAGE_NT_HEADERS32);
-		Status = ShDrvMemory::AllocatePool<PVOID>(NtHeaders->OptionalHeader.SizeOfHeaders, &Pe32->ImageHeader);
+		Status = ShDrvCore::AllocatePool<PVOID>(NtHeaders->OptionalHeader.SizeOfHeaders, &Pe32->ImageHeader);
 		if (!NT_SUCCESS(Status)) { ERROR_END }
 		RtlCopyMemory(Pe32->ImageHeader, ImageBase, NtHeaders->OptionalHeader.SizeOfHeaders);
 

@@ -21,4 +21,11 @@ typedef enum _SH_GET_BASE_METHOD {
 	QueryModuleInfo,
 }SH_GET_BASE_METHOD, *PSH_GET_BASE_METHOD;
 
+typedef enum _SH_RW_MEMORY_METHOD {
+	RW_Normal = 0,
+	RW_Physical,
+	RW_MDL
+
+}SH_RW_MEMORY_METHOD, *PSH_RW_MEMORY_METHOD;
+
 #endif // !_SHDRVENUM_H_

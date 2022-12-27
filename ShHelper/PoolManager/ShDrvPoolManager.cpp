@@ -16,7 +16,7 @@ NTSTATUS ShDrvPoolManager::Initialize()
 
 	if (g_Pools == nullptr)
 	{
-		Status = ShDrvMemory::AllocatePool<PSH_POOL_INFORMATION>(SH_POOL_INFORMATION_SIZE, &g_Pools);
+		Status = ShDrvCore::AllocatePool<PSH_POOL_INFORMATION>(SH_POOL_INFORMATION_SIZE, &g_Pools);
 		if (!NT_SUCCESS(Status)) { ERROR_END }
 	}
 	
@@ -27,7 +27,7 @@ NTSTATUS ShDrvPoolManager::Initialize()
 	g_Pools->PoolCount      = ((AllPoolTypeCount - GlobalPoolTypeCount - 1) * SH_POOL_ENTRY_MAX_COUNT) + GlobalPoolTypeCount;
 	g_Pools->TotalEntrySize = SH_POOL_ENTRY_SIZE * g_Pools->PoolCount;
 	
-	Status = ShDrvMemory::AllocatePool<PSH_POOL_ENTRY>(g_Pools->TotalEntrySize, &g_Pools->PoolEntry);
+	Status = ShDrvCore::AllocatePool<PSH_POOL_ENTRY>(g_Pools->TotalEntrySize, &g_Pools->PoolEntry);
 	if(!NT_SUCCESS(Status)) { ERROR_END }
 	
 	// Allocate global pool 
@@ -36,7 +36,7 @@ NTSTATUS ShDrvPoolManager::Initialize()
 		auto PoolEntry = &g_Pools->PoolEntry[i];
 		POOL_ENTRY_INITIALIZE(PoolEntry, (SH_POOL_TYPE)i, PAGE_SIZE);
 
-		Status = ShDrvMemory::AllocatePool<PVOID>(PAGE_SIZE, &PoolEntry->Buffer);
+		Status = ShDrvCore::AllocatePool<PVOID>(PAGE_SIZE, &PoolEntry->Buffer);
 		if(!NT_SUCCESS(Status)) { ERROR_END }
 	}
 
@@ -75,7 +75,7 @@ NTSTATUS ShDrvPoolManager::AllocatePoolEntry(
 	{ 
 		auto PoolEntry = &g_Pools->PoolEntry[StartIndex + i]; 
 		POOL_ENTRY_INITIALIZE(PoolEntry, PoolType, PoolSize); 
-		Status = ShDrvMemory::AllocatePool<PVOID>(PoolSize, &PoolEntry->Buffer);
+		Status = ShDrvCore::AllocatePool<PVOID>(PoolSize, &PoolEntry->Buffer);
 		if (!NT_SUCCESS(Status)) { ERROR_END }
 	}
 
@@ -111,7 +111,7 @@ NTSTATUS ShDrvPoolManager::FreePoolEntry(
 			if (bReuse == false)
 			{
 				FREE_POOLEX(Buffer);
-				Status = ShDrvMemory::AllocatePool<PVOID>(Entry->PoolSize, &Entry->Buffer);
+				Status = ShDrvCore::AllocatePool<PVOID>(Entry->PoolSize, &Entry->Buffer);
 				if (!NT_SUCCESS(Status)) { Entry->bUsed = true; }
 			}
 

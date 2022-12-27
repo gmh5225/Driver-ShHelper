@@ -11,9 +11,10 @@
 #define TRACE_MEMORY    0x0008
 #define TRACE_CORE      0x0010
 #define TRACE_PE        0x0020
+#define TRACE_PROCESS   0x0040
 #define TRACE_ALL       0xFFFF
 
-#define TRACE_LOG_DEPTH TRACE_ALL 
+#define TRACE_LOG_DEPTH TRACE_ALL
 
 #define ASM_START _asm {
 #define ASM_END   }
@@ -63,13 +64,16 @@
 
 #include <Memory/ShDrvMemory.h>
 
+#include <Core/ShDrvCore.h>
 #include <Pe/ShDrvPe.h>
 
-#include <Core/ShDrvCore.h>
 
 #include <Util/ShDrvUtil.h>
 
+#include <Process/ShDrvProcess.h>
+
 #include <PoolManager/ShDrvPoolManager.h>
+
 
 #include <ShDrvHelper.h>
 

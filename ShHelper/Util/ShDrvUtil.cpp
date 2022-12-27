@@ -334,6 +334,7 @@ NTSTATUS ShDrvUtil::GetPhysicalAddressInternal(
 		PdPte1Gb.AsUInt = PdPte.AsUInt;
 		PhysicalAddress->QuadPart = PdPte1Gb.PageFrameNumber << 30;
 		PhysicalAddress->QuadPart += FinalLinearAddress.FinalPhysical;
+		Status = STATUS_SUCCESS;
 		END;
 	}
 
@@ -346,13 +347,15 @@ NTSTATUS ShDrvUtil::GetPhysicalAddressInternal(
 		Pde2Mb.AsUInt = Pde.AsUInt;
 		PhysicalAddress->QuadPart = Pde2Mb.PageFrameNumber << 21;
 		PhysicalAddress->QuadPart += FinalLinearAddress.FinalPhysical;
+		Status = STATUS_SUCCESS;
 		END;
 	}
 
 	PAGING_TRAVERSE(Pte, Pte);
 	PhysicalAddress->QuadPart = Pte.PageFrameNumber << 12;
 	PhysicalAddress->QuadPart += LinearAddress.FinalPhysical;
-	
+	Status = STATUS_SUCCESS;
+
 FINISH:
 	return Status;
 }

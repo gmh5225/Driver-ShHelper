@@ -58,6 +58,9 @@
     <ClInclude Include="Struct\ShDrvIntel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Process\ShDrvProcess.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ShDrvHelper.cpp">
@@ -76,6 +79,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Core\ShDrvCore.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Process\ShDrvProcess.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
