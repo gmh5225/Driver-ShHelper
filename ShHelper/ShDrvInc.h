@@ -13,9 +13,10 @@
 #define TRACE_CORE      0x0010
 #define TRACE_PE        0x0020
 #define TRACE_PROCESS   0x0040
+#define TRACE_MEMSCAN   0x0080
 #define TRACE_ALL       0xFFFF
 
-#define TRACE_LOG_DEPTH TRACE_OFF
+#define TRACE_LOG_DEPTH TRACE_ALL
 
 #if CHECK_ELAPSED && TRACE_LOG
 #define PRINT_ELAPSED ShDrvUtil::PrintElapsedTime(__PRETTY_FUNCTION__, &CurrentCounter, &Frequency)
@@ -70,11 +71,14 @@ LARGE_INTEGER CurrentCounter = KeQueryPerformanceCounter(&Frequency)
 #include <Struct/ShDrvStruct.h>
 
 #include <Memory/ShDrvMemory.h>
+#include <Memory/ShDrvMemoryScanner.h>
 
 #include <Core/ShDrvCore.h>
 #include <Pe/ShDrvPe.h>
 
 #include <Util/ShDrvUtil.h>
+
+
 
 #include <Process/ShDrvProcess.h>
 

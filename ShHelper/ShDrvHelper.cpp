@@ -20,12 +20,9 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
 
 	Status = DriverInitialize();
 	if (!NT_SUCCESS(Status)) { ShDrvPoolManager::Finalize(); ERROR_END }
-	Log("Loaded driver");	
-
-	// todo
-	auto tttt = 0ul;
-	GET_GLOBAL_OFFSET(EPROCESS, ProcessLock, tttt);
-
+	Log("Loaded driver");
+	
+	
 FINISH:
 	PRINT_ELAPSED;
 	return Status;
@@ -68,24 +65,28 @@ NTSTATUS DriverInitialize()
 	g_Variables->BuildNumber = g_Variables->KUserSharedData->NtBuildNumber;
 	
 	g_Variables->SystemBaseAddress = ShDrvCore::GetKernelBaseAddress("ntoskrnl.exe", SH_GET_BASE_METHOD::LoadedModuleList);
+	g_Variables->SystemDirBase = __readcr3();
+
+	GET_EXPORT_VARIABLE(PsLoadedModuleList, PLIST_ENTRY);
+	GET_EXPORT_VARIABLE(PsLoadedModuleResource, PERESOURCE);
+
+	if (!NT_SUCCESS(Status)) { Status = STATUS_NOT_SUPPORTED; ERROR_END }
+
+	Status = InitializeOffset_Unsafe();
+	if (!NT_SUCCESS(Status)) { ERROR_END }
 	
 	Pe = ShDrvCore::New<ShDrvPe>();
 	Status = Pe->Initialize(g_Variables->SystemBaseAddress, PsInitialSystemProcess);
 	if (!NT_SUCCESS(Status)) { ERROR_END }
 
-	auto PeData = Pe->GetPeData();
-	g_Variables->SystemEndAddress = PeData->ImageEnd;
+	g_Variables->SystemEndAddress = Pe->GetImageEnd();
 
 	GET_EXPORT_ROUTINE(PsGetProcessImageFileName, Ps);
 	GET_EXPORT_ROUTINE(PsGetProcessPeb, Ps);
 	GET_EXPORT_ROUTINE(PsGetProcessWow64Process, Ps);
-	GET_EXPORT_VARIABLE(PsLoadedModuleList, PLIST_ENTRY);
-	GET_EXPORT_VARIABLE(PsLoadedModuleResource, PERESOURCE);
+	GET_EXPORT_ROUTINE(ObGetObjectType, Ob);
 
-	g_Offsets->KPROCESS.DirectoryTableBase = DIR_BASE_OFFSET;
-	g_Variables->SystemDirBase = __readcr3();
-
-	Status = InitializeOffset_Unsafe();
+	if (!NT_SUCCESS(Status)) { Status = STATUS_NOT_SUPPORTED; ERROR_END }
 
 FINISH:
 	ShDrvCore::Delete(Pe);

@@ -8,6 +8,7 @@ PVOID ShDrvCore::GetKernelBaseAddress(
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #endif
 
+	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_SUCCESS;
 	PVOID Result = nullptr;
 
@@ -38,6 +39,7 @@ PVOID ShDrvCore::GetKernelBaseAddress(
 
 
 FINISH:
+	PRINT_ELAPSED;
 	return Result;
 }
 
@@ -50,6 +52,7 @@ NTSTATUS ShDrvCore::GetSystemModuleInformation(
 #endif
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
+	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 	auto ReturnLength = 0ul;
 	auto NumberOfModules = 0;
@@ -99,6 +102,7 @@ NTSTATUS ShDrvCore::GetSystemModuleInformation(
 FINISH:
 	FREE_POOL(TargetName);
 	FREE_POOL(SystemInformation);
+	PRINT_ELAPSED;
 	return Status;
 }
 
@@ -111,6 +115,7 @@ NTSTATUS ShDrvCore::GetSystemModuleInformationEx(
 #endif
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
+	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 
 	PSTR TargetName = nullptr;
@@ -166,5 +171,31 @@ NTSTATUS ShDrvCore::GetSystemModuleInformationEx(
 FINISH:
 	FREE_POOL(TargetString.Buffer);
 	FREE_POOL(TargetName);
+	PRINT_ELAPSED;
 	return Status;
+}
+
+BOOLEAN ShDrvCore::IsValidObject(
+	IN PVOID Object, 
+	IN POBJECT_TYPE ObjectType)
+{
+#if TRACE_LOG_DEPTH & TRACE_CORE
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#endif
+
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	auto Result = false;
+	POBJECT_TYPE SrcObjType = nullptr;
+
+	if (Object == nullptr || ObjectType == nullptr || g_Routines == nullptr) { ERROR_END }
+
+	SrcObjType = SH_ROUTINE_CALL(ObGetObjectType)(Object);
+	if (SrcObjType == nullptr) { ERROR_END; }
+
+	if (SrcObjType == ObjectType) { Result = true; }
+
+FINISH:
+	PRINT_ELAPSED;
+	return Result;
 }

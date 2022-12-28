@@ -49,7 +49,13 @@ typedef enum _SH_RW_MEMORY_METHOD {
 	RW_Normal = 0,
 	RW_Physical,
 	RW_MDL
-
 }SH_RW_MEMORY_METHOD, *PSH_RW_MEMORY_METHOD;
+
+typedef enum _SH_MEMSCAN_METHOD {
+	MEMSCAN_Normal_One = 0,
+	MEMSCAN_Normal_All,
+	MEMSCAN_Section_One,
+	MEMSCAN_Section_All
+}SH_MEMSCAN_METHOD, *PSH_MEMSCAN_METHOD;
 
 #endif // !_SHDRVENUM_H_

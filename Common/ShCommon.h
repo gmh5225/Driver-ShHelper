@@ -12,26 +12,54 @@ namespace ShCommon {
 #define ADD_OFFSET(p, v, t) ShCommon::CalcOffset<t>(p, v)
 #define SUB_OFFSET(p, v, t) ShCommon::CalcOffset<t>(p, v, true) 
 	template<typename T>
-	T CalcOffset(IN PVOID Address, IN ULONG64 Offset, IN bool bSub = false)
+	T CalcOffset(
+		IN PVOID Address, 
+		IN ULONG64 Offset, 
+		IN bool bSub = false)
 	{
 		if (bSub) { return (T)((ULONG64)Address - Offset); }
 		return (T)((ULONG64)Address + Offset);
 	}
 
-	inline ULONG64 TrimInstruction(IN PVOID Address, IN ULONG OpcodeLength, IN ULONG OperandLength, IN BOOLEAN IsRelative)
+	template<typename T>
+	T TrimInstruction(
+		IN PVOID Address, 
+		IN ULONG OpcodeLength, 
+		IN ULONG OperandLength, 
+		IN BOOLEAN IsRelative = false)
 	{
-		auto Result = 0ull;
+		ULONG64 Result = 0;
+		int Offset = 0;
 		auto InstructionSize = OpcodeLength + OperandLength;
 		
-		memcpy(&Result, CalcOffset<PVOID>(Address, OpcodeLength), OperandLength);
+		memcpy(&Offset, CalcOffset<PVOID>(Address, OpcodeLength), OperandLength);
+		Result = Offset;
 
 		if (IsRelative)
 		{
-			Result = CalcOffset<ULONG64>(Address, Result + InstructionSize);
+			Result = (ULONG64)Address + Offset + InstructionSize;
 		}
-	
-		return Result;
+
+		return (T)Result;
 	}
+
+	template<typename T>
+	T GetAbsFromInstruction(
+		IN PVOID Address,
+		IN ULONG OpcodeLength,
+		IN ULONG OperandLength)
+	{
+		return TrimInstruction<T>(Address, OpcodeLength, OperandLength, true);
+	}
+
+	inline ULONG GetOffsetFromInstruction(
+		IN PVOID Address,
+		IN ULONG OpcodeLength,
+		IN ULONG OperandLength)
+	{
+		return TrimInstruction<ULONG>(Address, OpcodeLength, OperandLength);
+	}
+
 
 	inline BOOLEAN GetModuleRange(IN PVOID ImageBase, IN ULONG64 ImageSize, OUT PVOID* StartAddress, OUT PVOID* EndAddress)
 	{

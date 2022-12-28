@@ -4,6 +4,8 @@
 using namespace UNDOC_SYSTEM;
 using namespace UNDOC_PEB;
 
+#define CHECK_OBJECT_TYPE(obj, objtype) Status = ShDrvCore::IsValidObject(obj, objtype) ? STATUS_SUCCESS : STATUS_INVALID_PARAMETER
+
 namespace ShDrvCore {
 	PVOID GetKernelBaseAddress(
 		IN PCSTR ModuleName,
@@ -16,6 +18,10 @@ namespace ShDrvCore {
 	NTSTATUS GetSystemModuleInformationEx(
 		IN  PCSTR ModuleName,
 		OUT PLDR_DATA_TABLE_ENTRY ModuleInformation);
+
+	BOOLEAN IsValidObject(
+		IN PVOID Object,
+		IN POBJECT_TYPE ObjectType);
 
 	template <typename T>
 	NTSTATUS AllocatePool(

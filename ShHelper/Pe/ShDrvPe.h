@@ -28,7 +28,7 @@ typedef struct _SH_PE_HEADER32 {
 class ShDrvPe {
 public:
 	ShDrvPe() {};
-	~ShDrvPe() 
+	~ShDrvPe()
 	{
 		if (Pe != nullptr) { ShDrvCore::Delete(Pe->ImageHeader); };
 		if (Pe32 != nullptr) { ShDrvCore::Delete(Pe32->ImageHeader); };
@@ -36,26 +36,50 @@ public:
 		ShDrvCore::Delete(Pe32);
 	};
 
-	NTSTATUS Initialize(IN PVOID ImageBase, IN PEPROCESS Process, IN BOOLEAN b32bit = false );
-	
-	PEPROCESS     GetProcess() { 
-		if (!bInit)	{ return nullptr; } 
-		return Process; }
-	PVOID         GetImageBase() { 
+	NTSTATUS Initialize(
+		IN PVOID ImageBase,
+		IN PEPROCESS Process,
+		IN BOOLEAN b32bit = false);
+
+	PEPROCESS     GetProcess() {
 		if (!bInit) { return nullptr; }
-		return ImageBase; }
-	PSH_PE_HEADER   GetPeData() {
+		return Process;
+	}
+
+	PVOID GetImageBase() {
 		if (!bInit) { return nullptr; }
-		return Pe; }
+		return ImageBase;
+	}
+
+	PVOID GetImageEnd() {
+		if (!bInit) { return nullptr; }
+		return b32bit ? (PVOID)Pe32->ImageEnd : Pe->ImageEnd;
+	}
+
+	ULONG64 GetImageSize() {
+		if (!bInit) { return 0; }
+		return b32bit ? Pe32->OptionalHeader->SizeOfImage : Pe->OptionalHeader->SizeOfImage;
+	}
+
+	PSH_PE_HEADER GetPeData() {
+		if (!bInit) { return nullptr; }
+		return Pe;
+	}
+
 	PSH_PE_HEADER32 GetPe32Data() {
 		if (!bInit) { return nullptr; }
-		return Pe32; }
-	PIMAGE_NT_HEADERS   GetNtHeader() {
+		return Pe32;
+	}
+
+	PIMAGE_NT_HEADERS GetNtHeader() {
 		if (!bInit) { return nullptr; }
-		return Pe->NtHeaders;	};
+		return Pe->NtHeaders;
+	};
+
 	PIMAGE_NT_HEADERS32 GetNtHeader32() {
 		if (!bInit) { return nullptr; }
-		return Pe32->NtHeaders;	};
+		return Pe32->NtHeaders;
+	};
 
 	BOOLEAN       ValidPeCheck();
 	ULONG         GetSectionCount();
@@ -65,6 +89,7 @@ public:
 private:
 	BOOLEAN          bInit;
 	PEPROCESS        Process;
+	EX_PUSH_LOCK* ProcessLock;
 	KAPC_STATE       ApcState;
 	BOOLEAN          bAttached;
 	BOOLEAN          b32bit;
@@ -76,9 +101,9 @@ private:
 
 private:
 	NTSTATUS InitializeEx();
-	VOID Attach() { 
-		KeStackAttachProcess(Process, &ApcState); 
-		bAttached = true; 
+	VOID Attach() {
+		KeStackAttachProcess(Process, &ApcState);
+		bAttached = true;
 	}
 	VOID Detach() {
 		if (bAttached)

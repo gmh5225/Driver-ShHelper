@@ -13,7 +13,17 @@ NTSTATUS ShDrvPe::Initialize(
 	auto Status = STATUS_INVALID_PARAMETER;
 	if (ImageBase == nullptr || Process == nullptr) { ERROR_END }
 
+	CHECK_GLOBAL_OFFSET(EPROCESS, ProcessLock);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	if (Process != PsInitialSystemProcess)
+	{
+		CHECK_OBJECT_TYPE(Process, *PsProcessType);
+		if (!NT_SUCCESS(Status)) { ERROR_END }
+	}
+
 	this->Process   = Process;
+	this->ProcessLock = ADD_OFFSET(Process, GET_GLOBAL_OFFSET(EPROCESS, ProcessLock), EX_PUSH_LOCK*);
 	this->ApcState  = { 0, };
 	this->ImageBase = ImageBase;
 	this->bAttached = false;
@@ -103,8 +113,9 @@ ULONG ShDrvPe::GetExportCountByName()
 	if (bInit == false || ExportDirectory == nullptr) { END }
 
 	Attach();
+	LOCK_EXCLUSIVE(ProcessLock, PushLock);
 	Result = ExportDirectory->NumberOfNames;
-
+	UNLOCK_EXCLUSIVE(ProcessLock, PushLock);
 FINISH:
 	Detach();
 	PRINT_ELAPSED;
@@ -123,6 +134,8 @@ ULONG64 ShDrvPe::GetAddressByExport(IN PCSTR RoutineName)
 	if (bInit == false || ExportDirectory == nullptr) { END }
 
 	Attach();
+	LOCK_EXCLUSIVE(ProcessLock, PushLock);
+
 	auto AddressOfName = ADD_OFFSET(ImageBase, ExportDirectory->AddressOfNames, PULONG);
 	auto AddressOfOrdinals = ADD_OFFSET(ImageBase, ExportDirectory->AddressOfNameOrdinals, PUSHORT);
 	auto AddressOfFunctions = ADD_OFFSET(ImageBase, ExportDirectory->AddressOfFunctions, PULONG);
@@ -136,6 +149,7 @@ ULONG64 ShDrvPe::GetAddressByExport(IN PCSTR RoutineName)
 		}
 	}
 
+	UNLOCK_EXCLUSIVE(ProcessLock, PushLock);
 FINISH:
 	Detach();
 	PRINT_ELAPSED;
@@ -153,10 +167,13 @@ NTSTATUS ShDrvPe::InitializeEx()
 	auto Status = STATUS_SUCCESS;
 	ULONG ReturnSize = 0;
 	Attach();
+	LOCK_EXCLUSIVE(ProcessLock, PushLock);
+
 	if (MmIsAddressValid(ImageBase) == false)
 	{
 		if (Process == PsInitialSystemProcess)
 		{
+			UNLOCK_EXCLUSIVE(ProcessLock, PushLock);
 			Detach();
 			Process = ShDrvUtil::GetProcessByImageFileName("csrss.exe");
 			if (Process == nullptr)
@@ -164,7 +181,9 @@ NTSTATUS ShDrvPe::InitializeEx()
 				Status = STATUS_UNSUCCESSFUL;
 				ERROR_END
 			}
+			ProcessLock = ADD_OFFSET(Process, GET_GLOBAL_OFFSET(EPROCESS, ProcessLock), EX_PUSH_LOCK*);
 			Attach();
+			LOCK_EXCLUSIVE(ProcessLock, PushLock);
 		}
 		else
 		{
@@ -210,6 +229,7 @@ NTSTATUS ShDrvPe::InitializeEx()
 	ExportDirectory = reinterpret_cast<PIMAGE_EXPORT_DIRECTORY>(RtlImageDirectoryEntryToData(ImageBase, true, IMAGE_DIRECTORY_ENTRY_EXPORT, &ReturnSize));
 
 FINISH:
+	UNLOCK_EXCLUSIVE(ProcessLock, PushLock);
 	Detach();
 	PRINT_ELAPSED;
 	return Status;

@@ -15,7 +15,10 @@ NTSTATUS ShDrvProcess::Initialize(IN HANDLE ProcessId)
 	CHECK_GLOBAL_OFFSET(EPROCESS, ProcessLock);
 	if(!NT_SUCCESS(Status)) { ERROR_END }
 
-	this->ProcessLock = ADD_OFFSET(Process, g_Offsets->EPROCESS.ProcessLock, EX_PUSH_LOCK*);
+	CHECK_OBJECT_TYPE(this->Process, *PsProcessType);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	this->ProcessLock = ADD_OFFSET(this->Process, GET_GLOBAL_OFFSET(EPROCESS, ProcessLock), EX_PUSH_LOCK*);
 	this->ProcessId = ProcessId;
 	this->bAttached = false;
 	RtlSecureZeroMemory(&this->ApcState, sizeof(KAPC_STATE));
@@ -41,7 +44,14 @@ NTSTATUS ShDrvProcess::Initialize(IN PEPROCESS Process)
 	this->ProcessId = PsGetProcessId(Process);
 	if(this->ProcessId == nullptr) { ERROR_END }
 
+	CHECK_GLOBAL_OFFSET(EPROCESS, ProcessLock);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	CHECK_OBJECT_TYPE(Process, *PsProcessType);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
 	this->Process = Process;
+	this->ProcessLock = ADD_OFFSET(this->Process, GET_GLOBAL_OFFSET(EPROCESS, ProcessLock), EX_PUSH_LOCK*);
 	this->bAttached = false;
 	this->bAttachedEx = false;
 	RtlSecureZeroMemory(&this->ApcState, sizeof(KAPC_STATE));

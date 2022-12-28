@@ -57,7 +57,7 @@ FINISH:
 
 NTSTATUS ShDrvUtil::StringCopyA(
 	OUT NTSTRSAFE_PSTR Dest, 
-	IN NTSTRSAFE_PCSTR Source )
+	IN  NTSTRSAFE_PCSTR Source )
 {
 #if TRACE_LOG_DEPTH & TRACE_UTIL
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
@@ -73,8 +73,8 @@ NTSTATUS ShDrvUtil::StringCopyA(
 }
 
 NTSTATUS ShDrvUtil::StringCopyW(
-	OUT    NTSTRSAFE_PWSTR Dest,
-	IN     NTSTRSAFE_PCWSTR Source )
+	OUT NTSTRSAFE_PWSTR Dest,
+	IN  NTSTRSAFE_PCWSTR Source )
 {
 #if TRACE_LOG_DEPTH & TRACE_UTIL
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
@@ -90,8 +90,8 @@ NTSTATUS ShDrvUtil::StringCopyW(
 }
 
 NTSTATUS ShDrvUtil::StringConcatenateA(
-	OUT    NTSTRSAFE_PSTR Dest, 
-	IN     NTSTRSAFE_PCSTR Source )
+	OUT NTSTRSAFE_PSTR Dest, 
+	IN  NTSTRSAFE_PCSTR Source )
 {
 #if TRACE_LOG_DEPTH & TRACE_UTIL
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
@@ -107,8 +107,8 @@ NTSTATUS ShDrvUtil::StringConcatenateA(
 }
 
 NTSTATUS ShDrvUtil::StringConcatenateW(
-	OUT    NTSTRSAFE_PWSTR Dest, 
-	IN     NTSTRSAFE_PCWSTR Source )
+	OUT  NTSTRSAFE_PWSTR Dest, 
+	IN   NTSTRSAFE_PCWSTR Source )
 {
 #if TRACE_LOG_DEPTH & TRACE_UTIL
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
@@ -124,7 +124,7 @@ NTSTATUS ShDrvUtil::StringConcatenateW(
 }
 
 NTSTATUS ShDrvUtil::StringToUnicode(
-	IN PSTR Source, 
+	IN  PSTR Source, 
 	OUT PUNICODE_STRING Dest )
 {
 #if TRACE_LOG_DEPTH & TRACE_UTIL
@@ -151,7 +151,7 @@ FINISH:
 }
 
 NTSTATUS ShDrvUtil::WStringToAnsiString(
-	IN PWSTR Source, 
+	IN  PWSTR Source, 
 	OUT PANSI_STRING Dest )
 {
 #if TRACE_LOG_DEPTH & TRACE_UTIL
@@ -177,7 +177,8 @@ FINISH:
 	return Status;
 }
 
-SIZE_T ShDrvUtil::StringLengthA(IN PSTR Source)
+SIZE_T ShDrvUtil::StringLengthA(
+	IN PSTR Source)
 {
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return 0; }
 	
@@ -189,7 +190,8 @@ SIZE_T ShDrvUtil::StringLengthA(IN PSTR Source)
 	return Length;
 }
 
-SIZE_T ShDrvUtil::StringLengthW(IN PWSTR Source)
+SIZE_T ShDrvUtil::StringLengthW(
+	IN PWSTR Source)
 {
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return 0; }
 
@@ -201,7 +203,8 @@ SIZE_T ShDrvUtil::StringLengthW(IN PWSTR Source)
 	return Length;
 }
 
-VOID ShDrvUtil::Sleep(IN ULONG Milliseconds)
+VOID ShDrvUtil::Sleep(
+	IN ULONG Milliseconds)
 {
 #if TRACE_LOG_DEPTH & TRACE_UTIL
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
@@ -219,11 +222,11 @@ VOID ShDrvUtil::Sleep(IN ULONG Milliseconds)
 	PRINT_ELAPSED;
 }
 
-VOID ShDrvUtil::PrintElapsedTime(IN PCSTR FunctionName, IN PLARGE_INTEGER PreCounter, IN PLARGE_INTEGER Frequency)
+VOID ShDrvUtil::PrintElapsedTime(
+	IN PCSTR FunctionName, 
+	IN PLARGE_INTEGER PreCounter, 
+	IN PLARGE_INTEGER Frequency)
 {
-//#if TRACE_LOG_DEPTH & TRACE_UTIL
-//	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
-//#endif
 	if (PreCounter == nullptr || Frequency == nullptr) { return; }
 	if (Frequency->QuadPart == 0) { return; }
 	LARGE_INTEGER CurrentCounter = { 0, };
@@ -245,7 +248,8 @@ VOID ShDrvUtil::PrintElapsedTime(IN PCSTR FunctionName, IN PLARGE_INTEGER PreCou
 	DetailLog("Elapsed Time : %.2d.%.4d sec (%d ¥ìs) :: %s", Integral, Fractional, DiffCounter.QuadPart, FunctionName);
 }
 
-PEPROCESS ShDrvUtil::GetProcessByProcessId(IN HANDLE ProcessId)
+PEPROCESS ShDrvUtil::GetProcessByProcessId(
+	IN HANDLE ProcessId)
 {
 #if TRACE_LOG_DEPTH & TRACE_UTIL
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
@@ -266,7 +270,8 @@ FINISH:
 	return Process;
 }
 
-PEPROCESS ShDrvUtil::GetProcessByImageFileName(IN PCSTR ProcessName)
+PEPROCESS ShDrvUtil::GetProcessByImageFileName(
+	IN PCSTR ProcessName)
 {
 #if TRACE_LOG_DEPTH & TRACE_UTIL
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
@@ -305,7 +310,7 @@ FINISH:
 }
 
 NTSTATUS ShDrvUtil::GetPhysicalAddress(
-	IN PVOID VirtualAddress, 
+	IN  PVOID VirtualAddress, 
 	OUT PPHYSICAL_ADDRESS PhysicalAddress )
 {
 #if TRACE_LOG_DEPTH & TRACE_UTIL
@@ -356,8 +361,8 @@ NTSTATUS ShDrvUtil::GetPhysicalAddressEx(
 }
 
 NTSTATUS ShDrvUtil::GetPhysicalAddressInternal(
-	IN CR3* Cr3, 
-	IN PVOID VirtualAddress, 
+	IN  CR3* Cr3, 
+	IN  PVOID VirtualAddress, 
 	OUT PPHYSICAL_ADDRESS PhysicalAddress )
 {
 #if TRACE_LOG_DEPTH & TRACE_UTIL
@@ -435,8 +440,8 @@ FINISH:
 }
 
 NTSTATUS ShDrvUtil::GetPagingStructureEntry(
-	IN ULONG64 TableBase, 
-	IN ULONG64 ReferenceBit, 
+	IN  ULONG64 TableBase, 
+	IN  ULONG64 ReferenceBit, 
 	OUT PPAGING_ENTRY_COMMON Entry )
 {
 #if TRACE_LOG_DEPTH & TRACE_UTIL

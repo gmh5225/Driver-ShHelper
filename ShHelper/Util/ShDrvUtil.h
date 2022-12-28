@@ -45,7 +45,7 @@ Status += ShDrvUtil::GetRoutineAddressEx<Prefix::RoutineName##_t>(#RoutineName, 
 #define GET_EXPORT_VARIABLE_EX(RoutineName, ImageBase, type)\
 Status += ShDrvUtil::GetRoutineAddressEx<type>(#RoutineName, &g_Variables->##RoutineName, ImageBase);
 
-#define GET_GLOBAL_OFFSET(type, member, var) var = g_Offsets->##type.##member
+#define GET_GLOBAL_OFFSET(type, member) g_Offsets->##type.##member
 #define SET_GLOBAL_OFFSET(type, member, value) g_Offsets->##type.##member = value
 #define CHECK_GLOBAL_OFFSET(type, member) Status = g_Offsets->##type.##member > 0x00 ? STATUS_SUCCESS : STATUS_NOT_SUPPORTED
 
