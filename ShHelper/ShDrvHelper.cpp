@@ -8,7 +8,9 @@ PSH_POOL_INFORMATION g_Pools;
 // LLVM is not support
 //#pragma alloc_text("INIT", DriverEntry)
 
-NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
+NTSTATUS DriverEntry(
+	IN PDRIVER_OBJECT DriverObject, 
+	IN PUNICODE_STRING RegistryPath)
 {
 #if TRACE_LOG_DEPTH & TRACE_ENTRY
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
@@ -22,13 +24,13 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
 	if (!NT_SUCCESS(Status)) { ShDrvPoolManager::Finalize(); ERROR_END }
 	Log("Loaded driver");
 	
-	
 FINISH:
 	PRINT_ELAPSED;
 	return Status;
 }
 
-VOID HelperFinalize(PDRIVER_OBJECT DriverObject)
+VOID HelperFinalize(
+	IN PDRIVER_OBJECT DriverObject)
 {
 #if TRACE_LOG_DEPTH & TRACE_ENTRY
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
@@ -1054,6 +1056,21 @@ NTSTATUS InitializeOffset_Unsafe()
 	}
 
 	Status = STATUS_SUCCESS;
+
+FINISH:
+	PRINT_ELAPSED;
+	return Status;
+}
+
+NTSTATUS DeviceInitialize(
+	IN PDRIVER_OBJECT DriverObject)
+{
+#if TRACE_LOG_DEPTH & TRACE_ENTRY
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#endif
+
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
 
 FINISH:
 	PRINT_ELAPSED;

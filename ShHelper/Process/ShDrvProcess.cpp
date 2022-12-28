@@ -1,6 +1,7 @@
 #include <ShDrvInc.h>
 
-NTSTATUS ShDrvProcess::Initialize(IN HANDLE ProcessId)
+NTSTATUS ShDrvProcess::Initialize(
+	IN HANDLE ProcessId)
 {
 #if TRACE_LOG_DEPTH & TRACE_PROCESS
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
@@ -32,7 +33,8 @@ FINISH:
 	return Status;
 }
 
-NTSTATUS ShDrvProcess::Initialize(IN PEPROCESS Process)
+NTSTATUS ShDrvProcess::Initialize(
+	IN PEPROCESS Process)
 {
 #if TRACE_LOG_DEPTH & TRACE_PROCESS
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
@@ -190,7 +192,8 @@ FINISH:
 	return Status;
 }
 
-BOOLEAN ShDrvProcess::IsWow64Process(IN PEPROCESS Process)
+BOOLEAN ShDrvProcess::IsWow64Process(
+	IN PEPROCESS Process)
 {
 #if TRACE_LOG_DEPTH & TRACE_PROCESS
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
@@ -279,7 +282,8 @@ FINISH:
 	return Status;
 }
 
-NTSTATUS ShDrvProcess::GetProcessLdrHead(OUT PLIST_ENTRY LdrList)
+NTSTATUS ShDrvProcess::GetProcessLdrHead(
+	OUT PLIST_ENTRY LdrList)
 {
 #if TRACE_LOG_DEPTH & TRACE_PROCESS
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
@@ -318,7 +322,8 @@ FINISH:
 	return Status;
 }
 
-NTSTATUS ShDrvProcess::GetProcessLdrHead32(OUT PULONG LdrList)
+NTSTATUS ShDrvProcess::GetProcessLdrHead32(
+	OUT PULONG LdrList)
 {
 #if TRACE_LOG_DEPTH & TRACE_PROCESS
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);

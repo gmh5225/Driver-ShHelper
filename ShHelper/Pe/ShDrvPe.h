@@ -41,7 +41,7 @@ public:
 		IN PEPROCESS Process,
 		IN BOOLEAN b32bit = false);
 
-	PEPROCESS     GetProcess() {
+	PEPROCESS GetProcess() {
 		if (!bInit) { return nullptr; }
 		return Process;
 	}
@@ -89,7 +89,7 @@ public:
 private:
 	BOOLEAN          bInit;
 	PEPROCESS        Process;
-	EX_PUSH_LOCK* ProcessLock;
+	EX_PUSH_LOCK*    ProcessLock;
 	KAPC_STATE       ApcState;
 	BOOLEAN          bAttached;
 	BOOLEAN          b32bit;

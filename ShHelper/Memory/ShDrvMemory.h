@@ -5,6 +5,14 @@
 
 #define FREE_POOLEX(ptr) if(ptr != nullptr) ExFreePool(ptr)
 
+typedef
+NTSTATUS
+RWMEMORY_ROUTINE(
+	PVOID Address,
+	ULONG Size,
+	PVOID Buffer
+);
+
 namespace ShDrvMemory {
 #define CHECK_RWMEMORY_PARAM  Status = Address ? (Size ? (Buffer ? STATUS_SUCCESS : STATUS_INVALID_PARAMETER) : STATUS_INVALID_PARAMETER ) : STATUS_INVALID_PARAMETER
 #define CHECK_RWMEMORY_BUFFER Status = MmIsAddressValid(Address) ? (MmIsAddressValid(Buffer) ? STATUS_SUCCESS : STATUS_INVALID_PARAMETER) : STATUS_INVALID_PARAMETER 
@@ -23,42 +31,49 @@ namespace ShDrvMemory {
 		IN PVOID Buffer,
 		IN SH_RW_MEMORY_METHOD Method = RW_Normal);
 
-	NTSTATUS ReadMemoryNormal(
+	/*static NTSTATUS ReadMemoryNormal(
 		IN  PVOID Address,
 		IN  ULONG Size,
 		OUT PVOID Buffer);
 
-	NTSTATUS ReadPhysicalMemory(
+	static NTSTATUS ReadPhysicalMemory(
 		IN  PVOID Address,
 		IN  ULONG Size,
 		OUT PVOID Buffer);
 
-	NTSTATUS ReadMemoryEx(
+	static NTSTATUS ReadMemoryEx(
 		IN  PVOID Address,
 		IN  ULONG Size,
 		OUT PVOID Buffer);
 
-	NTSTATUS WriteMemoryNormal(
+	static NTSTATUS WriteMemoryNormal(
 		IN  PVOID Address,
 		IN  ULONG Size,
 		IN  PVOID Buffer);
 
-	NTSTATUS WritePhysicalMemory(
+	static NTSTATUS WritePhysicalMemory(
 		IN  PVOID Address,
 		IN  ULONG Size,
 		IN  PVOID Buffer);
 
-	NTSTATUS WriteMemoryEx(
+	static NTSTATUS WriteMemoryEx(
 		IN  PVOID Address,
 		IN  ULONG Size,
-		IN  PVOID Buffer);
+		IN  PVOID Buffer);*/
 
-	NTSTATUS SafeCopyMemory(
-		IN  PVOID Source,
-		IN  ULONG Size,
+	static RWMEMORY_ROUTINE ReadMemoryNormal;
+	static RWMEMORY_ROUTINE ReadPhysicalMemory;
+	static RWMEMORY_ROUTINE ReadMemoryEx;
+	static RWMEMORY_ROUTINE WriteMemoryNormal;
+	static RWMEMORY_ROUTINE WritePhysicalMemory;
+	static RWMEMORY_ROUTINE WriteMemoryEx;
+
+	static NTSTATUS SafeCopyMemory(
+		IN PVOID Source,
+		IN ULONG Size,
 		IN PVOID Dest);
 
-	NTSTATUS SafeCopyMemoryInternal(
+	static NTSTATUS SafeCopyMemoryInternal(
 		IN PVOID Source,
 		IN PVOID Dest,
 		IN ULONG Size);

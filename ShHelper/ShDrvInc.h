@@ -18,7 +18,7 @@
 
 #define TRACE_LOG_DEPTH TRACE_ALL
 
-#if CHECK_ELAPSED && TRACE_LOG
+#if CHECK_ELAPSED & TRACE_LOG
 #define PRINT_ELAPSED ShDrvUtil::PrintElapsedTime(__PRETTY_FUNCTION__, &CurrentCounter, &Frequency)
 #else
 #define PRINT_ELAPSED
@@ -36,10 +36,10 @@ LARGE_INTEGER CurrentCounter = KeQueryPerformanceCounter(&Frequency)
 #endif
 
 #if DEBUG_LOG
-#define Log(...)       DbgPrintEx( DPFLTR_SYSTEM_ID,DPFLTR_ERROR_LEVEL, "[SH_LOG] " __VA_ARGS__ ); PlainLog("\n");
-#define ErrLog(...)    DbgPrintEx( DPFLTR_SYSTEM_ID, DPFLTR_ERROR_LEVEL, "[SH_ERR] " __VA_ARGS__ ); PlainLog("\n");
+#define Log(...)       DbgPrintEx( DPFLTR_SYSTEM_ID,DPFLTR_ERROR_LEVEL, "[SH_LOG] " __VA_ARGS__ ); PlainLog("\n")
+#define ErrLog(...)    DbgPrintEx( DPFLTR_SYSTEM_ID, DPFLTR_ERROR_LEVEL, "[SH_ERR] " __VA_ARGS__ ); PlainLog("\n")
 #define PlainLog(...)  DbgPrintEx( DPFLTR_SYSTEM_ID,DPFLTR_ERROR_LEVEL, __VA_ARGS__ )
-#define DetailLog(...) DbgPrintEx( DPFLTR_SYSTEM_ID,DPFLTR_ERROR_LEVEL, "\t\t[*] " __VA_ARGS__ ); PlainLog("\n");
+#define DetailLog(...) DbgPrintEx( DPFLTR_SYSTEM_ID,DPFLTR_ERROR_LEVEL, "\t\t[*] " __VA_ARGS__ ); PlainLog("\n")
 #define NtErrLog(Caller, Status) ErrLog("%s : 0x%X", Caller, Status)
 #else
 #define Log(...)
@@ -77,8 +77,6 @@ LARGE_INTEGER CurrentCounter = KeQueryPerformanceCounter(&Frequency)
 #include <Pe/ShDrvPe.h>
 
 #include <Util/ShDrvUtil.h>
-
-
 
 #include <Process/ShDrvProcess.h>
 

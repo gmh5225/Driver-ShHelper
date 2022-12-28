@@ -122,7 +122,8 @@ FINISH:
 	return Result;
 }
 
-ULONG64 ShDrvPe::GetAddressByExport(IN PCSTR RoutineName)
+ULONG64 ShDrvPe::GetAddressByExport(
+	IN PCSTR RoutineName)
 {
 #if TRACE_LOG_DEPTH & TRACE_PE
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);

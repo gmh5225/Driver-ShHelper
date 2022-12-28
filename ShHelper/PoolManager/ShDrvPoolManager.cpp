@@ -131,7 +131,8 @@ FINISH:
 	return Status;
 }
 
-PVOID ShDrvPoolManager::GetPool(IN SH_POOL_TYPE PoolType)
+PVOID ShDrvPoolManager::GetPool(
+	IN SH_POOL_TYPE PoolType)
 {
 #if TRACE_LOG_DEPTH & TRACE_POOL
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);

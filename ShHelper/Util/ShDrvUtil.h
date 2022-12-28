@@ -33,6 +33,8 @@ ExReleaseResource(ptr);
 
 #define SPIN_UNLOCK(ptr) KeReleaseSpinLock(ptr, CurrentIrql)
 
+#define SH_ROUTINE_CALL(RoutineName) g_Routines->##RoutineName
+
 #define GET_EXPORT_ROUTINE(RoutineName, Prefix)\
 Status += ShDrvUtil::GetRoutineAddress<Prefix::RoutineName##_t>(L#RoutineName, &g_Routines->##RoutineName);
 
@@ -50,9 +52,9 @@ Status += ShDrvUtil::GetRoutineAddressEx<type>(#RoutineName, &g_Variables->##Rou
 #define CHECK_GLOBAL_OFFSET(type, member) Status = g_Offsets->##type.##member > 0x00 ? STATUS_SUCCESS : STATUS_NOT_SUPPORTED
 
 namespace ShDrvUtil {
-/********************************************************************************************
-* String utility
-********************************************************************************************/
+	/********************************************************************************************
+	* String utility
+	********************************************************************************************/
 #define STR_MAX_LENGTH           260 
 #define IMAGE_FILE_NAME_LENGTH   14
 
@@ -62,28 +64,28 @@ namespace ShDrvUtil {
 #define StringLength   ShDrvUtil::StringLengthA
 
 	BOOLEAN StringCompareA(
-		IN PSTR Source, 
-		IN PSTR Dest );
+		IN PSTR Source,
+		IN PSTR Dest);
 
 	BOOLEAN StringCompareW(
-		IN PWSTR Source, 
-		IN PWSTR Dest );
+		IN PWSTR Source,
+		IN PWSTR Dest);
 
 	NTSTATUS StringCopyA(
-		OUT NTSTRSAFE_PSTR Dest, 
-		IN  NTSTRSAFE_PCSTR Source );
+		OUT NTSTRSAFE_PSTR Dest,
+		IN  NTSTRSAFE_PCSTR Source);
 
 	NTSTATUS StringCopyW(
-		OUT NTSTRSAFE_PWSTR Dest, 
-		IN  NTSTRSAFE_PCWSTR Source );
-	
+		OUT NTSTRSAFE_PWSTR Dest,
+		IN  NTSTRSAFE_PCWSTR Source);
+
 	NTSTATUS StringConcatenateA(
-		OUT NTSTRSAFE_PSTR Dest, 
-		IN  NTSTRSAFE_PCSTR Source );
+		OUT NTSTRSAFE_PSTR Dest,
+		IN  NTSTRSAFE_PCSTR Source);
 
 	NTSTATUS StringConcatenateW(
-		OUT NTSTRSAFE_PWSTR Dest, 
-		IN  NTSTRSAFE_PCWSTR Source );
+		OUT NTSTRSAFE_PWSTR Dest,
+		IN  NTSTRSAFE_PCWSTR Source);
 
 	NTSTATUS StringToUnicode(
 		IN PSTR Source,
@@ -98,9 +100,9 @@ namespace ShDrvUtil {
 	SIZE_T StringLengthA(IN PSTR Source);
 	SIZE_T StringLengthW(IN PWSTR Source);
 
-/********************************************************************************************
-* Core utility
-********************************************************************************************/
+	/********************************************************************************************
+	* Core utility
+	********************************************************************************************/
 #define MILLISECOND 1000
 #define MICROSECOND 1000000
 
@@ -109,7 +111,11 @@ if(!NT_SUCCESS(ShDrvUtil::GetPagingStructureEntry(TableBase, LinearAddress.name#
 entry.AsUInt = EntryAddress.AsUInt; TableBase = entry.PageFrameNumber << 12;
 
 	VOID Sleep(IN ULONG Milliseconds);
-	VOID PrintElapsedTime(IN PCSTR FunctionName, IN PLARGE_INTEGER PreCounter, IN PLARGE_INTEGER Frequency);
+
+	VOID PrintElapsedTime(
+		IN PCSTR FunctionName,
+		IN PLARGE_INTEGER PreCounter,
+		IN PLARGE_INTEGER Frequency);
 
 	PEPROCESS GetProcessByProcessId(IN HANDLE ProcessId);
 
@@ -117,29 +123,28 @@ entry.AsUInt = EntryAddress.AsUInt; TableBase = entry.PageFrameNumber << 12;
 
 	NTSTATUS GetPhysicalAddress(
 		IN PVOID VirtualAddress,
-		OUT PPHYSICAL_ADDRESS PhysicalAddress
-	);
+		OUT PPHYSICAL_ADDRESS PhysicalAddress);
 
 	NTSTATUS GetPhysicalAddressEx(
-		IN PVOID VirtualAddress, 
-		IN KPROCESSOR_MODE Mode, 
-		OUT PPHYSICAL_ADDRESS PhysicalAddress );
+		IN PVOID VirtualAddress,
+		IN KPROCESSOR_MODE Mode,
+		OUT PPHYSICAL_ADDRESS PhysicalAddress);
 
 	NTSTATUS GetPhysicalAddressInternal(
-		IN CR3* Cr3, 
-		IN PVOID VirtualAddress, 
-		OUT PPHYSICAL_ADDRESS PhysicalAddress );
+		IN CR3* Cr3,
+		IN PVOID VirtualAddress,
+		OUT PPHYSICAL_ADDRESS PhysicalAddress);
 
 	NTSTATUS GetPagingStructureEntry(
-		IN ULONG64 TableBase, 
-		IN ULONG64 ReferenceBit, 
-		OUT PPAGING_ENTRY_COMMON Entry );
+		IN ULONG64 TableBase,
+		IN ULONG64 ReferenceBit,
+		OUT PPAGING_ENTRY_COMMON Entry);
 
 
 	template <typename T>
 	NTSTATUS GetRoutineAddress(
-		IN PWSTR Name, 
-		OUT T* Routine )
+		IN PWSTR Name,
+		OUT T* Routine)
 	{
 #if TRACE_LOG_DEPTH & TRACE_UTIL
 		TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
@@ -152,7 +157,7 @@ entry.AsUInt = EntryAddress.AsUInt; TableBase = entry.PageFrameNumber << 12;
 
 		UNICODE_STRING RoutineName = { 0, };
 		RtlInitUnicodeString(&RoutineName, Name);
-		
+
 		Status = RtlUnicodeStringValidate(&RoutineName);
 		if (!NT_SUCCESS(Status)) { ERROR_END }
 
@@ -186,8 +191,8 @@ entry.AsUInt = EntryAddress.AsUInt; TableBase = entry.PageFrameNumber << 12;
 		if (Pe == nullptr) { ERROR_END }
 
 		Status = Pe->Initialize(ImageBase, PsInitialSystemProcess);
-		if(!NT_SUCCESS(Status)) { ERROR_END }
-		
+		if (!NT_SUCCESS(Status)) { ERROR_END }
+
 		*Routine = reinterpret_cast<T>(Pe->GetAddressByExport(Name));
 		if (*Routine == nullptr) { Status = STATUS_UNSUCCESSFUL; }
 

@@ -324,6 +324,8 @@ NTSTATUS ShDrvUtil::GetPhysicalAddress(
 	Result = MmGetPhysicalAddress(VirtualAddress);
 	if (Result.QuadPart == 0) { Status = STATUS_UNSUCCESSFUL; }
 
+	PhysicalAddress->QuadPart = Result.QuadPart;
+
 FINISH:
 	PRINT_ELAPSED;
 	return Status;
@@ -410,7 +412,7 @@ NTSTATUS ShDrvUtil::GetPhysicalAddressInternal(
 		LINEAR_ADDRESS_PDPTE_1GB FinalLinearAddress = { 0, };
 		FinalLinearAddress.AsUInt = LinearAddress.AsUInt;
 		PdPte1Gb.AsUInt = PdPte.AsUInt;
-		PhysicalAddress->QuadPart = PdPte1Gb.PageFrameNumber << 30;
+		PhysicalAddress->QuadPart = PdPte1Gb.AsUInt & PDPTE_1GB_64_PAGE_FRAME_NUMBER_FLAG;
 		PhysicalAddress->QuadPart += FinalLinearAddress.FinalPhysical;
 		Status = STATUS_SUCCESS;
 		END;
@@ -423,14 +425,14 @@ NTSTATUS ShDrvUtil::GetPhysicalAddressInternal(
 		LINEAR_ADDRESS_PDE_2MB FinalLinearAddress = { 0, };
 		FinalLinearAddress.AsUInt = LinearAddress.AsUInt;
 		Pde2Mb.AsUInt = Pde.AsUInt;
-		PhysicalAddress->QuadPart = Pde2Mb.PageFrameNumber << 21;
+		PhysicalAddress->QuadPart = Pde2Mb.AsUInt & PDE_2MB_64_PAGE_FRAME_NUMBER_FLAG;
 		PhysicalAddress->QuadPart += FinalLinearAddress.FinalPhysical;
 		Status = STATUS_SUCCESS;
 		END;
 	}
 
 	PAGING_TRAVERSE(Pte, Pte);
-	PhysicalAddress->QuadPart = Pte.PageFrameNumber << 12;
+	PhysicalAddress->QuadPart = Pte.AsUInt & PTE_64_PAGE_FRAME_NUMBER_FLAG;
 	PhysicalAddress->QuadPart += LinearAddress.FinalPhysical;
 	Status = STATUS_SUCCESS;
 

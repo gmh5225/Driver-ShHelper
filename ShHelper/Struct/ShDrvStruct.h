@@ -9,7 +9,6 @@ using namespace ShDrvFuncDef;
 
 #define SH_ROUTINE_MEMBER(RoutineName, Prefix)\
 Prefix::RoutineName##_t RoutineName
-#define SH_ROUTINE_CALL(RoutineName) g_Routines->##RoutineName
 
 #define SH_VARIABLE_MEMBER(VarName, type) type VarName
 

@@ -16,7 +16,7 @@ Entry->bUsed = false;
 namespace ShDrvPoolManager {
 	NTSTATUS Initialize();
 
-	NTSTATUS AllocatePoolEntry(
+	static NTSTATUS AllocatePoolEntry(
 		IN SH_POOL_TYPE PoolType, 
 		IN ULONG PoolSize );
 
@@ -24,9 +24,9 @@ namespace ShDrvPoolManager {
 		IN PVOID Buffer, 
 		IN BOOLEAN bReuse = false );
 
-	PVOID    GetPool(IN SH_POOL_TYPE PoolType);
+	PVOID GetPool(IN SH_POOL_TYPE PoolType);
 
-	VOID     Finalize();
+	VOID Finalize();
 }
 
 #endif // !_SHDRVPOOLMANAGER_H_

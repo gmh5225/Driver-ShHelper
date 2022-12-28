@@ -157,7 +157,6 @@ NTSTATUS ShDrvMemory::ReadPhysicalMemory(
 		Status = ShDrvUtil::GetPhysicalAddressEx(Address, KernelMode, &PhysicalAddress);
 	}
 	if(!NT_SUCCESS(Status)) { ERROR_END }
-
 	CopyAddress.PhysicalAddress = PhysicalAddress;
 
 	Status = MmCopyMemory(Buffer, CopyAddress, Size, MM_COPY_MEMORY_PHYSICAL, &ReturnSize);
