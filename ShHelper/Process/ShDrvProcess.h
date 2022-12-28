@@ -35,14 +35,14 @@ public:
 		IN SH_RW_MEMORY_METHOD Method = RW_Normal);
 
 private:
-	PEPROCESS Process;
+	PEPROCESS     Process;
 	EX_PUSH_LOCK* ProcessLock;
-	HANDLE ProcessId;
-	KAPC_STATE ApcState;
-	PULONG64 ProcessDirBase;
-	BOOLEAN bAttached;
-	BOOLEAN bAttachedEx;
-	ULONG64 OldCr3;
+	HANDLE        ProcessId;
+	KAPC_STATE    ApcState;
+	PULONG64      ProcessDirBase;
+	BOOLEAN       bAttached;
+	BOOLEAN       bAttachedEx;
+	ULONG64       OldCr3;
 
 private:
 	NTSTATUS GetProcessLdrHead(

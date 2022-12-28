@@ -70,6 +70,8 @@ LARGE_INTEGER CurrentCounter = KeQueryPerformanceCounter(&Frequency)
 #include <Struct/ShDrvFuncDef.h>
 #include <Struct/ShDrvStruct.h>
 
+#include <PoolManager/ShDrvPoolManager.h>
+
 #include <Memory/ShDrvMemory.h>
 #include <Memory/ShDrvMemoryScanner.h>
 
@@ -80,7 +82,7 @@ LARGE_INTEGER CurrentCounter = KeQueryPerformanceCounter(&Frequency)
 
 #include <Process/ShDrvProcess.h>
 
-#include <PoolManager/ShDrvPoolManager.h>
+
 
 #include <ShDrvHelper.h>
 

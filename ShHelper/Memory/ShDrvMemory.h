@@ -3,8 +3,6 @@
 
 #define END_USER_MEMORY_SPACE 0x7FFFFFFEFFFF
 
-#define FREE_POOLEX(ptr) if(ptr != nullptr) ExFreePool(ptr)
-
 typedef
 NTSTATUS
 RWMEMORY_ROUTINE(
