@@ -471,3 +471,46 @@ FINISH:
 	PRINT_ELAPSED;
 	return Status;
 }
+
+BOOLEAN ShDrvUtil::IsWow64Process(
+	IN PEPROCESS Process)
+{
+#if TRACE_LOG_DEPTH & TRACE_UTIL
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#endif
+	SAVE_CURRENT_COUNTER;
+	BOOLEAN Result = false;
+
+	if (SH_ROUTINE_CALL(PsGetProcessWow64Process)(Process) != nullptr)
+	{
+		Result = true;
+	}
+
+FINISH:
+	PRINT_ELAPSED;
+	return Result;
+}
+
+BOOLEAN ShDrvUtil::IsInRange(
+	IN PVOID StartAddress, 
+	IN PVOID EndAddress, 
+	IN PVOID TargetAddress)
+{
+#if TRACE_LOG_DEPTH & TRACE_UTIL
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#endif
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	BOOLEAN Result = false;
+
+	if(StartAddress == nullptr || EndAddress == nullptr || TargetAddress == nullptr) { ERROR_END }
+	if (StartAddress <= TargetAddress && 
+		TargetAddress <= EndAddress) 
+	{
+		Result = true;
+	}
+
+FINISH:
+	PRINT_ELAPSED;
+	return Result;
+}

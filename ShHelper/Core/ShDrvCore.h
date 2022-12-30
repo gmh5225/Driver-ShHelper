@@ -4,11 +4,15 @@
 using namespace UNDOC_SYSTEM;
 using namespace UNDOC_PEB;
 
+#define new(t)    ShDrvCore::New<t>()
+#define delete(p) ShDrvCore::Delete(p); p = nullptr;
+
 #define CHECK_OBJECT_TYPE(obj, objtype) Status = ShDrvCore::IsValidObject(obj, objtype) ? STATUS_SUCCESS : STATUS_INVALID_PARAMETER
 
 namespace ShDrvCore {
 	PVOID GetKernelBaseAddress(
 		IN PCSTR ModuleName,
+		OUT PULONG64 ImageSize = nullptr,
 		IN SH_GET_BASE_METHOD Method = QueryModuleInfo);
 
 	NTSTATUS GetSystemModuleInformation(
@@ -22,6 +26,18 @@ namespace ShDrvCore {
 	BOOLEAN IsValidObject(
 		IN PVOID Object,
 		IN POBJECT_TYPE ObjectType);
+
+	BOOLEAN IsSessionAddress(
+		IN PVOID Address);
+
+	BOOLEAN IsSessionAddressEx(
+		IN PVOID Address);
+
+	BOOLEAN IsSessionAddressEx2(
+		IN PVOID Address);
+
+	NTSTATUS AttachSessionProcess(OUT PKAPC_STATE ApcState);
+	VOID DetachSessionProcess(OUT PKAPC_STATE ApcState);
 
 	template <typename T>
 	NTSTATUS AllocatePool(
@@ -52,8 +68,8 @@ namespace ShDrvCore {
 		PVOID ClassPool = nullptr;
 		Status = AllocatePool<PVOID>(sizeof(T), &ClassPool);
 		if (!NT_SUCCESS(Status)) { return nullptr; }
-
-		return reinterpret_cast<T*>(ClassPool);
+		auto Instance = reinterpret_cast<T*>(ClassPool);
+		return Instance;
 	}
 
 	template <typename T>
@@ -64,7 +80,7 @@ namespace ShDrvCore {
 #endif
 		if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return; }
 
-		if (Instance != nullptr)
+		if (Instance != nullptr && MmIsAddressValid(Instance) == true)
 		{
 			Instance->~T();
 			FREE_POOLEX(Instance);

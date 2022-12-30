@@ -40,6 +40,18 @@ typedef struct _SH_GLOBAL_VARIABLES{
 	SH_VARIABLE_MEMBER(SystemEndAddress, PVOID);
 	SH_VARIABLE_MEMBER(SystemDirBase, ULONG64);
 
+	SH_VARIABLE_MEMBER(Win32kBaseAddress, PVOID);
+	SH_VARIABLE_MEMBER(Win32kEndAddress, PVOID);
+
+	SH_VARIABLE_MEMBER(Win32kBaseBaseAddress, PVOID);
+	SH_VARIABLE_MEMBER(Win32kBaseEndAddress, PVOID);
+
+	SH_VARIABLE_MEMBER(Win32kFullBaseAddress, PVOID);
+	SH_VARIABLE_MEMBER(Win32kFullEndAddress, PVOID);
+
+	SH_VARIABLE_MEMBER(CddBaseAddress, PVOID);
+	SH_VARIABLE_MEMBER(CddEndAddress, PVOID);
+
 	SH_VARIABLE_MEMBER(KUserSharedData, PKUSER_SHARED_DATA);
 	SH_VARIABLE_MEMBER(PsLoadedModuleList, PLIST_ENTRY);
 	SH_VARIABLE_MEMBER(PsLoadedModuleResource, PERESOURCE);
@@ -142,6 +154,10 @@ typedef struct _SH_POOL_INFORMATION {
 #define SH_POOL_INFORMATION_SIZE sizeof(SH_POOL_INFORMATION)
 }SH_POOL_INFORMATION, *PSH_POOL_INFORMATION;
 PACK_END
+
+/********************************************************************************************
+* Instance entry structure
+********************************************************************************************/
 
 /********************************************************************************************
 * Extern global variable

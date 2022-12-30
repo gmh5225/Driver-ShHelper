@@ -9,6 +9,7 @@ NTSTATUS ShDrvProcess::Initialize(
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 	if(ProcessId == (HANDLE)4) { ERROR_END }
+	if (this->IsInit == true) { ERROR_END }
 
 	this->Process = ShDrvUtil::GetProcessByProcessId(ProcessId);
 	if(this->Process == nullptr) { ERROR_END }
@@ -25,7 +26,7 @@ NTSTATUS ShDrvProcess::Initialize(
 	RtlSecureZeroMemory(&this->ApcState, sizeof(KAPC_STATE));
 	this->ProcessDirBase = ADD_OFFSET(Process, DIR_BASE_OFFSET, PULONG64);
 	this->OldCr3 = 0;
-
+	this->IsInit = true;
 	Status = STATUS_SUCCESS;
 
 FINISH:
@@ -42,6 +43,7 @@ NTSTATUS ShDrvProcess::Initialize(
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 	if(Process == PsInitialSystemProcess) { ERROR_END }
+	if (this->IsInit == true) { ERROR_END }
 
 	this->ProcessId = PsGetProcessId(Process);
 	if(this->ProcessId == nullptr) { ERROR_END }
@@ -59,7 +61,7 @@ NTSTATUS ShDrvProcess::Initialize(
 	RtlSecureZeroMemory(&this->ApcState, sizeof(KAPC_STATE));
 	this->ProcessDirBase = ADD_OFFSET(Process, DIR_BASE_OFFSET, PULONG64);
 	this->OldCr3 = 0;
-
+	this->IsInit = true;
 	Status = STATUS_SUCCESS;
 
 FINISH:
@@ -123,7 +125,7 @@ NTSTATUS ShDrvProcess::GetProcessModuleInformation(
 
 		NextEntry = NextEntry->Flink;
 	}
-	
+
 FINISH:
 	Detach();
 	FREE_POOL(TargetString.Buffer);
@@ -168,7 +170,7 @@ NTSTATUS ShDrvProcess::GetProcessModuleInformation32(
 	Status = Attach();
 	if(!NT_SUCCESS(Status)) { ERROR_END }
 
-	if (IsWow64Process(Process) == true)
+	if (ShDrvUtil::IsWow64Process(Process) == true)
 	{
 		RtlCopyMemory(&NextEntry, (PULONG)LdrHead, sizeof(ULONG));
 		while (LdrHead != NextEntry)
@@ -190,27 +192,6 @@ FINISH:
 	FREE_POOL(TargetName);
 	PRINT_ELAPSED;
 	return Status;
-}
-
-BOOLEAN ShDrvProcess::IsWow64Process(
-	IN PEPROCESS Process)
-{
-#if TRACE_LOG_DEPTH & TRACE_PROCESS
-	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
-#endif
-	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
-
-	SAVE_CURRENT_COUNTER;
-	BOOLEAN Result = false;
-
-	if (SH_ROUTINE_CALL(PsGetProcessWow64Process)(Process) != nullptr)
-	{
-		Result = true;
-	}
-
-FINISH:
-	PRINT_ELAPSED;
-	return Result;
 }
 
 NTSTATUS ShDrvProcess::ReadProcessMemory(
@@ -257,6 +238,9 @@ NTSTATUS ShDrvProcess::WriteProcessMemory(
 	IN PVOID Buffer, 
 	IN SH_RW_MEMORY_METHOD Method )
 {
+#if TRACE_LOG_DEPTH & TRACE_PROCESS
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#endif
 	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
 	SAVE_CURRENT_COUNTER;
@@ -267,7 +251,7 @@ NTSTATUS ShDrvProcess::WriteProcessMemory(
 
 	if (ShDrvMemory::IsUserMemorySpace(Address) == false) { Status = STATUS_INVALID_PARAMETER; ERROR_END }
 
-	Status = Attach();
+	Status = Attach(true);
 	if (!NT_SUCCESS(Status)) { ERROR_END }
 
 	CHECK_RWMEMORY_BUFFER;
@@ -277,9 +261,122 @@ NTSTATUS ShDrvProcess::WriteProcessMemory(
 	if (!NT_SUCCESS(Status)) { ERROR_END }
 
 FINISH:
-	Detach();
+	Detach(true);
 	PRINT_ELAPSED;
 	return Status;
+}
+
+ULONG ShDrvProcess::MemoryScan(
+	IN PVOID Address, 
+	IN ULONG Size,
+	IN PCSTR Pattern,
+	OUT PVOID* Result,
+	IN PCSTR Mask,
+	IN BOOLEAN bAllScan)
+{
+#if TRACE_LOG_DEPTH & TRACE_PROCESS
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#endif
+	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return 0; }
+
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	ULONG ResultCount = 0;
+	MemoryScanner* Scanner = nullptr;
+	if(Address == nullptr || Size == 0 || Result == nullptr) { ERROR_END }
+
+	if (ShDrvMemory::IsUserMemorySpace(Address) == false) { ERROR_END }
+	Scanner = new(MemoryScanner);
+	if(Scanner == nullptr) { ERROR_END }
+
+	Status = Attach();
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	Status = Scanner->Initialize(Address, Size, Process, bAllScan);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	Status = GoScan(Scanner, Pattern, Mask, Result);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	ResultCount = Scanner->GetResultCount();
+	/*if (Mask == nullptr)
+	{
+		Status = Scanner->MakePattern(Pattern);
+		if(!NT_SUCCESS(Status)) { ERROR_END }
+		Status = Scanner->Scan();
+		if (!NT_SUCCESS(Status)) { ERROR_END }
+	}
+	else
+	{
+		Status = Scanner->Scan(Pattern, Mask);
+		if (!NT_SUCCESS(Status)) { ERROR_END }
+	}
+
+	ResultCount = Scanner->GetResultCount();
+	RtlCopyMemory(Result, Scanner->GetScanResult(), ResultCount * sizeof(PVOID));*/
+
+FINISH:
+	Detach();
+	delete(Scanner);
+	PRINT_ELAPSED;
+	return ResultCount;
+}
+
+ULONG ShDrvProcess::MemoryScan(
+	IN PVOID Address, 
+	IN PCSTR SectionName, 
+	IN PCSTR Pattern,
+	OUT PVOID* Result,
+	IN PCSTR Mask,
+	IN BOOLEAN bAllScan)
+{
+#if TRACE_LOG_DEPTH & TRACE_PROCESS
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#endif
+	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return 0; }
+
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	ULONG ResultCount = 0;
+	MemoryScanner* Scanner = nullptr;
+	if (Address == nullptr || SectionName == nullptr || Result == nullptr) { ERROR_END }
+
+	if (ShDrvMemory::IsUserMemorySpace(Address) == false) { ERROR_END }
+	Scanner = new(MemoryScanner);
+	if (Scanner == nullptr) { ERROR_END }
+
+	Status = Attach();
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	Status = Scanner->Initialize(Address, SectionName, Process, bAllScan);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	Status = GoScan(Scanner, Pattern, Mask, Result);
+	if(!NT_SUCCESS(Status)) { ERROR_END }
+
+	ResultCount = Scanner->GetResultCount();
+
+	/*if (Mask == nullptr)
+	{
+		Status = Scanner->MakePattern(Pattern);
+		if (!NT_SUCCESS(Status)) { ERROR_END }
+		Status = Scanner->Scan();
+		if (!NT_SUCCESS(Status)) { ERROR_END }
+	}
+	else
+	{
+		Status = Scanner->Scan(Pattern, Mask);
+		if (!NT_SUCCESS(Status)) { ERROR_END }
+	}
+
+	ResultCount = Scanner->GetResultCount();
+	RtlCopyMemory(Result, Scanner->GetScanResult(), ResultCount * sizeof(PVOID));*/
+
+FINISH:
+	Detach();
+	delete(Scanner);
+	PRINT_ELAPSED;
+	return ResultCount;
 }
 
 NTSTATUS ShDrvProcess::GetProcessLdrHead(
@@ -362,7 +459,39 @@ FINISH:
 	return Status;
 }
 
-NTSTATUS ShDrvProcess::Attach()
+NTSTATUS ShDrvProcess::GoScan(
+	IN MemoryScanner* Scanner, 
+	IN PCSTR Pattern, 
+	IN PCSTR Mask, 
+	OUT PVOID* Result)
+{
+#if TRACE_LOG_DEPTH & TRACE_PROCESS
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#endif
+	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return 0; }
+	auto Status = STATUS_INVALID_PARAMETER;
+
+	if (Mask == nullptr)
+	{
+		Status = Scanner->MakePattern(Pattern);
+		if (!NT_SUCCESS(Status)) { ERROR_END }
+		Status = Scanner->Scan();
+		if (!NT_SUCCESS(Status)) { ERROR_END }
+	}
+	else
+	{
+		Status = Scanner->Scan(Pattern, Mask);
+		if (!NT_SUCCESS(Status)) { ERROR_END }
+	}
+
+	auto ResultCount = Scanner->GetResultCount();
+	RtlCopyMemory(Result, Scanner->GetScanResult(), ResultCount * sizeof(PVOID));
+
+FINISH:
+	return Status;
+}
+
+NTSTATUS ShDrvProcess::Attach(BOOLEAN bExclusive)
 {
 #if TRACE_LOG_DEPTH & TRACE_PROCESS
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
@@ -376,7 +505,8 @@ NTSTATUS ShDrvProcess::Attach()
 	KeStackAttachProcess(Process, &ApcState);
 	bAttached = true;
 
-	LOCK_EXCLUSIVE(ProcessLock, PushLock);
+	if (bExclusive) { LOCK_EXCLUSIVE(ProcessLock, PushLock); }
+	else { LOCK_SHARED(ProcessLock, PushLock); }
 
 	Status = STATUS_SUCCESS;
 
@@ -385,7 +515,7 @@ FINISH:
 	return Status;
 }
 
-NTSTATUS ShDrvProcess::AttachEx()
+NTSTATUS ShDrvProcess::AttachEx(BOOLEAN bExclusive)
 {
 #if TRACE_LOG_DEPTH & TRACE_PROCESS
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
@@ -402,7 +532,8 @@ NTSTATUS ShDrvProcess::AttachEx()
 	__writecr3(*ProcessDirBase);
 	bAttachedEx = true;
 
-	LOCK_EXCLUSIVE(ProcessLock, PushLock);
+	if (bExclusive) { LOCK_EXCLUSIVE(ProcessLock, PushLock); }
+	else { LOCK_SHARED(ProcessLock, PushLock); }
 
 	Status = STATUS_SUCCESS;
 FINISH:
@@ -410,7 +541,7 @@ FINISH:
 	return Status;
 }
 
-NTSTATUS ShDrvProcess::Detach()
+NTSTATUS ShDrvProcess::Detach(BOOLEAN bExclusive)
 {
 #if TRACE_LOG_DEPTH & TRACE_PROCESS
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
@@ -421,7 +552,8 @@ NTSTATUS ShDrvProcess::Detach()
 	auto Status = STATUS_INVALID_PARAMETER;
 	if (Process == nullptr || bAttached == false) { ERROR_END }
 
-	UNLOCK_EXCLUSIVE(ProcessLock, PushLock);
+	if (bExclusive) { UNLOCK_EXCLUSIVE(ProcessLock, PushLock); }
+	else { UNLOCK_SHARED(ProcessLock, PushLock); }
 
 	KeUnstackDetachProcess(&ApcState);
 	bAttached = false;
@@ -433,7 +565,7 @@ FINISH:
 	return Status;
 }
 
-NTSTATUS ShDrvProcess::DetachEx()
+NTSTATUS ShDrvProcess::DetachEx(BOOLEAN bExclusive)
 {
 #if TRACE_LOG_DEPTH & TRACE_PROCESS
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
@@ -445,7 +577,8 @@ NTSTATUS ShDrvProcess::DetachEx()
 	if (MmIsAddressValid(ProcessDirBase) == false || Process == nullptr || bAttachedEx == false) { ERROR_END }
 	if (*ProcessDirBase == 0) { ERROR_END }
 
-	UNLOCK_EXCLUSIVE(ProcessLock, PushLock);
+	if (bExclusive) { UNLOCK_EXCLUSIVE(ProcessLock, PushLock); }
+	else { UNLOCK_SHARED(ProcessLock, PushLock); }
 
 	__writecr3(OldCr3);
 	bAttachedEx = false;

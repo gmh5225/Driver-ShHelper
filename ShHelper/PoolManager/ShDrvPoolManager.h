@@ -3,7 +3,7 @@
 
 #define ALLOC_POOL(Type) ShDrvPoolManager::GetPool(Type)
 #define FREE_POOL(ptr)   ShDrvPoolManager::FreePoolEntry(ptr)
-#define FREE_POOLEX(ptr) if(ptr != nullptr) ExFreePool(ptr)
+#define FREE_POOLEX(ptr) if(ptr != nullptr) {ExFreePool(ptr); ptr = nullptr;}
 
 #define GET_GLOBAL_POOL(ptr, type)\
 ptr = reinterpret_cast<PSH_##type>(ShDrvPoolManager::GetPool(type));\

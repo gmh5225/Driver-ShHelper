@@ -12,5 +12,12 @@ NTSTATUS DeviceInitialize(IN PDRIVER_OBJECT DriverObject);
 
 EXTERN_C_END
 
+namespace ShDrvExample {
+	VOID PeTest(IN HANDLE ProcessId, IN HANDLE ProcessId32);
+	VOID ProcessTest(IN HANDLE ProcessId);
+	VOID ProcessTest32(IN HANDLE ProcessId32);
+	VOID MemoryScanTest();
+}
+
 
 #endif // !_SHDRVHELPER_H_

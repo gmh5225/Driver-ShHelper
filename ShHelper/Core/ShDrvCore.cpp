@@ -2,6 +2,7 @@
 
 PVOID ShDrvCore::GetKernelBaseAddress(
 	IN PCSTR ModuleName,
+	OUT PULONG64 ImageSize,
 	IN SH_GET_BASE_METHOD Method)
 {
 #if TRACE_LOG_DEPTH & TRACE_CORE
@@ -21,6 +22,7 @@ PVOID ShDrvCore::GetKernelBaseAddress(
 		if (!NT_SUCCESS(Status)) { ERROR_END }
 
 		Result = ModuleInformation.DllBase;
+		if (ImageSize != nullptr) { *ImageSize = ModuleInformation.SizeOfImage; }
 		break;
 	}
 
@@ -29,8 +31,9 @@ PVOID ShDrvCore::GetKernelBaseAddress(
 		SYSTEM_MODULE_ENTRY ModuleInformation = { 0, };
 		Status = GetSystemModuleInformation(ModuleName, &ModuleInformation);
 		if (!NT_SUCCESS(Status)) { ERROR_END }
-
+		
 		Result = ModuleInformation.ImageBase;
+		if (ImageSize != nullptr) { *ImageSize = ModuleInformation.ImageSize; }
 		break;
 	}
 
@@ -198,4 +201,114 @@ BOOLEAN ShDrvCore::IsValidObject(
 FINISH:
 	PRINT_ELAPSED;
 	return Result;
+}
+
+// Unsafety routine, Windows kernel obsolete routines : https://learn.microsoft.com/en-us/windows-hardware/drivers/kernel/mmcreatemdl
+BOOLEAN ShDrvCore::IsSessionAddress(
+	IN PVOID Address)
+{
+#if TRACE_LOG_DEPTH & TRACE_CORE
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#endif
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	auto Result = true;
+
+	if(Address == nullptr) { ERROR_END }
+	if (MmIsNonPagedSystemAddressValid(Address) == true)
+	{
+		Result = false;
+	}
+
+FINISH:
+	PRINT_ELAPSED;
+	return Result;
+}
+
+BOOLEAN ShDrvCore::IsSessionAddressEx(
+	IN PVOID Address)
+{
+#if TRACE_LOG_DEPTH & TRACE_CORE
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#endif
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	auto Result = false;
+
+	if (Address == nullptr ) { ERROR_END }
+	
+	if (IN_GLOBAL_RANGE(Win32k, Address) == true ||
+		IN_GLOBAL_RANGE(Win32kBase, Address) == true ||
+		IN_GLOBAL_RANGE(Win32kFull, Address) == true ||
+		IN_GLOBAL_RANGE(Cdd, Address) == true)
+	{
+		Result = true;
+	}
+
+FINISH:
+	PRINT_ELAPSED;
+	return Result;
+}
+
+BOOLEAN ShDrvCore::IsSessionAddressEx2(
+	IN PVOID Address)
+{
+#if TRACE_LOG_DEPTH & TRACE_CORE
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#endif
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	auto Result = false;
+	KAPC_STATE ApcState = { 0, };
+
+	if (Address == nullptr) { ERROR_END }
+	if (MmIsAddressValid(Address) == false)
+	{
+		Status = AttachSessionProcess(&ApcState);
+		if (!NT_SUCCESS(Status)) { ERROR_END }
+
+		Result = MmIsAddressValid(Address);
+		if (Result == false) { Log("this %p", Address); }
+		DetachSessionProcess(&ApcState);
+	}
+
+FINISH:
+	PRINT_ELAPSED;
+	return Result;
+}
+
+NTSTATUS ShDrvCore::AttachSessionProcess(
+	OUT PKAPC_STATE ApcState)
+{
+#if TRACE_LOG_DEPTH & TRACE_CORE
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#endif
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	auto Process = ShDrvUtil::GetProcessByImageFileName("csrss.exe");
+	if(Process == nullptr || ApcState == nullptr) { ERROR_END }
+
+	KeStackAttachProcess(Process, ApcState);
+	
+	Status = STATUS_SUCCESS;
+FINISH:
+	PRINT_ELAPSED;
+	return Status;
+}
+
+VOID ShDrvCore::DetachSessionProcess(
+	OUT PKAPC_STATE ApcState)
+{
+#if TRACE_LOG_DEPTH & TRACE_CORE
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#endif
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	if(ApcState == nullptr) { ERROR_END }
+
+	KeUnstackDetachProcess(ApcState);
+
+FINISH:
+	PRINT_ELAPSED;
+	return;
 }

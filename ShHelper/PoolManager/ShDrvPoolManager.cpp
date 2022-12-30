@@ -96,7 +96,8 @@ NTSTATUS ShDrvPoolManager::FreePoolEntry(
 	BOOLEAN bFound = false;
 	KIRQL CurrentIrql = KeGetCurrentIrql();
 	
-	if (g_Pools == nullptr || Buffer == nullptr) { return ERROR_END; }
+	if (g_Pools == nullptr) { ERROR_END }
+	if (Buffer == nullptr) { END }
 
 	SPIN_LOCK(&g_Pools->Lock);
 
@@ -114,12 +115,10 @@ NTSTATUS ShDrvPoolManager::FreePoolEntry(
 				Status = ShDrvCore::AllocatePool<PVOID>(Entry->PoolSize, &Entry->Buffer);
 				if (!NT_SUCCESS(Status)) { Entry->bUsed = true; }
 			}
-
 			Entry->bUsed = false;
 			break;
 		}
 	}
-
 	if (bFound == false && MmIsAddressValid(Buffer)) { FREE_POOLEX(Buffer); }
 
 	SPIN_UNLOCK(&g_Pools->Lock);

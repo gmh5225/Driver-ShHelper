@@ -12,6 +12,7 @@ NTSTATUS ShDrvPe::Initialize(
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 	if (ImageBase == nullptr || Process == nullptr) { ERROR_END }
+	if (this->IsInit == true) { ERROR_END }
 
 	CHECK_GLOBAL_OFFSET(EPROCESS, ProcessLock);
 	if (!NT_SUCCESS(Status)) { ERROR_END }
@@ -23,27 +24,26 @@ NTSTATUS ShDrvPe::Initialize(
 	}
 
 	this->Process   = Process;
-	this->ProcessLock = ADD_OFFSET(Process, GET_GLOBAL_OFFSET(EPROCESS, ProcessLock), EX_PUSH_LOCK*);
+	this->ProcessLock = ADD_OFFSET(this->Process, GET_GLOBAL_OFFSET(EPROCESS, ProcessLock), EX_PUSH_LOCK*);
 	this->ApcState  = { 0, };
 	this->ImageBase = ImageBase;
 	this->bAttached = false;
 	this->b32bit    = b32bit;
 
-	this->Pe = ShDrvCore::New<SH_PE_HEADER>();
-	this->Pe32 = ShDrvCore::New<SH_PE_HEADER32>();
+	this->Pe = new(SH_PE_HEADER);
+	this->Pe32 = new(SH_PE_HEADER32);
 
 	if (Pe == nullptr || Pe32 == nullptr)
 	{
-		ShDrvCore::Delete(Pe);
-		ShDrvCore::Delete(Pe32);
+		delete(Pe);
+		delete(Pe32);
 		return Status;
 	}
 
 	Status = InitializeEx();
 	if (!NT_SUCCESS(Status)) { ERROR_END }
 
-	this->bInit = true;
-
+	this->IsInit = true;
 FINISH:
 	PRINT_ELAPSED;
 	return Status;
@@ -57,8 +57,6 @@ BOOLEAN ShDrvPe::ValidPeCheck()
 
 	SAVE_CURRENT_COUNTER;
 	BOOLEAN Result = false;
-
-	if (bInit == false) { END }
 
 	if (b32bit)
 	{
@@ -84,7 +82,6 @@ ULONG ShDrvPe::GetSectionCount()
 
 	SAVE_CURRENT_COUNTER;
 	ULONG Result = 0;
-	if (bInit == false) { END }
 
 	if (b32bit)
 	{
@@ -110,12 +107,13 @@ ULONG ShDrvPe::GetExportCountByName()
 	SAVE_CURRENT_COUNTER;
 	ULONG Result = 0;
 
-	if (bInit == false || ExportDirectory == nullptr) { END }
+	if (ExportDirectory == nullptr) { END }
 
 	Attach();
-	LOCK_EXCLUSIVE(ProcessLock, PushLock);
+	LOCK_SHARED(ProcessLock, PushLock);
 	Result = ExportDirectory->NumberOfNames;
-	UNLOCK_EXCLUSIVE(ProcessLock, PushLock);
+	UNLOCK_SHARED(ProcessLock, PushLock);
+
 FINISH:
 	Detach();
 	PRINT_ELAPSED;
@@ -132,10 +130,10 @@ ULONG64 ShDrvPe::GetAddressByExport(
 
 	SAVE_CURRENT_COUNTER;
 	ULONG64 Result = 0;
-	if (bInit == false || ExportDirectory == nullptr) { END }
+	if (ExportDirectory == nullptr) { END }
 
 	Attach();
-	LOCK_EXCLUSIVE(ProcessLock, PushLock);
+	LOCK_SHARED(ProcessLock, PushLock);
 
 	auto AddressOfName = ADD_OFFSET(ImageBase, ExportDirectory->AddressOfNames, PULONG);
 	auto AddressOfOrdinals = ADD_OFFSET(ImageBase, ExportDirectory->AddressOfNameOrdinals, PUSHORT);
@@ -149,12 +147,74 @@ ULONG64 ShDrvPe::GetAddressByExport(
 			break;
 		}
 	}
-
-	UNLOCK_EXCLUSIVE(ProcessLock, PushLock);
+	UNLOCK_SHARED(ProcessLock, PushLock);
 FINISH:
 	Detach();
 	PRINT_ELAPSED;
 	return Result;
+}
+
+PVOID ShDrvPe::GetSectionVirtualAddress(
+	IN PCSTR SectionName)
+{
+#if TRACE_LOG_DEPTH & TRACE_PE
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#endif
+
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	PVOID VirtualAddress = nullptr;
+	PIMAGE_SECTION_HEADER SectionHeader = nullptr;
+	ULONG SectionCount = 0;
+	
+	if(SectionName == nullptr) { ERROR_END}
+
+	SectionHeader = GetSectionHeader();
+	SectionCount = GetSectionCount();
+	
+	for (auto i = 0; i < SectionCount; i++)
+	{
+		if(!strncmp(SectionName, (PSTR)SectionHeader[i].Name, 8))
+		{
+			VirtualAddress = ADD_OFFSET(ImageBase, SectionHeader[i].VirtualAddress, PVOID);
+			break;
+		}
+	}
+
+FINISH:
+	PRINT_ELAPSED;
+	return VirtualAddress;
+}
+
+ULONG64 ShDrvPe::GetSectionSize(
+	IN PCSTR SectionName)
+{
+#if TRACE_LOG_DEPTH & TRACE_PE
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#endif
+
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	ULONG64 SectionSize = 0;
+	ULONG SectionCount = 0;
+	PIMAGE_SECTION_HEADER SectionHeader = nullptr;
+
+	if (SectionName == nullptr) { ERROR_END }
+
+	SectionHeader = GetSectionHeader();
+	SectionCount = GetSectionCount();
+	for (auto i = 0; i < SectionCount; i++)
+	{
+		if (!strncmp(SectionName, (PSTR)SectionHeader[i].Name, 8))
+		{
+			SectionSize = SectionHeader[i].Misc.VirtualSize;
+			break;
+		}
+	}
+
+FINISH:
+	PRINT_ELAPSED;
+	return SectionSize;
 }
 
 NTSTATUS ShDrvPe::InitializeEx()
@@ -168,23 +228,24 @@ NTSTATUS ShDrvPe::InitializeEx()
 	auto Status = STATUS_SUCCESS;
 	ULONG ReturnSize = 0;
 	Attach();
-	LOCK_EXCLUSIVE(ProcessLock, PushLock);
+	LOCK_SHARED(ProcessLock, PushLock);
 
 	if (MmIsAddressValid(ImageBase) == false)
 	{
 		if (Process == PsInitialSystemProcess)
 		{
-			UNLOCK_EXCLUSIVE(ProcessLock, PushLock);
+			UNLOCK_SHARED(ProcessLock, PushLock);
 			Detach();
 			Process = ShDrvUtil::GetProcessByImageFileName("csrss.exe");
+			ProcessLock = ADD_OFFSET(Process, GET_GLOBAL_OFFSET(EPROCESS, ProcessLock), EX_PUSH_LOCK*);
 			if (Process == nullptr)
 			{
 				Status = STATUS_UNSUCCESSFUL;
 				ERROR_END
 			}
-			ProcessLock = ADD_OFFSET(Process, GET_GLOBAL_OFFSET(EPROCESS, ProcessLock), EX_PUSH_LOCK*);
 			Attach();
-			LOCK_EXCLUSIVE(ProcessLock, PushLock);
+			LOCK_SHARED(ProcessLock, PushLock);
+			if (MmIsAddressValid(ImageBase) == false) { Status = STATUS_UNSUCCESSFUL; ERROR_END }
 		}
 		else
 		{
@@ -230,7 +291,7 @@ NTSTATUS ShDrvPe::InitializeEx()
 	ExportDirectory = reinterpret_cast<PIMAGE_EXPORT_DIRECTORY>(RtlImageDirectoryEntryToData(ImageBase, true, IMAGE_DIRECTORY_ENTRY_EXPORT, &ReturnSize));
 
 FINISH:
-	UNLOCK_EXCLUSIVE(ProcessLock, PushLock);
+	UNLOCK_SHARED(ProcessLock, PushLock);
 	Detach();
 	PRINT_ELAPSED;
 	return Status;

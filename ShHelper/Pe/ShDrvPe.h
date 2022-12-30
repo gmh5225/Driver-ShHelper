@@ -25,15 +25,14 @@ typedef struct _SH_PE_HEADER32 {
 #define SH_PE_HEADER32_SIZE sizeof(SH_PE_HEADER32)
 }SH_PE_HEADER32, * PSH_PE_HEADER32;
 
-class ShDrvPe {
+typedef class ShDrvPe {
 public:
-	ShDrvPe() {};
 	~ShDrvPe()
 	{
-		if (Pe != nullptr) { ShDrvCore::Delete(Pe->ImageHeader); };
-		if (Pe32 != nullptr) { ShDrvCore::Delete(Pe32->ImageHeader); };
-		ShDrvCore::Delete(Pe);
-		ShDrvCore::Delete(Pe32);
+		if (Pe != nullptr) { delete(Pe->ImageHeader); };
+		if (Pe32 != nullptr) { delete(Pe32->ImageHeader); };
+		delete(Pe);
+		delete(Pe32);
 	};
 
 	NTSTATUS Initialize(
@@ -41,53 +40,27 @@ public:
 		IN PEPROCESS Process,
 		IN BOOLEAN b32bit = false);
 
-	PEPROCESS GetProcess() {
-		if (!bInit) { return nullptr; }
-		return Process;
-	}
+	PVOID   GetImageBase() { return ImageBase; }
+	PVOID   GetImageEnd() { return b32bit ? (PVOID)Pe32->ImageEnd : Pe->ImageEnd; }
+	ULONG64 GetImageSize() { return b32bit ? Pe32->OptionalHeader->SizeOfImage : Pe->OptionalHeader->SizeOfImage; }
 
-	PVOID GetImageBase() {
-		if (!bInit) { return nullptr; }
-		return ImageBase;
-	}
+	PSH_PE_HEADER   GetPeData() { return Pe; }
+	PSH_PE_HEADER32 GetPe32Data() { return Pe32; }
 
-	PVOID GetImageEnd() {
-		if (!bInit) { return nullptr; }
-		return b32bit ? (PVOID)Pe32->ImageEnd : Pe->ImageEnd;
-	}
-
-	ULONG64 GetImageSize() {
-		if (!bInit) { return 0; }
-		return b32bit ? Pe32->OptionalHeader->SizeOfImage : Pe->OptionalHeader->SizeOfImage;
-	}
-
-	PSH_PE_HEADER GetPeData() {
-		if (!bInit) { return nullptr; }
-		return Pe;
-	}
-
-	PSH_PE_HEADER32 GetPe32Data() {
-		if (!bInit) { return nullptr; }
-		return Pe32;
-	}
-
-	PIMAGE_NT_HEADERS GetNtHeader() {
-		if (!bInit) { return nullptr; }
-		return Pe->NtHeaders;
-	};
-
-	PIMAGE_NT_HEADERS32 GetNtHeader32() {
-		if (!bInit) { return nullptr; }
-		return Pe32->NtHeaders;
-	};
+	PIMAGE_NT_HEADERS     GetNtHeader() { return Pe->NtHeaders; }
+	PIMAGE_NT_HEADERS32   GetNtHeader32() { return Pe32->NtHeaders; }
+	PIMAGE_SECTION_HEADER GetSectionHeader() { return b32bit ? Pe32->SectionHeader : Pe->SectionHeader; }
 
 	BOOLEAN       ValidPeCheck();
 	ULONG         GetSectionCount();
 	ULONG         GetExportCountByName();
 	ULONG64       GetAddressByExport(IN PCSTR RoutineName);
+	PVOID         GetSectionVirtualAddress(IN PCSTR SectionName);
+	ULONG64       GetSectionSize(IN PCSTR SectionName);
+	
 
 private:
-	BOOLEAN          bInit;
+	BOOLEAN          IsInit;
 	PEPROCESS        Process;
 	EX_PUSH_LOCK*    ProcessLock;
 	KAPC_STATE       ApcState;
@@ -112,6 +85,6 @@ private:
 			bAttached = false;
 		}
 	}
-};
+}PeParser, *PPeParser;
 
 #endif // !_SHDRVPE_H_

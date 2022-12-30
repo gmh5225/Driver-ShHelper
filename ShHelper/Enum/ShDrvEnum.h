@@ -3,10 +3,10 @@
 
 // https://learn.microsoft.com/ko-kr/windows/release-health/release-information
 typedef enum _SH_OS_VERSION {
-	WINDOWS_7 = 7600,
-	WINDOWS_7_SP1 = 7601,
-	WINDOWS_8 = 9200,
-	WINDOWS_8_1 = 9600,
+	WINDOWS_7       = 7600,
+	WINDOWS_7_SP1   = 7601,
+	WINDOWS_8       = 9200,
+	WINDOWS_8_1     = 9600,
 	WINDOWS_10_1507 = 10240,
 	WINDOWS_10_1511 = 10586,
 	WINDOWS_10_1607 = 14393,

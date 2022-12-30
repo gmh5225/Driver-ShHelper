@@ -110,6 +110,8 @@ namespace ShDrvUtil {
 if(!NT_SUCCESS(ShDrvUtil::GetPagingStructureEntry(TableBase, LinearAddress.name##Physical, &EntryAddress))) { ERROR_END } \
 entry.AsUInt = EntryAddress.AsUInt; TableBase = entry.PageFrameNumber << 12;
 
+#define IN_GLOBAL_RANGE(m, a) ShDrvUtil::IsInRange(g_Variables->m##BaseAddress, g_Variables->m##EndAddress, a)
+
 	VOID Sleep(IN ULONG Milliseconds);
 
 	VOID PrintElapsedTime(
@@ -140,6 +142,12 @@ entry.AsUInt = EntryAddress.AsUInt; TableBase = entry.PageFrameNumber << 12;
 		IN ULONG64 ReferenceBit,
 		OUT PPAGING_ENTRY_COMMON Entry);
 
+	BOOLEAN IsWow64Process(IN PEPROCESS Process);
+
+	BOOLEAN IsInRange(
+		IN PVOID StartAddress,
+		IN PVOID EndAddress,
+		IN PVOID TargetAddress);
 
 	template <typename T>
 	NTSTATUS GetRoutineAddress(
@@ -187,7 +195,7 @@ entry.AsUInt = EntryAddress.AsUInt; TableBase = entry.PageFrameNumber << 12;
 
 		ImageBase = ImageBase ? ImageBase : g_Variables->SystemBaseAddress;
 
-		Pe = ShDrvMemory::New<ShDrvPe>();
+		Pe = new(ShDrvPe);
 		if (Pe == nullptr) { ERROR_END }
 
 		Status = Pe->Initialize(ImageBase, PsInitialSystemProcess);
@@ -197,7 +205,7 @@ entry.AsUInt = EntryAddress.AsUInt; TableBase = entry.PageFrameNumber << 12;
 		if (*Routine == nullptr) { Status = STATUS_UNSUCCESSFUL; }
 
 	FINISH:
-		ShDrvMemory::Delete(Pe);
+		delete(Pe);
 		PRINT_ELAPSED;
 		return Status;
 	}

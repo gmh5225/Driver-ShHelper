@@ -3,7 +3,6 @@
 
 class ShDrvProcess {
 public:
-	ShDrvProcess() {};
 	~ShDrvProcess() {
 		if (bAttached) Detach();
 		if (bAttachedEx) DetachEx();
@@ -20,8 +19,6 @@ public:
 		IN  PCSTR ModuleName,
 		OUT PLDR_DATA_TABLE_ENTRY32 ModuleInformation);
 
-	BOOLEAN IsWow64Process(IN PEPROCESS Process);
-
 	NTSTATUS ReadProcessMemory(
 		IN  PVOID Address,
 		IN  ULONG Size,
@@ -34,7 +31,26 @@ public:
 		IN PVOID Buffer,
 		IN SH_RW_MEMORY_METHOD Method = RW_Normal);
 
+	ULONG MemoryScan(
+		IN PVOID Address,
+		IN ULONG Size,
+		IN PCSTR Pattern,
+		OUT PVOID* Result,
+		IN PCSTR Mask = nullptr,
+		IN BOOLEAN bAllScan = false);
+
+	ULONG MemoryScan(
+		IN PVOID Address,
+		IN PCSTR SectionName,
+		IN PCSTR Pattern,
+		OUT PVOID* Result,
+		IN PCSTR Mask = nullptr,
+		IN BOOLEAN bAllScan = false);
+
+	PEPROCESS GetProcess() { return Process; }
+
 private:
+	BOOLEAN       IsInit;
 	PEPROCESS     Process;
 	EX_PUSH_LOCK* ProcessLock;
 	HANDLE        ProcessId;
@@ -51,10 +67,16 @@ private:
 	NTSTATUS GetProcessLdrHead32(
 		OUT PULONG LdrList);
 
-	NTSTATUS Attach();
-	NTSTATUS AttachEx();
-	NTSTATUS Detach();
-	NTSTATUS DetachEx();
+	NTSTATUS GoScan(
+		IN MemoryScanner* Scanner,
+		IN PCSTR Pattern,
+		IN PCSTR Mask,
+		OUT PVOID* Result);
+
+	NTSTATUS Attach(BOOLEAN bExclusive = false);
+	NTSTATUS AttachEx(BOOLEAN bExclusive = false);
+	NTSTATUS Detach(BOOLEAN bExclusive = false);
+	NTSTATUS DetachEx(BOOLEAN bExclusive = false);
 };
 
 
