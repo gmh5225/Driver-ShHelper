@@ -1,6 +1,14 @@
 #ifndef _SHDRVCORE_H_
 #define _SHDRVCORE_H_
 
+/**
+ * @file ShDrvCore.h
+ * @author Shh0ya (hunho88@gmail.com)
+ * @brief core header
+ * @date 2022-12-30
+ * @copyright the GNU General Public License v3
+ */
+
 using namespace UNDOC_SYSTEM;
 using namespace UNDOC_PEB;
 

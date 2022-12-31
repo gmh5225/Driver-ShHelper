@@ -1,5 +1,19 @@
 #include <ShDrvInc.h>
 
+/**
+ * @file ShDrvMemory.cpp
+ * @author Shh0ya (hunho88@gmail.com)
+ * @brief Memory utility
+ * @date 2022-12-30
+ * @copyright the GNU General Public License v3
+ */
+
+/**
+* @brief Check that the address is in user mode
+* @param[in] PVOID `Address`
+* @return If not in user mode, return value is `false`
+* @author Shh0ya @date 2022-12-27
+*/
 BOOLEAN ShDrvMemory::IsUserMemorySpace(IN PVOID Address)
 {
 	SAVE_CURRENT_COUNTER;
@@ -10,6 +24,17 @@ BOOLEAN ShDrvMemory::IsUserMemorySpace(IN PVOID Address)
 	return Result;
 }
 
+/**
+* @brief Read Memory
+* @details Read the memory in a way that match the method
+* @param[in] PVOID `Address`
+* @param[in] ULONG `Size`
+* @param[out] PVOID `Buffer`
+* @param[in] SH_RW_MEMORY_METHOD `Method`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+* @see SH_RW_MEMORY_METHOD, ShDrvMemory::ReadMemoryNormal, ShDrvMemory::ReadMemoryEx, ShDrvMemory::ReadPhysicalMemory
+*/
 NTSTATUS ShDrvMemory::ReadMemory(
 	IN PVOID Address, 
 	IN ULONG Size, 
@@ -55,6 +80,17 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Write Memory
+* @details Write the memory in a way that match the method
+* @param[in] PVOID `Address`
+* @param[in] ULONG `Size`
+* @param[in] PVOID `Buffer`
+* @param[in] SH_RW_MEMORY_METHOD `Method`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+* @see SH_RW_MEMORY_METHOD, ShDrvMemory::WriteMemoryNormal, ShDrvMemory::WriteMemoryEx, ShDrvMemory::WritePhysicalMemory
+*/
 NTSTATUS ShDrvMemory::WriteMemory(
 	IN PVOID Address, 
 	IN ULONG Size, 
@@ -101,6 +137,16 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Read Memory
+* @details Read the memory using `MmCopyMemory`
+* @param[in] PVOID `Address`
+* @param[in] ULONG `Size`
+* @param[out] PVOID `Buffer`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvMemory::ReadMemory
+*/
 NTSTATUS ShDrvMemory::ReadMemoryNormal(
 	IN PVOID Address, 
 	IN ULONG Size, 
@@ -128,6 +174,16 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Read Memory
+* @details Read the physical memory
+* @param[in] PVOID `Address`
+* @param[in] ULONG `Size`
+* @param[out] PVOID `Buffer`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvMemory::ReadMemory
+*/
 NTSTATUS ShDrvMemory::ReadPhysicalMemory(
 	IN PVOID Address, 
 	IN ULONG Size, 
@@ -167,6 +223,16 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Read Memory
+* @details Read the memory using the memory descriptor list
+* @param[in] PVOID `Address`
+* @param[in] ULONG `Size`
+* @param[out] PVOID `Buffer`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvMemory::ReadMemory
+*/
 NTSTATUS ShDrvMemory::ReadMemoryEx(
 	IN PVOID Address, 
 	IN ULONG Size, 
@@ -190,6 +256,16 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Write Memory
+* @details Write the memory. Normally, use memcpy, but if an exception occurs, use MDL
+* @param[in] PVOID `Address`
+* @param[in] ULONG `Size`
+* @param[in] PVOID `Buffer`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvMemory::WrtieMemory
+*/
 NTSTATUS ShDrvMemory::WriteMemoryNormal(
 	IN PVOID Address, 
 	IN ULONG Size, 
@@ -213,6 +289,16 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Write Memory
+* @details Write the physical memory
+* @param[in] PVOID `Address`
+* @param[in] ULONG `Size`
+* @param[in] PVOID `Buffer`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvMemory::WrtieMemory
+*/
 NTSTATUS ShDrvMemory::WritePhysicalMemory(
 	IN PVOID Address, 
 	IN ULONG Size, 
@@ -253,6 +339,16 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Write Memory
+* @details Write the memory using memory descriptor list
+* @param[in] PVOID `Address`
+* @param[in] ULONG `Size`
+* @param[in] PVOID `Buffer`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvMemory::WrtieMemory
+*/
 NTSTATUS ShDrvMemory::WriteMemoryEx(
 	IN PVOID Address, 
 	IN ULONG Size, 
@@ -276,6 +372,15 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Normally, use memcpy, but if an exception occurs, use MDL
+* @param[in] PVOID `Source`
+* @param[in] ULONG `Size`
+* @param[in] PVOID `Dest`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvMemory::WriteMemory
+*/
 NTSTATUS ShDrvMemory::SafeCopyMemory(
 	IN PVOID Source, 
 	IN ULONG Size, 
@@ -331,6 +436,15 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief `SafeCopyMemory` internal
+* @param[in] PVOID `Source`
+* @param[in] PVOID `Dest`
+* @param[in] ULONG `Size`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvMemory::SafeCopyMemory
+*/
 NTSTATUS ShDrvMemory::SafeCopyMemoryInternal(
 	IN PVOID Source, 
 	IN PVOID Dest, 

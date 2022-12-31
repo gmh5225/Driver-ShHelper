@@ -1,5 +1,20 @@
 #include <ShDrvInc.h>
 
+/**
+ * @file ShDrvPoolManager.cpp
+ * @author Shh0ya (hunho88@gmail.com)
+ * @brief Pool manager features
+ * @date 2022-12-30
+ * @copyright the GNU General Public License v3
+ */
+
+/**
+* @brief Pool manager initializer
+* @details Initialize a pool manager that is available globally. We can use pre-allocated pools
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvPoolManager::GetPool, ALLOC_POOL, FREE_POOL
+*/
 NTSTATUS ShDrvPoolManager::Initialize()
 {
 #if TRACE_LOG_DEPTH & TRACE_POOL
@@ -55,6 +70,15 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Allocate a pool entry in the pool manager
+* @details Allocate entries for each of the defined Pool types
+* @param[in] SH_POOL_TYPE `PoolType`
+* @param[in] ULONG `PoolSize`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvPoolManager::FreePoolEntry, ShDrvPoolManager::GetPool
+*/
 NTSTATUS ShDrvPoolManager::AllocatePoolEntry(
 	IN SH_POOL_TYPE PoolType, 
 	IN ULONG PoolSize )
@@ -82,6 +106,15 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Free a pool entry in the pool manager
+* @details Free the buffer from the pool manager and make it available
+* @param[in] PVOID `Buffer`
+* @param[in] BOOLEAN `bReuse`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+* @see FREE_POOL
+*/
 NTSTATUS ShDrvPoolManager::FreePoolEntry(
 	IN PVOID Buffer, 
 	IN BOOLEAN bReuse )
@@ -130,6 +163,14 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Get available pools from the pool manager
+* @details Returns available pools that match the pool type
+* @param[in] SH_POOL_TYPE `PoolType`
+* @return If succeeds, return value is pool address.
+* @author Shh0ya @date 2022-12-27
+* @see ALLOC_POOL, FREE_POOL
+*/
 PVOID ShDrvPoolManager::GetPool(
 	IN SH_POOL_TYPE PoolType)
 {
@@ -172,6 +213,11 @@ PVOID ShDrvPoolManager::GetPool(
 	return Result;
 }
 
+/**
+* @brief Clean up the pool manager
+* @details Free the pool managers, including pre-allocated pools
+* @author Shh0ya @date 2022-12-27
+*/
 VOID ShDrvPoolManager::Finalize()
 {
 #if TRACE_LOG_DEPTH & TRACE_POOL

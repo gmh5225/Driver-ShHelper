@@ -1,5 +1,20 @@
 #include <ShDrvInc.h>
 
+/**
+ * @file ShDrvProcess.cpp
+ * @author Shh0ya (hunho88@gmail.com)
+ * @brief Process features
+ * @date 2022-12-30
+ * @copyright the GNU General Public License v3
+ */
+
+/**
+* @brief Instance initializer
+* @details Initialize process instance
+* @param[in] HANDLE `ProcessId`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+*/
 NTSTATUS ShDrvProcess::Initialize(
 	IN HANDLE ProcessId)
 {
@@ -34,6 +49,13 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Instance initializer
+* @details Initialize process instance
+* @param[in] PEPROCESS `Process`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+*/
 NTSTATUS ShDrvProcess::Initialize(
 	IN PEPROCESS Process)
 {
@@ -69,6 +91,14 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Get module information in the process(64)
+* @param[in] PCSTR `ModuleName`
+* @param[out] PLDR_DATA_TABLE_ENTRY `ModuleInformation`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvProcess::GetProcessModuleInformation32
+*/
 NTSTATUS ShDrvProcess::GetProcessModuleInformation(
 	IN PCSTR ModuleName, 
 	OUT PLDR_DATA_TABLE_ENTRY ModuleInformation )
@@ -134,6 +164,14 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Get module information in the process(32)
+* @param[in] PCSTR `ModuleName`
+* @param[out] PLDR_DATA_TABLE_ENTRY32 `ModuleInformation`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvProcess::GetProcessModuleInformation
+*/
 NTSTATUS ShDrvProcess::GetProcessModuleInformation32(
 	IN PCSTR ModuleName, 
 	OUT PLDR_DATA_TABLE_ENTRY32 ModuleInformation )
@@ -194,6 +232,16 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Read process memory
+* @param[in] PVOID `Address`
+* @param[in] ULONG `Size`
+* @param[out] PVOID `Buffer`
+* @param[in] SH_RW_MEMORY_METHOD `Method`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvMemory::ReadMemory, ShDrvProcess::WriteProcessMemory, SH_RW_MEMORY_METHOD
+*/
 NTSTATUS ShDrvProcess::ReadProcessMemory(
 	IN  PVOID Address, 
 	IN  ULONG Size,
@@ -232,6 +280,16 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Write process memory
+* @param[in] PVOID `Address`
+* @param[in] ULONG `Size`
+* @param[in] PVOID `Buffer`
+* @param[in] SH_RW_MEMORY_METHOD `Method`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvMemory::WriteMemory, ShDrvProcess::ReadProcessMemory, SH_RW_MEMORY_METHOD
+*/
 NTSTATUS ShDrvProcess::WriteProcessMemory(
 	IN PVOID Address, 
 	IN ULONG Size, 
@@ -266,6 +324,18 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Process memory scan
+* @param[in] PVOID `Address`
+* @param[in] ULONG `Size`
+* @param[in] PCSTR `Pattern`
+* @param[out] PVOID* `Result`
+* @param[in] PCSTR `Mask`
+* @param[in] BOOLEAN `bAllScan`
+* @return If succeeds, return value is nonzero
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvMemoryScanner, MemoryScanner
+*/
 ULONG ShDrvProcess::MemoryScan(
 	IN PVOID Address, 
 	IN ULONG Size,
@@ -322,6 +392,18 @@ FINISH:
 	return ResultCount;
 }
 
+/**
+* @brief Process memory scan(section base)
+* @param[in] PVOID `Address`
+* @param[in] PCSTR `SectionName`
+* @param[in] PCSTR `Pattern`
+* @param[out] PVOID* `Result`
+* @param[in] PCSTR `Mask`
+* @param[in] BOOLEAN `bAllScan`
+* @return If succeeds, return value is nonzero
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvMemoryScanner, MemoryScanner
+*/
 ULONG ShDrvProcess::MemoryScan(
 	IN PVOID Address, 
 	IN PCSTR SectionName, 
@@ -379,6 +461,13 @@ FINISH:
 	return ResultCount;
 }
 
+/**
+* @brief Get the LdrListHead in process PEB(64)
+* @param[out] PLIST_ENTRY `LdrList`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvProcess::GetProcessLdrHead32
+*/
 NTSTATUS ShDrvProcess::GetProcessLdrHead(
 	OUT PLIST_ENTRY LdrList)
 {
@@ -419,6 +508,13 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Get the LdrListHead in process PEB(32)
+* @param[out] PULONG `LdrList`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvProcess::GetProcessLdrHead
+*/
 NTSTATUS ShDrvProcess::GetProcessLdrHead32(
 	OUT PULONG LdrList)
 {
@@ -459,6 +555,16 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Process memory scan internal
+* @param[in] MemoryScanner* `Scanner`
+* @param[in] PCSTR `Pattern`
+* @param[in] PCSTR `Mask`
+* @param[out] PVOID* `Result`
+* @return If succeeds, return value is nonzero
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvProcess::MemoryScan, ShDrvMemoryScanner, MemoryScanner
+*/
 NTSTATUS ShDrvProcess::GoScan(
 	IN MemoryScanner* Scanner, 
 	IN PCSTR Pattern, 
@@ -491,6 +597,14 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Attach the process
+* @details Attach the process using `KeStackAttachProcess`
+* @param[in] BOOLEAN `bExclusive` : Never set this value to `true` unless a exclusive is required
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvProcess::Detach, ShDrvProcess::AttachEx, ShDrvProcess::DetachEx
+*/
 NTSTATUS ShDrvProcess::Attach(BOOLEAN bExclusive)
 {
 #if TRACE_LOG_DEPTH & TRACE_PROCESS
@@ -515,6 +629,14 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Attach the process
+* @details Attach the process using `DirBase`
+* @param[in] BOOLEAN `bExclusive` : Never set this value to `true` unless a exclusive is required
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvProcess::Attach, ShDrvProcess::Detach, ShDrvProcess::DetachEx
+*/
 NTSTATUS ShDrvProcess::AttachEx(BOOLEAN bExclusive)
 {
 #if TRACE_LOG_DEPTH & TRACE_PROCESS
@@ -541,6 +663,14 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Detach the process
+* @details Detach the process using `KeUnstackDetachProcess`
+* @param[in] BOOLEAN `bExclusive` : Never set this value to `true` unless a exclusive is required
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvProcess::Attach, ShDrvProcess::AttachEx, ShDrvProcess::DetachEx
+*/
 NTSTATUS ShDrvProcess::Detach(BOOLEAN bExclusive)
 {
 #if TRACE_LOG_DEPTH & TRACE_PROCESS
@@ -565,6 +695,14 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Detach the process
+* @details Detach the process using `DirBase`
+* @param[in] BOOLEAN `bExclusive` : Never set this value to `true` unless a exclusive is required
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvProcess::Attach, ShDrvProcess::AttachEx, ShDrvProcess::Detach
+*/
 NTSTATUS ShDrvProcess::DetachEx(BOOLEAN bExclusive)
 {
 #if TRACE_LOG_DEPTH & TRACE_PROCESS

@@ -1,13 +1,29 @@
 #include <ShDrvInc.h>
 
-PSH_GLOBAL_ROUTINES  g_Routines;
-PSH_GLOBAL_VARIABLES g_Variables;
-PSH_GLOBAL_OFFSETS   g_Offsets;
-PSH_POOL_INFORMATION g_Pools;
+/**
+ * @file ShDrvHelper.cpp
+ * @author Shh0ya (hunho88@gmail.com)
+ * @brief Driver entry
+ * @date 2022-12-30
+ * @copyright the GNU General Public License v3
+ */
+
+PSH_GLOBAL_ROUTINES  g_Routines;  /**< Global routines */
+PSH_GLOBAL_VARIABLES g_Variables; /**< Global variables */
+PSH_GLOBAL_OFFSETS   g_Offsets;   /**< Global offsets data */
+PSH_POOL_INFORMATION g_Pools;     /**< Global pool manager */
 
 // LLVM is not support
 //#pragma alloc_text("INIT", DriverEntry)
 
+/**
+* @brief Driver Entry
+* @details Initialize global variable and major functions
+* @param[in] PDRIVER_OBJECT `DriverObject`
+* @param[in] PUNICODE_STRING `RegistryPath`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails return `STATUS_UNSUCCESSFUL`
+* @author Shh0ya @date 2022-12-27
+*/
 NTSTATUS DriverEntry(
 	IN PDRIVER_OBJECT DriverObject, 
 	IN PUNICODE_STRING RegistryPath)
@@ -29,12 +45,22 @@ NTSTATUS DriverEntry(
 	ShDrvExample::ProcessTest32((HANDLE)4500);
 	ShDrvExample::MemoryScanTest();
 
+	PHYSICAL_ADDRESS Physic = { 0, };
+	ShDrvUtil::GetPhysicalAddressEx(g_Pools, KernelMode, &Physic);
+	Log("%llX", Physic.QuadPart);
 
 FINISH:
 	PRINT_ELAPSED;
 	return Status;
 }
 
+/**
+* @brief Driver Unload
+* @details Clean to allocated pool and generated information
+* @param[in] PDRIVER_OBJECT `DriverObject`
+* @return VOID
+* @author Shh0ya @date 2022-12-27
+*/
 VOID HelperFinalize(
 	IN PDRIVER_OBJECT DriverObject)
 {
@@ -49,6 +75,26 @@ VOID HelperFinalize(
 	PRINT_ELAPSED;
 }
 
+/**
+* @brief [MACRO] Set module base address and end address
+* @details if the value is not set, call ERROR_END
+* @param[in] PCSTR `ModuleName`
+* @param[in] `MemberName`
+* @author Shh0ya @date 2022-12-27
+* @see DriverInitialize
+*/
+#define INIT_BASEADDRESS(Module,Member)\
+g_Variables->Member##BaseAddress = ShDrvCore::GetKernelBaseAddress(Module, &ImageSize, LoadedModuleList);\
+g_Variables->Member##EndAddress = ADD_OFFSET(g_Variables->Member##BaseAddress, ImageSize, PVOID);\
+if(g_Variables->Member##BaseAddress == nullptr || g_Variables->Member##BaseAddress == g_Variables->Member##EndAddress) { Status = STATUS_NOT_SUPPORTED; ERROR_END }
+
+/**
+* @brief Driver Initialize
+* @details Initialize pool manager, global variables, global routines and global offsets
+* @return If succeeds, return `STATUS_SUCCESS`, if fails return `STATUS_NOT_SUPPORTED`
+* @author Shh0ya @date 2022-12-27
+* @see GET_GLOBAL_POOL, INIT_BASEADDRESS, GET_EXPORT_VARIABLE, GET_EXPORT_ROUTINE
+*/
 NTSTATUS DriverInitialize()
 {
 #if TRACE_LOG_DEPTH & TRACE_ENTRY
@@ -56,7 +102,6 @@ NTSTATUS DriverInitialize()
 #endif
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_SUCCESS;
-	ShDrvPe* Pe = nullptr;
 	ULONG64 ImageSize = 0;
 	
 	Status = ShDrvPoolManager::Initialize();
@@ -75,20 +120,12 @@ NTSTATUS DriverInitialize()
 	
 	g_Variables->SystemDirBase = __readcr3();
 
-	g_Variables->SystemBaseAddress = ShDrvCore::GetKernelBaseAddress("ntoskrnl.exe", &ImageSize, LoadedModuleList);
-	g_Variables->SystemEndAddress  = ADD_OFFSET(g_Variables->SystemBaseAddress, ImageSize, PVOID);
-
-	g_Variables->Win32kBaseAddress = ShDrvCore::GetKernelBaseAddress("win32k.sys", &ImageSize, LoadedModuleList);
-	g_Variables->Win32kEndAddress  = ADD_OFFSET(g_Variables->Win32kBaseAddress, ImageSize, PVOID);
-
-	g_Variables->Win32kBaseBaseAddress = ShDrvCore::GetKernelBaseAddress("win32kbase.sys", &ImageSize, LoadedModuleList);
-	g_Variables->Win32kBaseEndAddress  = ADD_OFFSET(g_Variables->Win32kBaseBaseAddress, ImageSize, PVOID);
-
-	g_Variables->Win32kFullBaseAddress = ShDrvCore::GetKernelBaseAddress("win32kfull.sys", &ImageSize, LoadedModuleList);
-	g_Variables->Win32kFullEndAddress  = ADD_OFFSET(g_Variables->Win32kFullBaseAddress, ImageSize, PVOID);
-
-	g_Variables->CddBaseAddress = ShDrvCore::GetKernelBaseAddress("cdd.dll", &ImageSize, LoadedModuleList);
-	g_Variables->CddEndAddress  = ADD_OFFSET(g_Variables->CddBaseAddress, ImageSize, PVOID);
+	INIT_BASEADDRESS("ntoskrnl.exe", System);
+	INIT_BASEADDRESS("win32k.sys", Win32k);
+	INIT_BASEADDRESS("win32kbase.sys", Win32kBase);
+	INIT_BASEADDRESS("win32kfull.sys", Win32kFull);
+	INIT_BASEADDRESS("cdd.dll", Cdd);
+	INIT_BASEADDRESS("ci.dll", Ci);
 
 	GET_EXPORT_VARIABLE(PsLoadedModuleList, PLIST_ENTRY);
 	GET_EXPORT_VARIABLE(PsLoadedModuleResource, PERESOURCE);
@@ -97,14 +134,6 @@ NTSTATUS DriverInitialize()
 
 	Status = InitializeOffset_Unsafe();
 	if (!NT_SUCCESS(Status)) { ERROR_END }
-	
-	/*Pe = new(ShDrvPe);
-	if (Pe == nullptr) { Status = STATUS_MEMORY_NOT_ALLOCATED; ERROR_END }
-
-	Status = Pe->Initialize(g_Variables->SystemBaseAddress, PsInitialSystemProcess);
-	if (!NT_SUCCESS(Status)) { ERROR_END }
-
-	g_Variables->SystemEndAddress = Pe->GetImageEnd();*/
 
 	GET_EXPORT_ROUTINE(PsGetProcessImageFileName, Ps);
 	GET_EXPORT_ROUTINE(PsGetProcessPeb, Ps);
@@ -114,11 +143,18 @@ NTSTATUS DriverInitialize()
 	if (!NT_SUCCESS(Status)) { Status = STATUS_NOT_SUPPORTED; ERROR_END }
 
 FINISH:
-	delete(Pe);
 	PRINT_ELAPSED;
 	return Status;
 }
 
+/**
+* @brief Initialize Offsets
+* @warning This routine is unsafely. The symbol or other method(pattern scan, etc...) must be used
+* Otherwise, must be checked if it's validate.
+* @details Initialize offset value
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+*/
 NTSTATUS InitializeOffset_Unsafe()
 {
 #if TRACE_LOG_DEPTH & TRACE_ENTRY
@@ -1109,16 +1145,20 @@ VOID ShDrvExample::PeTest(
 	// Kernel Base
 	//======================================================
 	auto Pe = new(ShDrvPe);
-	Pe->Initialize(g_Variables->SystemBaseAddress, PsInitialSystemProcess);
-	Log("PE Test(Kernel Normal) %p",Pe->GetAddressByExport("ZwQuerySystemInformation"));
+	if (NT_SUCCESS(Pe->Initialize(g_Variables->SystemBaseAddress, PsInitialSystemProcess)))
+	{
+		Log("PE Test(Kernel Normal) %p", Pe->GetAddressByExport("ZwQuerySystemInformation"));
+	}
 	delete(Pe);
 
 	//======================================================
 	// Kernel Base(Session)
 	//======================================================
 	Pe = new(ShDrvPe);
-	Pe->Initialize(g_Variables->Win32kBaseBaseAddress, PsInitialSystemProcess);
-	Log("PE Test(Kernel Session) %p", Pe->GetAddressByExport("IsDwmApiPortRegistered"));
+	if (NT_SUCCESS(Pe->Initialize(g_Variables->Win32kBaseBaseAddress, PsInitialSystemProcess)))
+	{
+		Log("PE Test(Kernel Session) %p", Pe->GetAddressByExport("IsDwmApiPortRegistered"));
+	}
 	delete(Pe);
 
 	//======================================================
@@ -1127,12 +1167,15 @@ VOID ShDrvExample::PeTest(
 	Pe = new(ShDrvPe);
 	auto Process = new(ShDrvProcess);
 	LDR_DATA_TABLE_ENTRY32 LdrEntry32 = { 0, };
-	Process->Initialize(ProcessId32);
-	Process->GetProcessModuleInformation32("ntdll.dll", &LdrEntry32);
+	if (NT_SUCCESS(Process->Initialize(ProcessId32)))
+	{
+		Process->GetProcessModuleInformation32("ntdll.dll", &LdrEntry32);
+	}
 
-	Pe->Initialize((PVOID)LdrEntry32.DllBase, Process->GetProcess(), true);
-	Log("PE Test(Process 32) %p", Pe->GetAddressByExport("NtQuerySystemInformation"));
-
+	if (NT_SUCCESS(Pe->Initialize((PVOID)LdrEntry32.DllBase, Process->GetProcess(), true)))
+	{
+		Log("PE Test(Process 32) %p", Pe->GetAddressByExport("NtQuerySystemInformation"));
+	}
 	delete(Process);
 	delete(Pe);
 
@@ -1142,12 +1185,15 @@ VOID ShDrvExample::PeTest(
 	Pe = new(ShDrvPe);
 	Process = new(ShDrvProcess);
 	LDR_DATA_TABLE_ENTRY LdrEntry = { 0, };
-	Process->Initialize(ProcessId);
-	Process->GetProcessModuleInformation("ntdll.dll", &LdrEntry);
+	if (NT_SUCCESS(Process->Initialize(ProcessId)))
+	{
+		Process->GetProcessModuleInformation("ntdll.dll", &LdrEntry);
+	}
 
-	Pe->Initialize(LdrEntry.DllBase, Process->GetProcess());
-	Log("PE Test(Process 64) %p", Pe->GetAddressByExport("NtQuerySystemInformation"));
-
+	if (NT_SUCCESS(Pe->Initialize(LdrEntry.DllBase, Process->GetProcess())))
+	{
+		Log("PE Test(Process 64) %p", Pe->GetAddressByExport("NtQuerySystemInformation"));
+	}
 	delete(Process);
 	delete(Pe);
 }
@@ -1158,38 +1204,40 @@ VOID ShDrvExample::ProcessTest(
 	PlainLog("======================== Process Sample(x64) =======================\n");
 
 	auto Process = new(ShDrvProcess);
-	Process->Initialize(ProcessId);
+	PVOID* Result = nullptr;
+	if (NT_SUCCESS(Process->Initialize(ProcessId)))
+	{
 
-	//======================================================
-	// Process module 64
-	//======================================================
-	LDR_DATA_TABLE_ENTRY LdrEntry = { 0, };
-	Process->GetProcessModuleInformation("ntdll.dll", &LdrEntry);
+		//======================================================
+		// Process module 64
+		//======================================================
+		LDR_DATA_TABLE_ENTRY LdrEntry = { 0, };
+		Process->GetProcessModuleInformation("ntdll.dll", &LdrEntry);
 
-	//======================================================
-	// Process read & write(physical) 64
-	//======================================================
-	USHORT ReadMagic = 0;
-	USHORT AfterMagic = 0;
-	USHORT WriteMagic = 0xffff;
-	Process->ReadProcessMemory(LdrEntry.DllBase, 2, &ReadMagic);
-	Process->WriteProcessMemory(LdrEntry.DllBase, 2, &WriteMagic, RW_Physical);
-	Process->ReadProcessMemory(LdrEntry.DllBase, 2, &AfterMagic);
-	Log("Original : %X, After : %X", ReadMagic, AfterMagic);
-	Process->WriteProcessMemory(LdrEntry.DllBase, 2, &ReadMagic, RW_Physical);
-	Log("%p %X", LdrEntry.DllBase, LdrEntry.SizeOfImage);
-	
-	//======================================================
-	// Process memory scan 64
-	//======================================================
-	PVOID* Result = reinterpret_cast<PVOID*>(ALLOC_POOL(NONE_SPECIAL));
-	ULONG ResultCount = 0;
+		//======================================================
+		// Process read & write(physical) 64
+		//======================================================
+		USHORT ReadMagic = 0;
+		USHORT AfterMagic = 0;
+		USHORT WriteMagic = 0xffff;
+		Process->ReadProcessMemory(LdrEntry.DllBase, 2, &ReadMagic);
+		Process->WriteProcessMemory(LdrEntry.DllBase, 2, &WriteMagic, RW_Physical);
+		Process->ReadProcessMemory(LdrEntry.DllBase, 2, &AfterMagic);
+		Log("Original : %X, After : %X", ReadMagic, AfterMagic);
+		Process->WriteProcessMemory(LdrEntry.DllBase, 2, &ReadMagic, RW_Physical);
+		Log("%p %X", LdrEntry.DllBase, LdrEntry.SizeOfImage);
 
-	ResultCount = Process->MemoryScan(
-		LdrEntry.DllBase,
-		LdrEntry.SizeOfImage,
-		"4C 8B D1 B8 ?? ?? ?? ?? F6 04 25 08 03 FE 7F 01 75 03 0F 05 C3",
-		Result);
+		//======================================================
+		// Process memory scan 64
+		//======================================================
+		Result = reinterpret_cast<PVOID*>(ALLOC_POOL(NONE_SPECIAL));
+		ULONG ResultCount = 0;
+
+		ResultCount = Process->MemoryScan(
+			LdrEntry.DllBase,
+			LdrEntry.SizeOfImage,
+			"4C 8B D1 B8 ?? ?? ?? ?? F6 04 25 08 03 FE 7F 01 75 03 0F 05 C3",
+			Result);
 
 		/*ResultCount = Process->MemoryScan(
 			LdrEntry.DllBase,
@@ -1207,11 +1255,11 @@ VOID ShDrvExample::ProcessTest(
 			"xxxx????xxxxxxxxxxxxx",
 			true);*/
 
-	for (auto i = 0; i < ResultCount; i++)
-	{
-		Log("[%d] %p", i, Result[i]);
+		for (auto i = 0; i < ResultCount; i++)
+		{
+			Log("[%d] %p", i, Result[i]);
+		}
 	}
-
 	delete(Process);
 	FREE_POOL(Result);
 }
@@ -1221,44 +1269,46 @@ VOID ShDrvExample::ProcessTest32(
 {
 	PlainLog("======================== Process Sample(x86) =======================\n");
 	auto Process = new(ShDrvProcess);
-	Process->Initialize((HANDLE)ProcessId32);
+	PVOID* Result = nullptr;
 
-	//======================================================
-	// Process module 32
-	//======================================================
-	LDR_DATA_TABLE_ENTRY32 LdrEntry32 = { 0, };
-	Process->GetProcessModuleInformation32("ntdll.dll", &LdrEntry32);
-
-	//======================================================
-	// Process read & write(physical) 32
-	//======================================================
-	USHORT ReadMagic = 0;
-	USHORT AfterMagic = 0;
-	USHORT WriteMagic = 0xffff;
-	Process->ReadProcessMemory((PVOID)LdrEntry32.DllBase, 2, &ReadMagic);
-	Process->WriteProcessMemory((PVOID)LdrEntry32.DllBase, 2, &WriteMagic, RW_Physical);
-	Process->ReadProcessMemory((PVOID)LdrEntry32.DllBase, 2, &AfterMagic);
-	Log("Original : %X, After : %X", ReadMagic, AfterMagic);
-	Process->WriteProcessMemory((PVOID)LdrEntry32.DllBase, 2, &ReadMagic, RW_Physical);
-	Log("%p %X", LdrEntry32.DllBase, LdrEntry32.SizeOfImage);
-
-	//======================================================
-	// Process memory scan 32
-	//======================================================
-	PVOID* Result = reinterpret_cast<PVOID*>(ALLOC_POOL(NONE_SPECIAL));
-	ULONG ResultCount = 0;
-
-	ResultCount = Process->MemoryScan(
-		(PVOID)LdrEntry32.DllBase,
-		LdrEntry32.SizeOfImage,
-		"B8 ?? 00 00 00 BA 20 8F BE 77 FF D2 C2 ?? 00",
-		Result);
-
-	for (auto i = 0; i < ResultCount; i++)
+	if (NT_SUCCESS(Process->Initialize((HANDLE)ProcessId32)))
 	{
-		Log("[%d] %p", i, Result[i]);
-	}
+		//======================================================
+		// Process module 32
+		//======================================================
+		LDR_DATA_TABLE_ENTRY32 LdrEntry32 = { 0, };
+		Process->GetProcessModuleInformation32("ntdll.dll", &LdrEntry32);
 
+		//======================================================
+		// Process read & write(physical) 32
+		//======================================================
+		USHORT ReadMagic = 0;
+		USHORT AfterMagic = 0;
+		USHORT WriteMagic = 0xffff;
+		Process->ReadProcessMemory((PVOID)LdrEntry32.DllBase, 2, &ReadMagic);
+		Process->WriteProcessMemory((PVOID)LdrEntry32.DllBase, 2, &WriteMagic, RW_Physical);
+		Process->ReadProcessMemory((PVOID)LdrEntry32.DllBase, 2, &AfterMagic);
+		Log("Original : %X, After : %X", ReadMagic, AfterMagic);
+		Process->WriteProcessMemory((PVOID)LdrEntry32.DllBase, 2, &ReadMagic, RW_Physical);
+		Log("%p %X", LdrEntry32.DllBase, LdrEntry32.SizeOfImage);
+
+		//======================================================
+		// Process memory scan 32
+		//======================================================
+		Result = reinterpret_cast<PVOID*>(ALLOC_POOL(NONE_SPECIAL));
+		ULONG ResultCount = 0;
+
+		ResultCount = Process->MemoryScan(
+			(PVOID)LdrEntry32.DllBase,
+			LdrEntry32.SizeOfImage,
+			"B8 ?? 00 00 00 BA 20 8F BE 77 FF D2 C2 ?? 00",
+			Result);
+
+		for (auto i = 0; i < ResultCount; i++)
+		{
+			Log("[%d] %p", i, Result[i]);
+		}
+	}
 	delete(Process);
 	FREE_POOL(Result);
 }
@@ -1271,14 +1321,15 @@ VOID ShDrvExample::MemoryScanTest()
 	// System address
 	//======================================================
 	auto Scanner = new(MemoryScanner);
+	PVOID* Result = nullptr;
+	if (NT_SUCCESS(Scanner->Initialize(g_Variables->SystemBaseAddress, ".text")))
+	{
+		Scanner->MakePattern("48 8B 81 ?? ?? ?? ?? C3");
+		Scanner->Scan();
 
-	Scanner->Initialize(g_Variables->SystemBaseAddress, ".text");
-	Scanner->MakePattern("48 8B 81 ?? ?? ?? ?? C3");
-	Scanner->Scan();
-
-	auto Result = Scanner->GetScanResult();
-	Log("%p", *Result);
-
+		Result = Scanner->GetScanResult();
+		Log("%p", *Result);
+	}
 	delete(Scanner);
 
 	//======================================================
@@ -1286,12 +1337,13 @@ VOID ShDrvExample::MemoryScanTest()
 	//======================================================
 	Scanner = new(MemoryScanner);
 
-	Scanner->Initialize(g_Variables->Win32kBaseBaseAddress, ".text");
-	Scanner->MakePattern("33 C0 48 39 05 ?? ?? ?? ?? 0F 95 C0 C3");
-	Scanner->Scan();
+	if (NT_SUCCESS(Scanner->Initialize(g_Variables->Win32kBaseBaseAddress, ".text")))
+	{
+		Scanner->MakePattern("33 C0 48 39 05 ?? ?? ?? ?? 0F 95 C0 C3");
+		Scanner->Scan();
 
-	Result = Scanner->GetScanResult();
-	Log("%p", *Result);
-
+		Result = Scanner->GetScanResult();
+		Log("%p", *Result);
+	}
 	delete(Scanner);
 }

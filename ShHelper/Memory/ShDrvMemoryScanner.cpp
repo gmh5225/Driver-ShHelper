@@ -1,5 +1,23 @@
 #include <ShDrvInc.h>
 
+/**
+ * @file ShDrvMemoryScanner.cpp
+ * @author Shh0ya (hunho88@gmail.com)
+ * @brief Memory scanner features
+ * @date 2022-12-30
+ * @copyright the GNU General Public License v3
+ */
+
+/**
+* @brief Instance initializer
+* @details Initialize memory scanner instance
+* @param[in] PVOID `StartAddress`
+* @param[in] ULONG64 `Size`
+* @param[in] PEPROCESS `Process`
+* @param[in] BOOLEAN `bAllScan`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+*/
 NTSTATUS ShDrvMemoryScanner::Initialize(
 	IN PVOID StartAddress, 
 	IN ULONG64 Size,
@@ -36,6 +54,16 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Instance initializer
+* @details Initialize memory scanner instance
+* @param[in] PVOID `ImageBase`
+* @param[in] PCSTR `SectionName`
+* @param[in] PEPROCESS `Process`
+* @param[in] BOOLEAN `bAllScan`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+*/
 NTSTATUS ShDrvMemoryScanner::Initialize(
 	IN PVOID ImageBase,
 	IN PCSTR SectionName,
@@ -86,6 +114,13 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Generate a pattern for use by the scanner
+* @details Use the pattern format used in IDA("AA BB CC ???? DD EE FF")
+* @param[in] PCSTR `Pattern`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+*/
 NTSTATUS ShDrvMemoryScanner::MakePattern(
 	IN PCSTR Pattern)
 {
@@ -135,6 +170,13 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Scan the memory using the pattern set in the instance
+* @details Scan results are stored in the `Result` member variable
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvMemoryScanner::GetResult, ShDrvMemoryScanner::GetResultCount
+*/
 NTSTATUS ShDrvMemoryScanner::Scan()
 {
 #if TRACE_LOG_DEPTH & TRACE_MEMSCAN
@@ -192,6 +234,16 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Scan the memory
+* @details Set the pattern directly. For example, the pattern can be set to " \xaa\xbb\xcc\x00" and the mask to "xxx?".\n
+* Scan results are stored in the `Result` member variable
+* @param[in] PCSTR `Pattern`
+* @param[in] PCSTR `Mask`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvMemoryScanner::GetResult, ShDrvMemoryScanner::GetResultCount
+*/
 NTSTATUS ShDrvMemoryScanner::Scan(
 	IN PCSTR Pattern, 
 	IN PCSTR Mask)
@@ -218,6 +270,12 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Compare masked and memory values
+* @param[in] PUCHAR `Base`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+*/
 NTSTATUS ShDrvMemoryScanner::CheckMask(
 	IN PUCHAR Base)
 {

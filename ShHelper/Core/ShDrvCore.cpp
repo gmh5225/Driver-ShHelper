@@ -1,5 +1,23 @@
 #include <ShDrvInc.h>
 
+/**
+ * @file ShDrvCore.h
+ * @author Shh0ya (hunho88@gmail.com)
+ * @brief core features
+ * @date 2022-12-30
+ * @copyright the GNU General Public License v3
+ */
+
+/**
+* @brief Get the base address from kernel module
+* @details Get the base address in a way that match the method
+* @param[in] PCSTR `ModuleName`
+* @param[out] PULONG64 `ImageSize`
+* @param[in] SH_GET_BASE_METHOD `Method`
+* @return If succeeds, return value is nonzero
+* @author Shh0ya @date 2022-12-27
+* @see SH_GET_BASE_METHOD, ShDrvCore::GetSystemModuleInformation, ShDrvCore::GetSystemModuleInformationEx
+*/
 PVOID ShDrvCore::GetKernelBaseAddress(
 	IN PCSTR ModuleName,
 	OUT PULONG64 ImageSize,
@@ -46,6 +64,15 @@ FINISH:
 	return Result;
 }
 
+/**
+* @brief Get the base address from kernel module
+* @details Get the base address using `SystemModuleInformation`
+* @param[in] PCSTR `ModuleName`
+* @param[out] PSYSTEM_MODULE_ENTRY `ModuleInfomration`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+* @see SH_GET_BASE_METHOD, ShDrvCore::GetKernelBaseAddress
+*/
 NTSTATUS ShDrvCore::GetSystemModuleInformation(
 	IN PCSTR ModuleName,
 	OUT PSYSTEM_MODULE_ENTRY ModuleInfomration)
@@ -109,6 +136,15 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Get the base address from kernel module
+* @details Get the base address using `PsLoadedModuleList`
+* @param[in] PCSTR `ModuleName`
+* @param[out] PLDR_DATA_TABLE_ENTRY `ModuleInfomration`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+* @see SH_GET_BASE_METHOD, ShDrvCore::GetKernelBaseAddress
+*/
 NTSTATUS ShDrvCore::GetSystemModuleInformationEx(
 	IN PCSTR ModuleName,
 	OUT PLDR_DATA_TABLE_ENTRY ModuleInformation)
@@ -178,6 +214,13 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Check the object type
+* @param[in] PVOID `Object`
+* @param[in] POBJECT_TYPE `ObjectType`
+* @return If object is invalid, return value is `false` 
+* @author Shh0ya @date 2022-12-27
+*/
 BOOLEAN ShDrvCore::IsValidObject(
 	IN PVOID Object, 
 	IN POBJECT_TYPE ObjectType)
@@ -204,6 +247,14 @@ FINISH:
 }
 
 // Unsafety routine, Windows kernel obsolete routines : https://learn.microsoft.com/en-us/windows-hardware/drivers/kernel/mmcreatemdl
+/**
+* @brief Check that the memory address is the session address
+* @warning Unsafety routine, Windows kernel obsolete routines : https://learn.microsoft.com/en-us/windows-hardware/drivers/kernel/mmcreatemdl
+* @param[in] PVOID `Address`
+* @return If not session address, return value is `false`
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvCore::IsSessionAddressEx, ShDrvCore::IsSessionAddressEx2
+*/
 BOOLEAN ShDrvCore::IsSessionAddress(
 	IN PVOID Address)
 {
@@ -225,6 +276,14 @@ FINISH:
 	return Result;
 }
 
+/**
+* @brief Check that the memory address is the session address
+* @details Check using each address range within the global variable
+* @param[in] PVOID `Address`
+* @return If not session address, return value is `false`
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvCore::IsSessionAddress, ShDrvCore::IsSessionAddressEx2
+*/
 BOOLEAN ShDrvCore::IsSessionAddressEx(
 	IN PVOID Address)
 {
@@ -250,6 +309,14 @@ FINISH:
 	return Result;
 }
 
+/**
+* @brief Check that the memory address is the session address
+* @details Attach to process where `Window Station` exists, and then check if can read the memory
+* @param[in] PVOID `Address`
+* @return If not session address, return value is `false`
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvCore::IsSessionAddress, ShDrvCore::IsSessionAddressEx
+*/
 BOOLEAN ShDrvCore::IsSessionAddressEx2(
 	IN PVOID Address)
 {
@@ -277,6 +344,14 @@ FINISH:
 	return Result;
 }
 
+/**
+* @brief Attach the process
+* @details Use if you need a session process such as win32k
+* @param[out] PKAPC_STATE `ApcState`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvCore::DetachSessionProcess
+*/
 NTSTATUS ShDrvCore::AttachSessionProcess(
 	OUT PKAPC_STATE ApcState)
 {
@@ -296,6 +371,13 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Detach the process
+* @details Use if you need a session process such as win32k
+* @param[out] PKAPC_STATE `ApcState`
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvCore::AttachSessionProcess
+*/
 VOID ShDrvCore::DetachSessionProcess(
 	OUT PKAPC_STATE ApcState)
 {

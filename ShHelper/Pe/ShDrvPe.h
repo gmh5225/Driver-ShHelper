@@ -1,6 +1,19 @@
 #ifndef _SHDRVPE_H_
 #define _SHDRVPE_H_
 
+/**
+ * @file ShDrvPe.h
+ * @author Shh0ya (hunho88@gmail.com)
+ * @brief Pe parser header
+ * @date 2022-12-30
+ * @copyright the GNU General Public License v3
+ */
+
+/**
+* @brief PE Data 64
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvPe, PeParser
+*/
 typedef struct _SH_PE_HEADER{
 	PVOID                    ImageBase;
 	PVOID                    ImageHeader;
@@ -13,6 +26,11 @@ typedef struct _SH_PE_HEADER{
 #define SH_PE_HEADER_SIZE sizeof(SH_PE_HEADER)
 }SH_PE_HEADER, *PSH_PE_HEADER;
 
+/**
+* @brief PE Data 32
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvPe, PeParser
+*/
 typedef struct _SH_PE_HEADER32 {
 	ULONG                      ImageBase;
 	PVOID                      ImageHeader;
@@ -25,6 +43,11 @@ typedef struct _SH_PE_HEADER32 {
 #define SH_PE_HEADER32_SIZE sizeof(SH_PE_HEADER32)
 }SH_PE_HEADER32, * PSH_PE_HEADER32;
 
+/**
+* @brief Pe parser class
+* @details It consists of various functions and variables associated with the PE format
+* @author Shh0ya @date 2022-12-27
+*/
 typedef class ShDrvPe {
 public:
 	~ShDrvPe()

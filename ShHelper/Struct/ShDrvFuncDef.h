@@ -1,6 +1,14 @@
 #ifndef _SHDRVFUNCDEF_H_
 #define _SHDRVFUNCDEF_H_
 
+/**
+ * @file ShDrvFuncDef.h
+ * @author Shh0ya (hunho88@gmail.com)
+ * @brief Undocumented function definition
+ * @date 2022-12-30
+ * @copyright the GNU General Public License v3
+ */
+
 using namespace UNDOC_ENUM;
 
 namespace ShDrvFuncDef {

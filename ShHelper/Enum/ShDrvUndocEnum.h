@@ -1,6 +1,14 @@
 #ifndef _SHDRVUNDOCENUM_H_
 #define _SHDRVUNDOCENUM_H_
 
+/**
+ * @file ShDrvUndocEnum.h
+ * @author Shh0ya (hunho88@gmail.com)
+ * @brief undocumented enumeration
+ * @date 2022-12-30
+ * @copyright the GNU General Public License v3
+ */
+
 namespace UNDOC_ENUM {
 
 	//======================================================

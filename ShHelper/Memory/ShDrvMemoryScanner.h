@@ -1,8 +1,21 @@
 #ifndef _SHDRVMEMORYSCANNER_H_
 #define _SHDRVMEMORYSCANNER_H_
 
+/**
+ * @file ShDrvMemoryScanner.h
+ * @author Shh0ya (hunho88@gmail.com)
+ * @brief Memory scanner header
+ * @date 2022-12-30
+ * @copyright the GNU General Public License v3
+ */
+
 #define MAX_RESULT_COUNT 0x200 // PAGE_SIZE / sizeof(PVOID)
 
+/**
+* @brief Memory scanner class
+* @details It consists of various functions and variables associated with the memory scan
+* @author Shh0ya @date 2022-12-27
+*/
 typedef class ShDrvMemoryScanner {
 public:
 	~ShDrvMemoryScanner() {

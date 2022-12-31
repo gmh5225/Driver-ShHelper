@@ -1,9 +1,17 @@
 #ifndef _SHDRVINC_H_
 #define _SHDRVINC_H_
 
-#define TRACE_LOG     1
-#define DEBUG_LOG     1
-#define CHECK_ELAPSED 0
+/**
+ * @file ShDrvInc.h
+ * @author Shh0ya (hunho88@gmail.com)
+ * @brief Pre-compiled header
+ * @date 2022-12-30
+ * @copyright the GNU General Public License v3
+ */
+
+#define TRACE_LOG     1 /**< Trace log on/off */
+#define DEBUG_LOG     1 /**< Debug log on/off */
+#define CHECK_ELAPSED 0 /**< Elapsed time log on/off */
 
 #define TRACE_OFF       0x0000
 #define TRACE_ENTRY     0x0001
@@ -12,10 +20,16 @@
 #define TRACE_MEMORY    0x0008
 #define TRACE_CORE      0x0010
 #define TRACE_PE        0x0020
-#define TRACE_PROCESS   0x0040
-#define TRACE_MEMSCAN   0x0080
-#define TRACE_ALL       0xFFFF
+#define TRACE_PROCESS   0x0040 
+#define TRACE_MEMSCAN   0x0080 
+#define TRACE_ALL       0xFFFF 
 
+/**
+* @brief [MACRO] Depth of trace log
+* @details if TRACE_LOG != 1, this value is ignored
+* @author Shh0ya @date 2022-12-27
+* @see TRACE_LOG, TRACE_OFF, TRACE_ALL ...
+*/
 #define TRACE_LOG_DEPTH TRACE_OFF
 
 #if CHECK_ELAPSED & TRACE_LOG
@@ -81,6 +95,7 @@ LARGE_INTEGER CurrentCounter = KeQueryPerformanceCounter(&Frequency)
 #include <Util/ShDrvUtil.h>
 
 #include <Process/ShDrvProcess.h>
+#include <Thread/ShDrvThread.h>
 
 #include <ShDrvHelper.h>
 

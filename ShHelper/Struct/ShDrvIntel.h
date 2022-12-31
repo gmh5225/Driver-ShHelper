@@ -1,14 +1,12 @@
 #ifndef _SHDRVINTEL_H_
 #define _SHDRVINTEL_H_
 
-/*
-* https://github.com/ia32-doc/ia32-doc
-*/
-
-#if defined(_MSC_EXTENSIONS)
-#pragma warning(push)
-#pragma warning(disable: 4201)
-#endif
+/**
+ * @file ShDrvIntel.h
+ * @author Shh0ya (hunho88@gmail.com)
+ * @brief Intel arch
+ * @date 2022-12-30
+ */
 
 typedef union
 {

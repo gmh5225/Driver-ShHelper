@@ -171,6 +171,7 @@
     <ClInclude Include="Struct\ShDrvIntel.h" />
     <ClInclude Include="Struct\ShDrvStruct.h" />
     <ClInclude Include="Struct\ShDrvUndocStruct.h" />
+    <ClInclude Include="Thread\ShDrvThread.h" />
     <ClInclude Include="Util\ShDrvUtil.h" />
   </ItemGroup>
   <ItemGroup>
@@ -183,6 +184,7 @@
     <ClCompile Include="ShDrvHelper.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Thread\ShDrvThead.cpp" />
     <ClCompile Include="Util\ShDrvUtil.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

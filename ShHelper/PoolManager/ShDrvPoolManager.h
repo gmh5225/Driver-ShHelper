@@ -1,6 +1,14 @@
 #ifndef _SHDRVPOOLMANAGER_H_
 #define _SHDRVPOOLMANAGER_H_
 
+/**
+ * @file ShDrvPoolManager.h
+ * @author Shh0ya (hunho88@gmail.com)
+ * @brief Pool manager header
+ * @date 2022-12-30
+ * @copyright the GNU General Public License v3
+ */
+
 #define ALLOC_POOL(Type) ShDrvPoolManager::GetPool(Type)
 #define FREE_POOL(ptr)   ShDrvPoolManager::FreePoolEntry(ptr)
 #define FREE_POOLEX(ptr) if(ptr != nullptr) {ExFreePool(ptr); ptr = nullptr;}
@@ -14,6 +22,10 @@ Entry->PoolType = type;\
 Entry->PoolSize = Size;\
 Entry->bUsed = false;
 
+/**
+* @brief Pool Manager
+* @author Shh0ya @date 2022-12-27
+*/
 namespace ShDrvPoolManager {
 	NTSTATUS Initialize();
 

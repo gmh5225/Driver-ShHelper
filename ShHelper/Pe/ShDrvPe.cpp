@@ -1,5 +1,22 @@
 #include <ShDrvInc.h>
 
+/**
+ * @file ShDrvPe.cpp
+ * @author Shh0ya (hunho88@gmail.com)
+ * @brief Pe parser
+ * @date 2022-12-30
+ * @copyright the GNU General Public License v3
+ */
+
+/**
+* @brief Instance initializer
+* @details Initialize PE instance
+* @param[in] PVOID `ImageBase`
+* @param[in] PEPROCESS `Process`
+* @param[in] BOOLEAN `b32bit`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+*/
 NTSTATUS ShDrvPe::Initialize(
 	IN PVOID ImageBase, 
 	IN PEPROCESS Process, 
@@ -49,6 +66,12 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Validation of the PE Format
+* @details Check the signatures of DOS Header and NT Header
+* @return If the format is invalid, return value is `false`
+* @author Shh0ya @date 2022-12-27
+*/
 BOOLEAN ShDrvPe::ValidPeCheck()
 {
 #if TRACE_LOG_DEPTH & TRACE_PE
@@ -74,6 +97,12 @@ FINISH:
 	return Result;
 }
 
+/**
+* @brief Get number of section
+* @details Get the number of sections using the PE format in the instance
+* @return If succeeds, return value is nonzero
+* @author Shh0ya @date 2022-12-27
+*/
 ULONG ShDrvPe::GetSectionCount()
 {
 #if TRACE_LOG_DEPTH & TRACE_PE
@@ -97,6 +126,12 @@ FINISH:
 	return Result;
 }
 
+/**
+* @brief Get number of export functions
+* @details Get the number of export functions using the PE format in the instance
+* @return If succeeds, return value is nonzero
+* @author Shh0ya @date 2022-12-27
+*/
 ULONG ShDrvPe::GetExportCountByName()
 {
 #if TRACE_LOG_DEPTH & TRACE_PE
@@ -120,6 +155,13 @@ FINISH:
 	return Result;
 }
 
+/**
+* @brief Get the address of the export function
+* @param[in] PCSTR `RoutineName`
+* @return If succeeds, return value is nonzero
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvPe::GetExportCountByName
+*/
 ULONG64 ShDrvPe::GetAddressByExport(
 	IN PCSTR RoutineName)
 {
@@ -154,6 +196,13 @@ FINISH:
 	return Result;
 }
 
+/**
+* @brief Get the address of the section base address
+* @details Get the address of the section using the section name
+* @param[in] PCSTR `SectionName`
+* @return If succeeds, return value is nonzero
+* @author Shh0ya @date 2022-12-27
+*/
 PVOID ShDrvPe::GetSectionVirtualAddress(
 	IN PCSTR SectionName)
 {
@@ -186,6 +235,13 @@ FINISH:
 	return VirtualAddress;
 }
 
+/**
+* @brief Get the section size
+* @details Get the section virtual size using the section name
+* @param[in] PCSTR `SectionName`
+* @return If succeeds, return value is nonzero
+* @author Shh0ya @date 2022-12-27
+*/
 ULONG64 ShDrvPe::GetSectionSize(
 	IN PCSTR SectionName)
 {
@@ -217,6 +273,12 @@ FINISH:
 	return SectionSize;
 }
 
+/**
+* @brief Instance initializer internal
+* @details Initialize PE instance
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+*/
 NTSTATUS ShDrvPe::InitializeEx()
 {
 #if TRACE_LOG_DEPTH & TRACE_PE

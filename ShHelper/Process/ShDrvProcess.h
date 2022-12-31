@@ -1,6 +1,19 @@
 #ifndef _SHDRVPROCESS_H_
 #define _SHDRVPROCESS_H_
 
+/**
+ * @file ShDrvProcess.h
+ * @author Shh0ya (hunho88@gmail.com)
+ * @brief Process header
+ * @date 2022-12-30
+ * @copyright the GNU General Public License v3
+ */
+
+/**
+* @brief Process class
+* @details It consists of various functions and variables associated with the process
+* @author Shh0ya @date 2022-12-27
+*/
 class ShDrvProcess {
 public:
 	~ShDrvProcess() {

@@ -1,6 +1,14 @@
 #ifndef _SHDRVSTRUCT_H_
 #define _SHDRVSTRUCT_H_
 
+/**
+ * @file ShDrvStruct.h
+ * @author Shh0ya (hunho88@gmail.com)
+ * @brief Global structure
+ * @date 2022-12-30
+ * @copyright the GNU General Public License v3
+ */
+
 using namespace ShDrvFuncDef;
 
 /********************************************************************************************
@@ -13,6 +21,11 @@ Prefix::RoutineName##_t RoutineName
 #define SH_VARIABLE_MEMBER(VarName, type) type VarName
 
 PACK_START(1)
+/**
+* @brief Global routines structure
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvFuncDef, SH_ROUTINE_MEMBER
+*/
 typedef struct _SH_GLOBAL_ROUTINES {
 	SH_ROUTINE_MEMBER(PsGetProcessImageFileName, Ps);
 	SH_ROUTINE_MEMBER(PsGetProcessPeb, Ps);
@@ -29,6 +42,11 @@ PACK_END
 ********************************************************************************************/
 
 PACK_START(1)
+/**
+* @brief Global variables structure
+* @author Shh0ya @date 2022-12-27
+* @see SH_VARIABLE_MEMBER
+*/
 typedef struct _SH_GLOBAL_VARIABLES{
 	SH_VARIABLE_MEMBER(Lock, KSPIN_LOCK);
 
@@ -52,6 +70,9 @@ typedef struct _SH_GLOBAL_VARIABLES{
 	SH_VARIABLE_MEMBER(CddBaseAddress, PVOID);
 	SH_VARIABLE_MEMBER(CddEndAddress, PVOID);
 
+	SH_VARIABLE_MEMBER(CiBaseAddress, PVOID);
+	SH_VARIABLE_MEMBER(CiEndAddress, PVOID);
+
 	SH_VARIABLE_MEMBER(KUserSharedData, PKUSER_SHARED_DATA);
 	SH_VARIABLE_MEMBER(PsLoadedModuleList, PLIST_ENTRY);
 	SH_VARIABLE_MEMBER(PsLoadedModuleResource, PERESOURCE);
@@ -66,6 +87,12 @@ PACK_END
 ********************************************************************************************/
 
 PACK_START(1)
+/**
+* @brief Global offsets structure
+* @author Shh0ya
+* @date 2022-12-27
+* @see InitializeOffset_Unsafe
+*/
 typedef struct _SH_GLOBAL_OFFSETS {
 #define DIR_BASE_OFFSET 0x28
 
@@ -131,6 +158,10 @@ PACK_END
 ********************************************************************************************/
 
 PACK_START(1)
+/**
+* @brief Pool manager entry structure
+* @author Shh0ya @date 2022-12-27
+*/
 typedef struct _SH_POOL_ENTRY {
 	BOOLEAN      bUsed;
 	SH_POOL_TYPE PoolType;
@@ -142,6 +173,10 @@ typedef struct _SH_POOL_ENTRY {
 PACK_END
 
 PACK_START(1)
+/**
+* @brief Pool manager structure
+* @author Shh0ya @date 2022-12-27
+*/
 typedef struct _SH_POOL_INFORMATION {
 	KSPIN_LOCK     Lock;
 	ULONG          PoolTypeCount;
@@ -154,10 +189,6 @@ typedef struct _SH_POOL_INFORMATION {
 #define SH_POOL_INFORMATION_SIZE sizeof(SH_POOL_INFORMATION)
 }SH_POOL_INFORMATION, *PSH_POOL_INFORMATION;
 PACK_END
-
-/********************************************************************************************
-* Instance entry structure
-********************************************************************************************/
 
 /********************************************************************************************
 * Extern global variable

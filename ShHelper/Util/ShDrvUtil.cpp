@@ -1,8 +1,25 @@
 #include <ShDrvInc.h>
 
+/**
+ * @file ShDrvUtil.cpp
+ * @author Shh0ya (hunho88@gmail.com)
+ * @brief Driver utility
+ * @date 2022-12-30
+ * @copyright the GNU General Public License v3
+ */
+
 using namespace UNDOC_SYSTEM;
 using namespace UNDOC_PEB;
 
+/**
+* @brief String compare routine
+* @details Compare the string A and B (do not case-sensitive)
+* @param[in] PSTR `Source` : Source string buffer
+* @param[in] PSTR `Dest` : Destination string buffer
+* @return If equal, return `true`, else return `false`
+* @author Shh0ya @date 2022-12-27
+* @see StringCompare, ShDrvUtil::StringCompareW
+*/
 BOOLEAN ShDrvUtil::StringCompareA(
 	IN PSTR Source, 
 	IN PSTR Dest )
@@ -29,6 +46,15 @@ FINISH:
 	return Result;
 }
 
+/**
+* @brief String compare routine
+* @details Compare the string A and B (do not case-sensitive)
+* @param[in] PWSTR `Source` : Source string buffer
+* @param[in] PWSTR `Dest` : Destination string buffer
+* @return If equal, return `true`, else return `false`
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvUtil::StringCompareA
+*/
 BOOLEAN ShDrvUtil::StringCompareW(
 	IN PWSTR Source, 
 	IN PWSTR Dest )
@@ -55,6 +81,15 @@ FINISH:
 	return Result;
 }
 
+/**
+* @brief Copy string routine
+* @details Copy the string from `Source` to `Dest`
+* @param[out] NTSTRSAFE_PSTR `Dest` : Target string buffer
+* @param[in] NTSTRSAFE_PCSTR `Source` : Original string
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+* @see StringCopy, ShDrvUtil::StringCopyW
+*/
 NTSTATUS ShDrvUtil::StringCopyA(
 	OUT NTSTRSAFE_PSTR Dest, 
 	IN  NTSTRSAFE_PCSTR Source )
@@ -72,6 +107,15 @@ NTSTATUS ShDrvUtil::StringCopyA(
 	return Status;
 }
 
+/**
+* @brief Copy string routine
+* @details Copy the string from `Source` to `Dest`
+* @param[out] NTSTRSAFE_PWSTR `Dest` : Target string buffer
+* @param[in] NTSTRSAFE_PCWSTR `Source` : Original string
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvUtil::StringCopyA
+*/
 NTSTATUS ShDrvUtil::StringCopyW(
 	OUT NTSTRSAFE_PWSTR Dest,
 	IN  NTSTRSAFE_PCWSTR Source )
@@ -89,6 +133,15 @@ NTSTATUS ShDrvUtil::StringCopyW(
 	return Status;
 }
 
+/**
+* @brief strcat
+* @details Concatenate the `Source` to `Dest`
+* @param[out] NTSTRSAFE_PSTR `Dest` : Target string buffer
+* @param[in] NTSTRSAFE_PCSTR `Source` : Original string
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+* @see StringCat, ShDrvUtil::StringConcatenateW
+*/
 NTSTATUS ShDrvUtil::StringConcatenateA(
 	OUT NTSTRSAFE_PSTR Dest, 
 	IN  NTSTRSAFE_PCSTR Source )
@@ -106,6 +159,15 @@ NTSTATUS ShDrvUtil::StringConcatenateA(
 	return Status;
 }
 
+/**
+* @brief wcscat
+* @details Concatenate the `Source` to `Dest`
+* @param[out] NTSTRSAFE_PWSTR `Dest` : Target string buffer
+* @param[in] NTSTRSAFE_PCWSTR `Source` : Original string
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvUtil::StringConcatenateA
+*/
 NTSTATUS ShDrvUtil::StringConcatenateW(
 	OUT  NTSTRSAFE_PWSTR Dest, 
 	IN   NTSTRSAFE_PCWSTR Source )
@@ -123,6 +185,15 @@ NTSTATUS ShDrvUtil::StringConcatenateW(
 	return Status;
 }
 
+/**
+* @brief `char*` to `UNICODE_STRING`
+* @details Convert the `Source` to `UNICODE_STRING`
+* @param[in] PSTR `Source` : Source string buffer
+* @param[out] PUNICODE_STRING `Dest` : A pointer to a UNICODE_STRING that receives the converted string
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvUtil::WStringToAnsiString
+*/
 NTSTATUS ShDrvUtil::StringToUnicode(
 	IN  PSTR Source, 
 	OUT PUNICODE_STRING Dest )
@@ -150,6 +221,15 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief `wchar_t*` to `ANSI_STRING`
+* @details Convert the `Source` to `ANSI_STRING`
+* @param[in] PWSTR `Source` : Source string buffer
+* @param[out] PANSI_STRING `Dest` : A pointer to a ANSI_STRING that receives the converted string
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvUtil::StringToUnicode
+*/
 NTSTATUS ShDrvUtil::WStringToAnsiString(
 	IN  PWSTR Source, 
 	OUT PANSI_STRING Dest )
@@ -177,6 +257,14 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief strlen
+* @details Get the length of the `Source`
+* @param[in] PSTR `Source` : Source string buffer
+* @return If succeeds, return value is nonzero
+* @author Shh0ya @date 2022-12-27
+* @see StringLength, ShDrvUtil::StringLengthW
+*/
 SIZE_T ShDrvUtil::StringLengthA(
 	IN PSTR Source)
 {
@@ -190,6 +278,14 @@ SIZE_T ShDrvUtil::StringLengthA(
 	return Length;
 }
 
+/**
+* @brief wcslen
+* @details Get the length of the `Source`
+* @param[in] PWSTR `Source` : Source string buffer
+* @return If succeeds, return value is nonzero
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvUtil::StringLengthA
+*/
 SIZE_T ShDrvUtil::StringLengthW(
 	IN PWSTR Source)
 {
@@ -203,6 +299,12 @@ SIZE_T ShDrvUtil::StringLengthW(
 	return Length;
 }
 
+/**
+* @brief sleep
+* @details Suspends the execution of the current thread until the `Milliseconds`
+* @param[in] ULONG `Milliseconds`
+* @author Shh0ya @date 2022-12-27
+*/
 VOID ShDrvUtil::Sleep(
 	IN ULONG Milliseconds)
 {
@@ -222,6 +324,15 @@ VOID ShDrvUtil::Sleep(
 	PRINT_ELAPSED;
 }
 
+/**
+* @brief Print the elapsed time
+* @details It can be called at the end of the routine to output the elapsed time of the routine
+* @param[in] PCSTR `FunctionName`
+* @param[in] PLARGE_INTEGER `PreCounter`
+* @param[in] PLARGE_INTEGER `Frequency`
+* @author Shh0ya @date 2022-12-27
+* @see SAVE_CURRENT_COUNTER, PRINT_ELAPSED, PRINT_ELAPSED_FORCE
+*/
 VOID ShDrvUtil::PrintElapsedTime(
 	IN PCSTR FunctionName, 
 	IN PLARGE_INTEGER PreCounter, 
@@ -248,6 +359,12 @@ VOID ShDrvUtil::PrintElapsedTime(
 	DetailLog("Elapsed Time : %.2d.%.4d sec (%d ¥ìs) :: %s", Integral, Fractional, DiffCounter.QuadPart, FunctionName);
 }
 
+/**
+* @brief Get process object by process ID
+* @param[in] HANDLE `ProcessId`
+* @return If succeeds, return value is nonzero 
+* @author Shh0ya @date 2022-12-27
+*/
 PEPROCESS ShDrvUtil::GetProcessByProcessId(
 	IN HANDLE ProcessId)
 {
@@ -270,6 +387,13 @@ FINISH:
 	return Process;
 }
 
+/**
+* @brief Get process object by image file name
+* @warning This routine is unsafely. Handle Table or other method(`PspCidTable`, links etc...)  must be used 
+* @param[in] PCSTR `ProcessName`
+* @return If succeeds, return value is nonzero
+* @author Shh0ya @date 2022-12-27
+*/
 PEPROCESS ShDrvUtil::GetProcessByImageFileName(
 	IN PCSTR ProcessName)
 {
@@ -309,6 +433,15 @@ FINISH:
 	return Process;
 }
 
+/**
+* @brief Get the physical address
+* @details Get the physical address corresponding to a virtual address. using `MmGetPhysicalAddress`
+* @param[in] PVOID `VirtualAddress`
+* @param[out] PPHYSICAL_ADDRESS `PhysicalAddress`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvUtil::GetPhysicalAddressEx
+*/
 NTSTATUS ShDrvUtil::GetPhysicalAddress(
 	IN  PVOID VirtualAddress, 
 	OUT PPHYSICAL_ADDRESS PhysicalAddress )
@@ -331,6 +464,16 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Get the physical address
+* @details Get the physical address corresponding to a virtual address. using `Paging`
+* @param[in] PVOID `VirtualAddress`
+* @param[in] KPROCESSOR_MODE `Mode`
+* @param[out] PPHYSICAL_ADDRESS `PhysicalAddress`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvUtil::GetPhysicalAddress, ShDrvUtil::GetPhysicalAddressInternal
+*/
 NTSTATUS ShDrvUtil::GetPhysicalAddressEx(
 	IN PVOID VirtualAddress, 
 	IN KPROCESSOR_MODE Mode, 
@@ -362,6 +505,16 @@ NTSTATUS ShDrvUtil::GetPhysicalAddressEx(
 	return Status;
 }
 
+/**
+* @brief Get the physical address
+* @details Calculate physical addresses directly using paging structures
+* @param[in] CR3* `Cr3`
+* @param[in] PVOID `VirtualAddress`
+* @param[out] PPHYSICAL_ADDRESS `PhysicalAddress`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvUtil::GetPhysicalAddressEx
+*/
 NTSTATUS ShDrvUtil::GetPhysicalAddressInternal(
 	IN  CR3* Cr3, 
 	IN  PVOID VirtualAddress, 
@@ -441,6 +594,16 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Get the entry  corresponding to a paging-structure
+* @details [Paging](https://shhoya.github.io/hv_paging.html#0x04-proof-of-concept)
+* @param[in] ULONG64 `TableBase`
+* @param[in] ULONG64 `ReferenceBit`
+* @param[out] PPAGING_ENTRY_COMMON `Entry`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+* @see PAGING_TRAVERSE, ShDrvUtil::GetPhysicalAddressEx
+*/
 NTSTATUS ShDrvUtil::GetPagingStructureEntry(
 	IN  ULONG64 TableBase, 
 	IN  ULONG64 ReferenceBit, 
@@ -472,6 +635,13 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Check that the process is a 32-bit process
+* @details using `PsGetProcessWow64Process`
+* @param[in] PEPROCESS `Process`
+* @return If 32-bit process, return value is true
+* @author Shh0ya @date 2022-12-27
+*/
 BOOLEAN ShDrvUtil::IsWow64Process(
 	IN PEPROCESS Process)
 {
@@ -491,6 +661,14 @@ FINISH:
 	return Result;
 }
 
+/**
+* @brief Check that a specific address is within range
+* @param[in] PVOID `StartAddress`
+* @param[in] PVOID `EndAddress`
+* @param[in] PVOID `TargetAddress`
+* @return If the address is included in the scope, return value is true.
+* @author Shh0ya @date 2022-12-27
+*/
 BOOLEAN ShDrvUtil::IsInRange(
 	IN PVOID StartAddress, 
 	IN PVOID EndAddress, 

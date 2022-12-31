@@ -1,6 +1,14 @@
 #ifndef _SHDRVUNDOCSTRUCT_H_
 #define _SHDRVUNDOCSTRUCT_H_
 
+/**
+ * @file ShDrvUndocStruct.h
+ * @author Shh0ya (hunho88@gmail.com)
+ * @brief Undocumented structure
+ * @date 2022-12-30
+ * @copyright the GNU General Public License v3
+ */
+
 // https://learn.microsoft.com/ko-kr/windows/release-health/release-information
 //#define WINDOWS_7       7600
 //#define WINDOWS_7_SP1   7601
