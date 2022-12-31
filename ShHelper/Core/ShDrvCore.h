@@ -18,6 +18,9 @@ using namespace UNDOC_PEB;
 #define CHECK_OBJECT_TYPE(obj, objtype) Status = ShDrvCore::IsValidObject(obj, objtype) ? STATUS_SUCCESS : STATUS_INVALID_PARAMETER
 
 namespace ShDrvCore {
+	//======================================================
+	// System module core
+	//======================================================
 	PVOID GetKernelBaseAddress(
 		IN PCSTR ModuleName,
 		OUT PULONG64 ImageSize = nullptr,
@@ -31,10 +34,16 @@ namespace ShDrvCore {
 		IN  PCSTR ModuleName,
 		OUT PLDR_DATA_TABLE_ENTRY ModuleInformation);
 
+	//======================================================
+	// System object core
+	//======================================================
 	BOOLEAN IsValidObject(
 		IN PVOID Object,
 		IN POBJECT_TYPE ObjectType);
 
+	//======================================================
+	// System window station
+	//======================================================
 	BOOLEAN IsSessionAddress(
 		IN PVOID Address);
 
@@ -47,6 +56,9 @@ namespace ShDrvCore {
 	NTSTATUS AttachSessionProcess(OUT PKAPC_STATE ApcState);
 	VOID DetachSessionProcess(OUT PKAPC_STATE ApcState);
 
+	//======================================================
+	// System memory core
+	//======================================================
 	template <typename T>
 	NTSTATUS AllocatePool(
 		IN SIZE_T Size,

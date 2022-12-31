@@ -122,9 +122,9 @@ Status += ShDrvUtil::GetRoutineAddressEx<type>(#RoutineName, &g_Variables->##Rou
 * @author Shh0ya @date 2022-12-27
 */
 namespace ShDrvUtil {
-	/********************************************************************************************
-	* String utility
-	********************************************************************************************/
+//======================================================
+// String util
+//======================================================
 #define STR_MAX_LENGTH           260 /**< String max length */
 #define IMAGE_FILE_NAME_LENGTH   14  /**< EPROCESS::ImageFileName buffer length */
 
@@ -170,9 +170,10 @@ namespace ShDrvUtil {
 	SIZE_T StringLengthA(IN PSTR Source);
 	SIZE_T StringLengthW(IN PWSTR Source);
 
-	/********************************************************************************************
-	* Core utility
-	********************************************************************************************/
+//======================================================
+// Core util
+//======================================================
+
 #define MILLISECOND 1000
 #define MICROSECOND 1000000
 
@@ -300,6 +301,19 @@ entry.AsUInt = EntryAddress.AsUInt; TableBase = entry.PageFrameNumber << 12;
 		PRINT_ELAPSED;
 		return Status;
 	}
+
+//======================================================
+// Registry util
+//======================================================
+	NTSTATUS RegQueryValue(
+		PCWSTR Key,
+		PCWSTR EntryKey,
+		ULONG Type); // bin, str, d
+	
+	NTSTATUS RegSetValue(
+		PCWSTR Key,
+		PCWSTR EntryKey,
+		ULONG Type);
 }
 
 #endif // !_SHDRVUTIL_H_
