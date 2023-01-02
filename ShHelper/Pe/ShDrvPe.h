@@ -49,6 +49,20 @@ typedef struct _SH_PE_HEADER32 {
 * @author Shh0ya @date 2022-12-27
 */
 typedef class ShDrvPe {
+
+private:
+	BOOLEAN          IsInit;
+	PEPROCESS        Process;
+	EX_PUSH_LOCK* ProcessLock;
+	KAPC_STATE       ApcState;
+	BOOLEAN          bAttached;
+	BOOLEAN          b32bit;
+	PVOID            ImageBase;
+	PSH_PE_HEADER    Pe;
+	PSH_PE_HEADER32  Pe32;
+
+	PIMAGE_EXPORT_DIRECTORY ExportDirectory;
+
 public:
 	~ShDrvPe()
 	{
@@ -80,20 +94,6 @@ public:
 	ULONG64       GetAddressByExport(IN PCSTR RoutineName);
 	PVOID         GetSectionVirtualAddress(IN PCSTR SectionName);
 	ULONG64       GetSectionSize(IN PCSTR SectionName);
-	
-
-private:
-	BOOLEAN          IsInit;
-	PEPROCESS        Process;
-	EX_PUSH_LOCK*    ProcessLock;
-	KAPC_STATE       ApcState;
-	BOOLEAN          bAttached;
-	BOOLEAN          b32bit;
-	PVOID            ImageBase;
-	PSH_PE_HEADER    Pe;
-	PSH_PE_HEADER32  Pe32;
-
-	PIMAGE_EXPORT_DIRECTORY ExportDirectory;
 
 private:
 	NTSTATUS InitializeEx();

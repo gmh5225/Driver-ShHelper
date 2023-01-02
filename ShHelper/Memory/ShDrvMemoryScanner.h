@@ -17,6 +17,21 @@
 * @author Shh0ya @date 2022-12-27
 */
 typedef class ShDrvMemoryScanner {
+
+private:
+	BOOLEAN     IsInit;
+	PEPROCESS   Process;
+	PVOID       StartAddress;
+	PVOID       EndAddress;
+	ULONG64     ScanSize;
+	PSTR        SectionName;
+	ULONG       ResultCount;
+	PVOID* Result;
+	PSTR        Pattern;
+	PSTR        Mask;
+
+	SH_MEMSCAN_METHOD Method;
+
 public:
 	~ShDrvMemoryScanner() {
 		FREE_POOL(Result);
@@ -50,20 +65,6 @@ public:
 
 	PVOID* GetScanResult() { return Result; }
 	ULONG  GetResultCount() { return ResultCount; }
-
-private:
-	BOOLEAN     IsInit;
-	PEPROCESS   Process;
-	PVOID       StartAddress;
-	PVOID       EndAddress;
-	ULONG64     ScanSize;
-	PSTR        SectionName;
-	ULONG       ResultCount;
-	PVOID*      Result;
-	PSTR        Pattern;
-	PSTR        Mask;
-
-	SH_MEMSCAN_METHOD Method;
 
 private:
 	NTSTATUS CheckMask(IN PUCHAR Base);

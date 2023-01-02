@@ -24,21 +24,30 @@
 #define TRACE_MEMSCAN   0x0080 
 #define TRACE_ALL       0xFFFF 
 
+
 /**
 * @brief [MACRO] Depth of trace log
 * @details if TRACE_LOG != 1, this value is ignored
 * @author Shh0ya @date 2022-12-27
 * @see TRACE_LOG, TRACE_OFF, TRACE_ALL ...
 */
-#define TRACE_LOG_DEPTH TRACE_OFF
+#define TRACE_LOG_DEPTH TRACE_CORE | TRACE_UTIL
 
 #if CHECK_ELAPSED & TRACE_LOG
-#define PRINT_ELAPSED ShDrvUtil::PrintElapsedTime(__PRETTY_FUNCTION__, &CurrentCounter, &Frequency)
+    #if _CLANG
+        #define PRINT_ELAPSED ShDrvUtil::PrintElapsedTime(__PRETTY_FUNCTION__, &CurrentCounter, &Frequency)
+    #else
+        #define PRINT_ELAPSED ShDrvUtil::PrintElapsedTime(__FUNCDNAME__, &CurrentCounter, &Frequency)
+    #endif
 #else
 #define PRINT_ELAPSED
 #endif
-#define PRINT_ELAPSED_FORCE ShDrvUtil::PrintElapsedTime(__PRETTY_FUNCTION__, &CurrentCounter, &Frequency)
 
+#if _CLANG
+#define PRINT_ELAPSED_FORCE ShDrvUtil::PrintElapsedTime(__PRETTY_FUNCTION__, &CurrentCounter, &Frequency)
+#else
+#define PRINT_ELAPSED_FORCE ShDrvUtil::PrintElapsedTime(__FUNCDNAME__, &CurrentCounter, &Frequency)
+#endif
 #define SAVE_CURRENT_COUNTER \
 LARGE_INTEGER Frequency = { 0, };\
 LARGE_INTEGER CurrentCounter = KeQueryPerformanceCounter(&Frequency)
@@ -84,16 +93,16 @@ LARGE_INTEGER CurrentCounter = KeQueryPerformanceCounter(&Frequency)
 #include <Struct/ShDrvFuncDef.h>
 #include <Struct/ShDrvStruct.h>
 
+#include <Core/ShDrvCore.h>
 #include <PoolManager/ShDrvPoolManager.h>
 
 #include <Memory/ShDrvMemory.h>
-#include <Memory/ShDrvMemoryScanner.h>
 
-#include <Core/ShDrvCore.h>
 #include <Pe/ShDrvPe.h>
 
 #include <Util/ShDrvUtil.h>
 
+#include <Memory/ShDrvMemoryScanner.h>
 #include <Process/ShDrvProcess.h>
 #include <Thread/ShDrvThread.h>
 

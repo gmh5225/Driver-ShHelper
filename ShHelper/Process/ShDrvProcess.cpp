@@ -19,7 +19,11 @@ NTSTATUS ShDrvProcess::Initialize(
 	IN HANDLE ProcessId)
 {
 #if TRACE_LOG_DEPTH & TRACE_PROCESS
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
@@ -60,7 +64,11 @@ NTSTATUS ShDrvProcess::Initialize(
 	IN PEPROCESS Process)
 {
 #if TRACE_LOG_DEPTH & TRACE_PROCESS
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
@@ -104,7 +112,11 @@ NTSTATUS ShDrvProcess::GetProcessModuleInformation(
 	OUT PLDR_DATA_TABLE_ENTRY ModuleInformation )
 {
 #if TRACE_LOG_DEPTH & TRACE_PROCESS
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
@@ -177,7 +189,11 @@ NTSTATUS ShDrvProcess::GetProcessModuleInformation32(
 	OUT PLDR_DATA_TABLE_ENTRY32 ModuleInformation )
 {
 #if TRACE_LOG_DEPTH & TRACE_PROCESS
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
@@ -249,7 +265,11 @@ NTSTATUS ShDrvProcess::ReadProcessMemory(
 	IN  SH_RW_MEMORY_METHOD Method )
 {
 #if TRACE_LOG_DEPTH & TRACE_PROCESS
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
@@ -297,7 +317,11 @@ NTSTATUS ShDrvProcess::WriteProcessMemory(
 	IN SH_RW_MEMORY_METHOD Method )
 {
 #if TRACE_LOG_DEPTH & TRACE_PROCESS
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
@@ -345,7 +369,11 @@ ULONG ShDrvProcess::MemoryScan(
 	IN BOOLEAN bAllScan)
 {
 #if TRACE_LOG_DEPTH & TRACE_PROCESS
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return 0; }
 
@@ -369,21 +397,6 @@ ULONG ShDrvProcess::MemoryScan(
 	if (!NT_SUCCESS(Status)) { ERROR_END }
 
 	ResultCount = Scanner->GetResultCount();
-	/*if (Mask == nullptr)
-	{
-		Status = Scanner->MakePattern(Pattern);
-		if(!NT_SUCCESS(Status)) { ERROR_END }
-		Status = Scanner->Scan();
-		if (!NT_SUCCESS(Status)) { ERROR_END }
-	}
-	else
-	{
-		Status = Scanner->Scan(Pattern, Mask);
-		if (!NT_SUCCESS(Status)) { ERROR_END }
-	}
-
-	ResultCount = Scanner->GetResultCount();
-	RtlCopyMemory(Result, Scanner->GetScanResult(), ResultCount * sizeof(PVOID));*/
 
 FINISH:
 	Detach();
@@ -413,7 +426,11 @@ ULONG ShDrvProcess::MemoryScan(
 	IN BOOLEAN bAllScan)
 {
 #if TRACE_LOG_DEPTH & TRACE_PROCESS
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return 0; }
 
@@ -438,22 +455,6 @@ ULONG ShDrvProcess::MemoryScan(
 
 	ResultCount = Scanner->GetResultCount();
 
-	/*if (Mask == nullptr)
-	{
-		Status = Scanner->MakePattern(Pattern);
-		if (!NT_SUCCESS(Status)) { ERROR_END }
-		Status = Scanner->Scan();
-		if (!NT_SUCCESS(Status)) { ERROR_END }
-	}
-	else
-	{
-		Status = Scanner->Scan(Pattern, Mask);
-		if (!NT_SUCCESS(Status)) { ERROR_END }
-	}
-
-	ResultCount = Scanner->GetResultCount();
-	RtlCopyMemory(Result, Scanner->GetScanResult(), ResultCount * sizeof(PVOID));*/
-
 FINISH:
 	Detach();
 	delete(Scanner);
@@ -472,7 +473,11 @@ NTSTATUS ShDrvProcess::GetProcessLdrHead(
 	OUT PLIST_ENTRY LdrList)
 {
 #if TRACE_LOG_DEPTH & TRACE_PROCESS
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
@@ -519,7 +524,11 @@ NTSTATUS ShDrvProcess::GetProcessLdrHead32(
 	OUT PULONG LdrList)
 {
 #if TRACE_LOG_DEPTH & TRACE_PROCESS
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
@@ -572,7 +581,11 @@ NTSTATUS ShDrvProcess::GoScan(
 	OUT PVOID* Result)
 {
 #if TRACE_LOG_DEPTH & TRACE_PROCESS
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return 0; }
 	auto Status = STATUS_INVALID_PARAMETER;
@@ -608,7 +621,11 @@ FINISH:
 NTSTATUS ShDrvProcess::Attach(BOOLEAN bExclusive)
 {
 #if TRACE_LOG_DEPTH & TRACE_PROCESS
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() >= DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
@@ -640,7 +657,11 @@ FINISH:
 NTSTATUS ShDrvProcess::AttachEx(BOOLEAN bExclusive)
 {
 #if TRACE_LOG_DEPTH & TRACE_PROCESS
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
@@ -674,7 +695,11 @@ FINISH:
 NTSTATUS ShDrvProcess::Detach(BOOLEAN bExclusive)
 {
 #if TRACE_LOG_DEPTH & TRACE_PROCESS
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() >= DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
@@ -706,7 +731,11 @@ FINISH:
 NTSTATUS ShDrvProcess::DetachEx(BOOLEAN bExclusive)
 {
 #if TRACE_LOG_DEPTH & TRACE_PROCESS
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
 

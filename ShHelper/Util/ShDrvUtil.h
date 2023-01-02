@@ -116,7 +116,6 @@ Status += ShDrvUtil::GetRoutineAddressEx<type>(#RoutineName, &g_Variables->##Rou
 #define SET_GLOBAL_OFFSET(type, member, value) g_Offsets->##type.##member = value
 #define CHECK_GLOBAL_OFFSET(type, member) Status = g_Offsets->##type.##member > 0x00 ? STATUS_SUCCESS : STATUS_NOT_SUPPORTED
 
-
 /**
 * @brief Driver utility
 * @author Shh0ya @date 2022-12-27
@@ -135,11 +134,13 @@ namespace ShDrvUtil {
 
 	BOOLEAN StringCompareA(
 		IN PSTR Source,
-		IN PSTR Dest);
+		IN PSTR Dest,
+		IN BOOLEAN CaseInSensitive = true);
 
 	BOOLEAN StringCompareW(
 		IN PWSTR Source,
-		IN PWSTR Dest);
+		IN PWSTR Dest,
+		IN BOOLEAN CaseInSensitive = true);
 
 	NTSTATUS StringCopyA(
 		OUT NTSTRSAFE_PSTR Dest,
@@ -238,7 +239,11 @@ entry.AsUInt = EntryAddress.AsUInt; TableBase = entry.PageFrameNumber << 12;
 		OUT T* Routine)
 	{
 #if TRACE_LOG_DEPTH & TRACE_UTIL
+#if _CLANG
 		TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+		TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 		if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
 		SAVE_CURRENT_COUNTER;
@@ -276,7 +281,11 @@ entry.AsUInt = EntryAddress.AsUInt; TableBase = entry.PageFrameNumber << 12;
 		IN  PVOID ImageBase = nullptr OPTIONAL)
 	{
 #if TRACE_LOG_DEPTH & TRACE_UTIL
+#if _CLANG
 		TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+		TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 		SAVE_CURRENT_COUNTER;
 		auto Status = STATUS_INVALID_PARAMETER;

@@ -29,7 +29,11 @@ NTSTATUS DriverEntry(
 	IN PUNICODE_STRING RegistryPath)
 {
 #if TRACE_LOG_DEPTH & TRACE_ENTRY
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_SUCCESS;
@@ -40,15 +44,14 @@ NTSTATUS DriverEntry(
 	if (!NT_SUCCESS(Status)) { ShDrvPoolManager::Finalize(); ERROR_END }
 	Log("Loaded driver");
 
-	ShDrvExample::PeTest((HANDLE)6192, (HANDLE)4500);
-	ShDrvExample::ProcessTest((HANDLE)6192);
-	ShDrvExample::ProcessTest32((HANDLE)4500);
+	/*ShDrvExample::PeTest((HANDLE)848, (HANDLE)8764);
+	ShDrvExample::ProcessTest((HANDLE)848);
+	ShDrvExample::ProcessTest32((HANDLE)8764);
 	ShDrvExample::MemoryScanTest();
 
 	PHYSICAL_ADDRESS Physic = { 0, };
 	ShDrvUtil::GetPhysicalAddressEx(g_Pools, KernelMode, &Physic);
-	Log("%llX", Physic.QuadPart);
-
+	Log("%llX", Physic.QuadPart);*/
 FINISH:
 	PRINT_ELAPSED;
 	return Status;
@@ -65,7 +68,11 @@ VOID HelperFinalize(
 	IN PDRIVER_OBJECT DriverObject)
 {
 #if TRACE_LOG_DEPTH & TRACE_ENTRY
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	SAVE_CURRENT_COUNTER;
 	ShDrvPoolManager::Finalize();
@@ -98,7 +105,11 @@ if(g_Variables->Member##BaseAddress == nullptr || g_Variables->Member##BaseAddre
 NTSTATUS DriverInitialize()
 {
 #if TRACE_LOG_DEPTH & TRACE_ENTRY
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_SUCCESS;
@@ -158,7 +169,11 @@ FINISH:
 NTSTATUS InitializeOffset_Unsafe()
 {
 #if TRACE_LOG_DEPTH & TRACE_ENTRY
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	
 	SAVE_CURRENT_COUNTER;
@@ -1125,7 +1140,11 @@ NTSTATUS DeviceInitialize(
 	IN PDRIVER_OBJECT DriverObject)
 {
 #if TRACE_LOG_DEPTH & TRACE_ENTRY
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 
 	SAVE_CURRENT_COUNTER;

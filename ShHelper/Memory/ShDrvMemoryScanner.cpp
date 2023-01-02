@@ -25,7 +25,11 @@ NTSTATUS ShDrvMemoryScanner::Initialize(
 	IN BOOLEAN bAllScan)
 {
 #if TRACE_LOG_DEPTH & TRACE_MEMSCAN
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 
 	SAVE_CURRENT_COUNTER;
@@ -71,7 +75,11 @@ NTSTATUS ShDrvMemoryScanner::Initialize(
 	IN BOOLEAN bAllScan)
 {
 #if TRACE_LOG_DEPTH & TRACE_MEMSCAN
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 
 	SAVE_CURRENT_COUNTER;
@@ -125,7 +133,11 @@ NTSTATUS ShDrvMemoryScanner::MakePattern(
 	IN PCSTR Pattern)
 {
 #if TRACE_LOG_DEPTH & TRACE_MEMSCAN
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
@@ -180,7 +192,11 @@ FINISH:
 NTSTATUS ShDrvMemoryScanner::Scan()
 {
 #if TRACE_LOG_DEPTH & TRACE_MEMSCAN
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
 	SAVE_CURRENT_COUNTER;
@@ -249,7 +265,11 @@ NTSTATUS ShDrvMemoryScanner::Scan(
 	IN PCSTR Mask)
 {
 #if TRACE_LOG_DEPTH & TRACE_MEMSCAN
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;

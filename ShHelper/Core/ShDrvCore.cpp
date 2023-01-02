@@ -24,7 +24,11 @@ PVOID ShDrvCore::GetKernelBaseAddress(
 	IN SH_GET_BASE_METHOD Method)
 {
 #if TRACE_LOG_DEPTH & TRACE_CORE
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 
 	SAVE_CURRENT_COUNTER;
@@ -78,7 +82,11 @@ NTSTATUS ShDrvCore::GetSystemModuleInformation(
 	OUT PSYSTEM_MODULE_ENTRY ModuleInfomration)
 {
 #if TRACE_LOG_DEPTH & TRACE_CORE
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
@@ -150,7 +158,11 @@ NTSTATUS ShDrvCore::GetSystemModuleInformationEx(
 	OUT PLDR_DATA_TABLE_ENTRY ModuleInformation)
 {
 #if TRACE_LOG_DEPTH & TRACE_CORE
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
@@ -226,7 +238,11 @@ BOOLEAN ShDrvCore::IsValidObject(
 	IN POBJECT_TYPE ObjectType)
 {
 #if TRACE_LOG_DEPTH & TRACE_CORE
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 
 	SAVE_CURRENT_COUNTER;
@@ -246,7 +262,6 @@ FINISH:
 	return Result;
 }
 
-// Unsafety routine, Windows kernel obsolete routines : https://learn.microsoft.com/en-us/windows-hardware/drivers/kernel/mmcreatemdl
 /**
 * @brief Check that the memory address is the session address
 * @warning Unsafety routine, Windows kernel obsolete routines : https://learn.microsoft.com/en-us/windows-hardware/drivers/kernel/mmcreatemdl
@@ -259,7 +274,11 @@ BOOLEAN ShDrvCore::IsSessionAddress(
 	IN PVOID Address)
 {
 #if TRACE_LOG_DEPTH & TRACE_CORE
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
@@ -288,7 +307,11 @@ BOOLEAN ShDrvCore::IsSessionAddressEx(
 	IN PVOID Address)
 {
 #if TRACE_LOG_DEPTH & TRACE_CORE
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
@@ -321,7 +344,11 @@ BOOLEAN ShDrvCore::IsSessionAddressEx2(
 	IN PVOID Address)
 {
 #if TRACE_LOG_DEPTH & TRACE_CORE
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
@@ -356,7 +383,11 @@ NTSTATUS ShDrvCore::AttachSessionProcess(
 	OUT PKAPC_STATE ApcState)
 {
 #if TRACE_LOG_DEPTH & TRACE_CORE
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
@@ -382,7 +413,11 @@ VOID ShDrvCore::DetachSessionProcess(
 	OUT PKAPC_STATE ApcState)
 {
 #if TRACE_LOG_DEPTH & TRACE_CORE
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
@@ -393,4 +428,184 @@ VOID ShDrvCore::DetachSessionProcess(
 FINISH:
 	PRINT_ELAPSED;
 	return;
+}
+
+void __cdecl operator delete(void* p) { ShDrvCore::Delete(p); p = nullptr; };
+void __cdecl operator delete(void* p, unsigned __int64) { ShDrvCore::Delete(p); p = nullptr; };
+
+ShDrvCore::ShString::ShString()
+{
+#if TRACE_LOG_DEPTH & TRACE_CORE
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+	SAVE_CURRENT_COUNTER;
+	
+	this->Buffer = reinterpret_cast<PSTR>(ALLOC_POOL(ANSI_POOL));
+	this->Length = 0;
+
+FINISH:
+	PRINT_ELAPSED;
+	return;
+}
+
+ShDrvCore::ShString::~ShString()
+{
+#if TRACE_LOG_DEPTH & TRACE_CORE
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+	SAVE_CURRENT_COUNTER;
+
+	FREE_POOL(this->Buffer);
+
+FINISH:
+	PRINT_ELAPSED;
+	return;
+}
+
+BOOLEAN ShDrvCore::ShString::IsEqual(
+	IN const ShString& s, 
+	IN BOOLEAN CaseInsensitive)
+{
+#if TRACE_LOG_DEPTH & TRACE_CORE
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+	SAVE_CURRENT_COUNTER;
+	BOOLEAN Result = false;
+	Result = StringCompare(this->Buffer, s.Buffer, CaseInsensitive);
+
+FINISH:
+	PRINT_ELAPSED;
+	return Result;
+}
+
+ShDrvCore::ShString& ShDrvCore::ShString::operator=(
+	IN PCSTR s)
+{
+#if TRACE_LOG_DEPTH & TRACE_CORE
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+
+	FREE_POOL(this->Buffer);
+
+	this->Buffer = reinterpret_cast<PSTR>(ALLOC_POOL(ANSI_POOL));
+	if(this->Buffer == nullptr) { ERROR_END }
+
+	Status = StringCopy(this->Buffer, s);
+	if(!NT_SUCCESS(Status)) { ERROR_END }
+
+	this->Length = StringLength(this->Buffer);
+
+FINISH:
+	PRINT_ELAPSED;
+	return *this;
+}
+
+ShDrvCore::ShString& ShDrvCore::ShString::operator+(
+	IN PCSTR s)
+{
+#if TRACE_LOG_DEPTH & TRACE_CORE
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+
+	Status = StringCat(this->Buffer, s);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	this->Length = StringLength(this->Buffer);
+
+FINISH:
+	PRINT_ELAPSED;
+	return *this;
+}
+
+ShDrvCore::ShString& ShDrvCore::ShString::operator+(
+	IN const ShString& s)
+{
+#if TRACE_LOG_DEPTH & TRACE_CORE
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+
+	Status = StringCat(this->Buffer, s.Buffer);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	this->Length = StringLength(this->Buffer);
+
+FINISH:
+	PRINT_ELAPSED;
+	return *this;
+}
+
+ShDrvCore::ShString& ShDrvCore::ShString::operator+=(
+	IN PCSTR s)
+{
+#if TRACE_LOG_DEPTH & TRACE_CORE
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	
+	Status = StringCat(this->Buffer, s);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	this->Length = StringLength(this->Buffer);
+
+FINISH:
+	PRINT_ELAPSED;
+	return *this;
+}
+
+ShDrvCore::ShString& ShDrvCore::ShString::operator+=(
+	IN const ShString& s)
+{
+#if TRACE_LOG_DEPTH & TRACE_CORE
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+
+	Status = StringCat(this->Buffer, s.Buffer);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	this->Length = StringLength(this->Buffer);
+
+FINISH:
+	PRINT_ELAPSED;
+	return *this;
 }

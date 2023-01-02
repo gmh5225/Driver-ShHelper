@@ -13,7 +13,9 @@ using namespace UNDOC_SYSTEM;
 using namespace UNDOC_PEB;
 
 #define new(t)    ShDrvCore::New<t>()
-#define delete(p) ShDrvCore::Delete(p); p = nullptr;
+//#define delete(p) ShDrvCore::Delete(p); p = nullptr;
+
+#define FREE_POOLEX(ptr) if(ptr != nullptr) {ExFreePool(ptr); ptr = nullptr;}
 
 #define CHECK_OBJECT_TYPE(obj, objtype) Status = ShDrvCore::IsValidObject(obj, objtype) ? STATUS_SUCCESS : STATUS_INVALID_PARAMETER
 
@@ -65,7 +67,11 @@ namespace ShDrvCore {
 		OUT T* Pool)
 	{
 #if TRACE_LOG_DEPTH & TRACE_MEMORY
+#if _CLANG
 		TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+		TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 		if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
@@ -80,7 +86,11 @@ namespace ShDrvCore {
 	T* New()
 	{
 #if TRACE_LOG_DEPTH & TRACE_MEMORY
+#if _CLANG
 		TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+		TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 		if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return nullptr; }
 
@@ -96,7 +106,11 @@ namespace ShDrvCore {
 	VOID Delete(T* Instance)
 	{
 #if TRACE_LOG_DEPTH & TRACE_MEMORY
+#if _CLANG
 		TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+		TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 		if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return; }
 
@@ -106,6 +120,29 @@ namespace ShDrvCore {
 			FREE_POOLEX(Instance);
 		}
 	}
+
+	class ShString {
+
+	private:
+		PSTR  Buffer;
+		ULONG Length;
+	public:
+		ShString();
+		~ShString();
+
+		PSTR  GetString() { return Buffer; }
+		ULONG GetLength() { return Length; }
+
+		BOOLEAN IsEqual(
+			IN const ShString& s, 
+			IN BOOLEAN CaseInsensitive = false);
+	public:
+		ShString& operator = (IN PCSTR s);
+		ShString& operator + (IN PCSTR s);
+		ShString& operator + (IN const ShString& s);
+		ShString& operator +=(IN PCSTR s);
+		ShString& operator +=(IN const ShString& s);
+	};
 }
 
 #endif // !_SHDRVCORE_H_

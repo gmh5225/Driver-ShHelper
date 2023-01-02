@@ -15,6 +15,18 @@
 * @author Shh0ya @date 2022-12-27
 */
 class ShDrvProcess {
+
+private:
+	BOOLEAN       IsInit;
+	PEPROCESS     Process;
+	EX_PUSH_LOCK* ProcessLock;
+	HANDLE        ProcessId;
+	KAPC_STATE    ApcState;
+	PULONG64      ProcessDirBase;
+	BOOLEAN       bAttached;
+	BOOLEAN       bAttachedEx;
+	ULONG64       OldCr3;
+
 public:
 	~ShDrvProcess() {
 		if (bAttached) Detach();
@@ -61,17 +73,6 @@ public:
 		IN BOOLEAN bAllScan = false);
 
 	PEPROCESS GetProcess() { return Process; }
-
-private:
-	BOOLEAN       IsInit;
-	PEPROCESS     Process;
-	EX_PUSH_LOCK* ProcessLock;
-	HANDLE        ProcessId;
-	KAPC_STATE    ApcState;
-	PULONG64      ProcessDirBase;
-	BOOLEAN       bAttached;
-	BOOLEAN       bAttachedEx;
-	ULONG64       OldCr3;
 
 private:
 	NTSTATUS GetProcessLdrHead(

@@ -42,7 +42,11 @@ NTSTATUS ShDrvMemory::ReadMemory(
 	IN SH_RW_MEMORY_METHOD Method )
 {
 #if TRACE_LOG_DEPTH & TRACE_MEMORY
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
@@ -98,7 +102,11 @@ NTSTATUS ShDrvMemory::WriteMemory(
 	IN SH_RW_MEMORY_METHOD Method )
 {
 #if TRACE_LOG_DEPTH & TRACE_MEMORY
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
@@ -153,7 +161,11 @@ NTSTATUS ShDrvMemory::ReadMemoryNormal(
 	OUT PVOID Buffer)
 {
 #if TRACE_LOG_DEPTH & TRACE_MEMORY
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() > APC_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
@@ -190,7 +202,11 @@ NTSTATUS ShDrvMemory::ReadPhysicalMemory(
 	OUT PVOID Buffer)
 {
 #if TRACE_LOG_DEPTH & TRACE_MEMORY
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() > APC_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
@@ -239,7 +255,11 @@ NTSTATUS ShDrvMemory::ReadMemoryEx(
 	OUT PVOID Buffer)
 {
 #if TRACE_LOG_DEPTH & TRACE_MEMORY
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
@@ -272,7 +292,11 @@ NTSTATUS ShDrvMemory::WriteMemoryNormal(
 	IN PVOID Buffer)
 {
 #if TRACE_LOG_DEPTH & TRACE_MEMORY
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() > APC_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
@@ -305,7 +329,11 @@ NTSTATUS ShDrvMemory::WritePhysicalMemory(
 	IN PVOID Buffer)
 {
 #if TRACE_LOG_DEPTH & TRACE_MEMORY
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
@@ -355,7 +383,11 @@ NTSTATUS ShDrvMemory::WriteMemoryEx(
 	IN PVOID Buffer)
 {
 #if TRACE_LOG_DEPTH & TRACE_MEMORY
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
@@ -387,7 +419,11 @@ NTSTATUS ShDrvMemory::SafeCopyMemory(
 	IN PVOID Dest )
 {
 #if TRACE_LOG_DEPTH & TRACE_MEMORY
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() > APC_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
@@ -451,7 +487,11 @@ NTSTATUS ShDrvMemory::SafeCopyMemoryInternal(
 	IN ULONG Size )
 {
 #if TRACE_LOG_DEPTH & TRACE_MEMORY
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
 

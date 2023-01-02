@@ -22,10 +22,15 @@ using namespace UNDOC_PEB;
 */
 BOOLEAN ShDrvUtil::StringCompareA(
 	IN PSTR Source, 
-	IN PSTR Dest )
+	IN PSTR Dest,
+	IN BOOLEAN CaseInSensitive)
 {
 #if TRACE_LOG_DEPTH & TRACE_UTIL
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return false; }
 
@@ -39,7 +44,7 @@ BOOLEAN ShDrvUtil::StringCompareA(
     RtlInitAnsiString(&SourceString, Source);
 	RtlInitAnsiString(&DestString, Dest);
 	
-	Result = RtlEqualString(&SourceString, &DestString, true);
+	Result = RtlEqualString(&SourceString, &DestString, CaseInSensitive);
 
 FINISH:
 	PRINT_ELAPSED;
@@ -57,10 +62,15 @@ FINISH:
 */
 BOOLEAN ShDrvUtil::StringCompareW(
 	IN PWSTR Source, 
-	IN PWSTR Dest )
+	IN PWSTR Dest,
+	IN BOOLEAN CaseInSensitive)
 {
 #if TRACE_LOG_DEPTH & TRACE_UTIL
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return false; }
 
@@ -74,7 +84,7 @@ BOOLEAN ShDrvUtil::StringCompareW(
 	RtlInitUnicodeString(&SourceString, Source);
 	RtlInitUnicodeString(&DestString, Dest);
 
-	Result = RtlEqualUnicodeString(&SourceString, &DestString, true);
+	Result = RtlEqualUnicodeString(&SourceString, &DestString, CaseInSensitive);
 
 FINISH:
 	PRINT_ELAPSED;
@@ -95,7 +105,11 @@ NTSTATUS ShDrvUtil::StringCopyA(
 	IN  NTSTRSAFE_PCSTR Source )
 {
 #if TRACE_LOG_DEPTH & TRACE_UTIL
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
@@ -121,7 +135,11 @@ NTSTATUS ShDrvUtil::StringCopyW(
 	IN  NTSTRSAFE_PCWSTR Source )
 {
 #if TRACE_LOG_DEPTH & TRACE_UTIL
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
@@ -147,7 +165,11 @@ NTSTATUS ShDrvUtil::StringConcatenateA(
 	IN  NTSTRSAFE_PCSTR Source )
 {
 #if TRACE_LOG_DEPTH & TRACE_UTIL
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
@@ -173,7 +195,11 @@ NTSTATUS ShDrvUtil::StringConcatenateW(
 	IN   NTSTRSAFE_PCWSTR Source )
 {
 #if TRACE_LOG_DEPTH & TRACE_UTIL
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
@@ -199,7 +225,11 @@ NTSTATUS ShDrvUtil::StringToUnicode(
 	OUT PUNICODE_STRING Dest )
 {
 #if TRACE_LOG_DEPTH & TRACE_UTIL
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
@@ -235,7 +265,11 @@ NTSTATUS ShDrvUtil::WStringToAnsiString(
 	OUT PANSI_STRING Dest )
 {
 #if TRACE_LOG_DEPTH & TRACE_UTIL
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
@@ -309,7 +343,11 @@ VOID ShDrvUtil::Sleep(
 	IN ULONG Milliseconds)
 {
 #if TRACE_LOG_DEPTH & TRACE_UTIL
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 
 	if (Milliseconds <= 0) { return; }
@@ -369,7 +407,11 @@ PEPROCESS ShDrvUtil::GetProcessByProcessId(
 	IN HANDLE ProcessId)
 {
 #if TRACE_LOG_DEPTH & TRACE_UTIL
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() > APC_LEVEL) { return nullptr; }
 
@@ -398,7 +440,11 @@ PEPROCESS ShDrvUtil::GetProcessByImageFileName(
 	IN PCSTR ProcessName)
 {
 #if TRACE_LOG_DEPTH & TRACE_UTIL
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() > APC_LEVEL) { return nullptr; }
 
@@ -447,7 +493,11 @@ NTSTATUS ShDrvUtil::GetPhysicalAddress(
 	OUT PPHYSICAL_ADDRESS PhysicalAddress )
 {
 #if TRACE_LOG_DEPTH & TRACE_UTIL
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 
 	SAVE_CURRENT_COUNTER;
@@ -480,7 +530,11 @@ NTSTATUS ShDrvUtil::GetPhysicalAddressEx(
 	OUT PPHYSICAL_ADDRESS PhysicalAddress )
 {
 #if TRACE_LOG_DEPTH & TRACE_UTIL
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
@@ -521,7 +575,11 @@ NTSTATUS ShDrvUtil::GetPhysicalAddressInternal(
 	OUT PPHYSICAL_ADDRESS PhysicalAddress )
 {
 #if TRACE_LOG_DEPTH & TRACE_UTIL
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() > APC_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
@@ -610,7 +668,11 @@ NTSTATUS ShDrvUtil::GetPagingStructureEntry(
 	OUT PPAGING_ENTRY_COMMON Entry )
 {
 #if TRACE_LOG_DEPTH & TRACE_UTIL
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() > APC_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
@@ -646,7 +708,11 @@ BOOLEAN ShDrvUtil::IsWow64Process(
 	IN PEPROCESS Process)
 {
 #if TRACE_LOG_DEPTH & TRACE_UTIL
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	SAVE_CURRENT_COUNTER;
 	BOOLEAN Result = false;
@@ -675,7 +741,11 @@ BOOLEAN ShDrvUtil::IsInRange(
 	IN PVOID TargetAddress)
 {
 #if TRACE_LOG_DEPTH & TRACE_UTIL
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;

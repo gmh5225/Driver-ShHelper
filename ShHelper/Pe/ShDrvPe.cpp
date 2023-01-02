@@ -23,7 +23,11 @@ NTSTATUS ShDrvPe::Initialize(
 	IN BOOLEAN b32bit )
 {
 #if TRACE_LOG_DEPTH & TRACE_PE
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 
 	SAVE_CURRENT_COUNTER;
@@ -75,7 +79,11 @@ FINISH:
 BOOLEAN ShDrvPe::ValidPeCheck()
 {
 #if TRACE_LOG_DEPTH & TRACE_PE
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 
 	SAVE_CURRENT_COUNTER;
@@ -106,7 +114,11 @@ FINISH:
 ULONG ShDrvPe::GetSectionCount()
 {
 #if TRACE_LOG_DEPTH & TRACE_PE
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 
 	SAVE_CURRENT_COUNTER;
@@ -135,7 +147,11 @@ FINISH:
 ULONG ShDrvPe::GetExportCountByName()
 {
 #if TRACE_LOG_DEPTH & TRACE_PE
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() >= DISPATCH_LEVEL) { return 0; }
 
@@ -166,7 +182,11 @@ ULONG64 ShDrvPe::GetAddressByExport(
 	IN PCSTR RoutineName)
 {
 #if TRACE_LOG_DEPTH & TRACE_PE
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return 0; }
 
@@ -207,7 +227,11 @@ PVOID ShDrvPe::GetSectionVirtualAddress(
 	IN PCSTR SectionName)
 {
 #if TRACE_LOG_DEPTH & TRACE_PE
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 
 	SAVE_CURRENT_COUNTER;
@@ -246,7 +270,11 @@ ULONG64 ShDrvPe::GetSectionSize(
 	IN PCSTR SectionName)
 {
 #if TRACE_LOG_DEPTH & TRACE_PE
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 
 	SAVE_CURRENT_COUNTER;
@@ -282,7 +310,11 @@ FINISH:
 NTSTATUS ShDrvPe::InitializeEx()
 {
 #if TRACE_LOG_DEPTH & TRACE_PE
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() > APC_LEVEL) { return STATUS_UNSUCCESSFUL; }
 

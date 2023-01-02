@@ -18,7 +18,11 @@
 NTSTATUS ShDrvPoolManager::Initialize()
 {
 #if TRACE_LOG_DEPTH & TRACE_POOL
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
@@ -84,7 +88,11 @@ NTSTATUS ShDrvPoolManager::AllocatePoolEntry(
 	IN ULONG PoolSize )
 {
 #if TRACE_LOG_DEPTH & TRACE_POOL
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
@@ -120,7 +128,11 @@ NTSTATUS ShDrvPoolManager::FreePoolEntry(
 	IN BOOLEAN bReuse )
 {
 #if TRACE_LOG_DEPTH & TRACE_POOL
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
@@ -175,7 +187,11 @@ PVOID ShDrvPoolManager::GetPool(
 	IN SH_POOL_TYPE PoolType)
 {
 #if TRACE_LOG_DEPTH & TRACE_POOL
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return nullptr; }
 
@@ -221,7 +237,11 @@ PVOID ShDrvPoolManager::GetPool(
 VOID ShDrvPoolManager::Finalize()
 {
 #if TRACE_LOG_DEPTH & TRACE_POOL
+#if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
 #endif
 	SAVE_CURRENT_COUNTER;
 	KIRQL CurrentIrql = KeGetCurrentIrql();
