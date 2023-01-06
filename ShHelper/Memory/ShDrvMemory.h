@@ -41,36 +41,6 @@ namespace ShDrvMemory {
 		IN PVOID Buffer,
 		IN SH_RW_MEMORY_METHOD Method = RW_Normal);
 
-	/*static NTSTATUS ReadMemoryNormal(
-		IN  PVOID Address,
-		IN  ULONG Size,
-		OUT PVOID Buffer);
-
-	static NTSTATUS ReadPhysicalMemory(
-		IN  PVOID Address,
-		IN  ULONG Size,
-		OUT PVOID Buffer);
-
-	static NTSTATUS ReadMemoryEx(
-		IN  PVOID Address,
-		IN  ULONG Size,
-		OUT PVOID Buffer);
-
-	static NTSTATUS WriteMemoryNormal(
-		IN  PVOID Address,
-		IN  ULONG Size,
-		IN  PVOID Buffer);
-
-	static NTSTATUS WritePhysicalMemory(
-		IN  PVOID Address,
-		IN  ULONG Size,
-		IN  PVOID Buffer);
-
-	static NTSTATUS WriteMemoryEx(
-		IN  PVOID Address,
-		IN  ULONG Size,
-		IN  PVOID Buffer);*/
-
 	static RWMEMORY_ROUTINE ReadMemoryNormal;
 	static RWMEMORY_ROUTINE ReadPhysicalMemory;
 	static RWMEMORY_ROUTINE ReadMemoryEx;

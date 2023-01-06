@@ -129,18 +129,19 @@ namespace ShDrvUtil {
 
 #define StringCompare  ShDrvUtil::StringCompareA
 #define StringCopy     ShDrvUtil::StringCopyA
+#define StringCopyN    ShDrvUtil::StringNCopyA
 #define StringCat      ShDrvUtil::StringConcatenateA
 #define StringLength   ShDrvUtil::StringLengthA
 
 	BOOLEAN StringCompareA(
 		IN PSTR Source,
 		IN PSTR Dest,
-		IN BOOLEAN CaseInSensitive = true);
+		IN BOOLEAN CaseInSensitive = TRUE);
 
 	BOOLEAN StringCompareW(
 		IN PWSTR Source,
 		IN PWSTR Dest,
-		IN BOOLEAN CaseInSensitive = true);
+		IN BOOLEAN CaseInSensitive = TRUE);
 
 	NTSTATUS StringCopyA(
 		OUT NTSTRSAFE_PSTR Dest,
@@ -149,6 +150,16 @@ namespace ShDrvUtil {
 	NTSTATUS StringCopyW(
 		OUT NTSTRSAFE_PWSTR Dest,
 		IN  NTSTRSAFE_PCWSTR Source);
+
+	NTSTATUS StringNCopyA(
+		OUT NTSTRSAFE_PSTR Dest,
+		IN NTSTRSAFE_PCSTR Source,
+		IN SIZE_T Size);
+
+	NTSTATUS StringNCopyW(
+		OUT NTSTRSAFE_PWSTR Dest,
+		IN NTSTRSAFE_PCWSTR Source,
+		IN SIZE_T Size);
 
 	NTSTATUS StringConcatenateA(
 		OUT NTSTRSAFE_PSTR Dest,
@@ -249,10 +260,9 @@ entry.AsUInt = EntryAddress.AsUInt; TableBase = entry.PageFrameNumber << 12;
 		SAVE_CURRENT_COUNTER;
 		auto Status = STATUS_INVALID_PARAMETER;
 
-		if (Name == nullptr || Routine == nullptr) { ERROR_END }
-
 		UNICODE_STRING RoutineName = { 0, };
 		RtlInitUnicodeString(&RoutineName, Name);
+		if (Name == nullptr || Routine == nullptr) { ERROR_END }
 
 		Status = RtlUnicodeStringValidate(&RoutineName);
 		if (!NT_SUCCESS(Status)) { ERROR_END }
@@ -314,15 +324,55 @@ entry.AsUInt = EntryAddress.AsUInt; TableBase = entry.PageFrameNumber << 12;
 //======================================================
 // Registry util
 //======================================================
-	NTSTATUS RegQueryValue(
-		PCWSTR Key,
-		PCWSTR EntryKey,
-		ULONG Type); // bin, str, d
+#define REGISTRY_HKLM_SOFTWARE "\\REGISTRY\\MACHINE\\SOFTWARE\\"
+#define REGISTRY_HKLM_SYSTEM   "\\REGISTRY\\MACHINE\\SYSTEM\\"
+#define REGISTRY_HKLM_SERVICE  "\\REGISTRY\\MACHINE\\SYSTEM\\CurrentControlSet\\Services\\"
+
+	NTSTATUS RegOpenKey(
+		IN  PCSTR RegistryPath,
+		IN  ACCESS_MASK AccessRight,
+		OUT PHANDLE Handle);
+
+	PKEY_VALUE_FULL_INFORMATION RegGetKeyValueInformation(
+		IN PCSTR RegistryPath,
+		IN PCSTR ValueName);
+
+	NTSTATUS RegCreateKey(
+		IN PCSTR RegistryPath);
+
+	NTSTATUS RegDeleteKey(
+		IN PCSTR RegistryPath);
+
+	NTSTATUS RegQueryBinary(
+		IN  PCSTR RegistryPath,
+		IN  PCSTR ValueName,
+		OUT PUCHAR Value);
+
+	NTSTATUS RegQueryDword(
+		IN  PCSTR RegistryPath, 
+		IN  PCSTR ValueName, 
+		OUT PULONG Value);
+
+	NTSTATUS RegQueryStr(
+		IN  PCSTR RegistryPath,
+		IN  PCSTR ValueName,
+		OUT PWSTR Value);
 	
-	NTSTATUS RegSetValue(
-		PCWSTR Key,
-		PCWSTR EntryKey,
-		ULONG Type);
+	NTSTATUS RegSetBinary(
+		IN PCSTR RegistryPath,
+		IN PCSTR ValueName,
+		IN PUCHAR Value,
+		IN ULONG Size);
+
+	NTSTATUS RegSetDword(
+		IN PCSTR RegistryPath,
+		IN PCSTR ValueName,
+		IN ULONG Value);
+
+	NTSTATUS RegSetStr(
+		IN PCSTR RegistryPath,
+		IN PCSTR ValueName,
+		IN PWSTR Value);
 }
 
 #endif // !_SHDRVUTIL_H_

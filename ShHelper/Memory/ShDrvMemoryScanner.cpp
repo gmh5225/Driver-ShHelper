@@ -35,7 +35,7 @@ NTSTATUS ShDrvMemoryScanner::Initialize(
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 	if(StartAddress == nullptr || Size <= 0) { ERROR_END }
-	if(this->IsInit == true) { ERROR_END }
+	if(this->IsInit == TRUE) { ERROR_END }
 
 	this->Process = Process != nullptr ? Process : PsInitialSystemProcess;
 	this->StartAddress = StartAddress;
@@ -51,7 +51,7 @@ NTSTATUS ShDrvMemoryScanner::Initialize(
 	if (this->Mask == nullptr) { ERROR_END }
 
 	Status = STATUS_SUCCESS;
-	this->IsInit = true;
+	this->IsInit = TRUE;
 
 FINISH:
 	PRINT_ELAPSED;
@@ -85,15 +85,15 @@ NTSTATUS ShDrvMemoryScanner::Initialize(
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 	auto Pe = new(ShDrvPe);
-	auto Is32bit = false;
+	BOOLEAN Is32bit = FALSE;
 
 	if (ImageBase == nullptr || SectionName == nullptr || Pe == nullptr) { ERROR_END }
-	if (this->IsInit == true) { ERROR_END }
+	if (this->IsInit == TRUE) { ERROR_END }
 
 	this->Process = Process != nullptr ? Process : PsInitialSystemProcess;
 
 	Is32bit = ShDrvUtil::IsWow64Process(this->Process);
-	Status = Is32bit ? Pe->Initialize(ImageBase, this->Process, true) : Pe->Initialize(ImageBase, this->Process);
+	Status = Is32bit ? Pe->Initialize(ImageBase, this->Process, TRUE) : Pe->Initialize(ImageBase, this->Process);
 	if (!NT_SUCCESS(Status)) { ERROR_END }
 
 	this->ScanSize = Pe->GetSectionSize(SectionName);
@@ -115,7 +115,7 @@ NTSTATUS ShDrvMemoryScanner::Initialize(
 	Status = StringCopy(this->SectionName, SectionName);
 	if (!NT_SUCCESS(Status)) { ERROR_END }
 
-	this->IsInit = true;
+	this->IsInit = TRUE;
 FINISH:
 	delete(Pe);
 	PRINT_ELAPSED;
@@ -202,7 +202,7 @@ NTSTATUS ShDrvMemoryScanner::Scan()
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 	PUCHAR ScanAddress = nullptr;
-	BOOLEAN IsSession = false;
+	BOOLEAN IsSession = FALSE;
 	KAPC_STATE SessionApcState = { 0, };
 	this->ResultCount = 0;
 
@@ -216,7 +216,7 @@ NTSTATUS ShDrvMemoryScanner::Scan()
 	{
 		Status = ShDrvCore::AttachSessionProcess(&SessionApcState);
 		if (!NT_SUCCESS(Status)) { ERROR_END }
-		IsSession = true;
+		IsSession = TRUE;
 	}
 
 	Status = STATUS_NOT_FOUND;
@@ -226,7 +226,6 @@ NTSTATUS ShDrvMemoryScanner::Scan()
 		if (CheckMask(ScanAddress) == STATUS_SUCCESS)
 		{
 			Status = STATUS_SUCCESS;
-			//Log("[%d] Found %p",ResultCount, ScanAddress);
 
 			if (ResultCount == MAX_RESULT_COUNT) { break; }
 			if (Method % 2 != 0)
@@ -243,7 +242,7 @@ NTSTATUS ShDrvMemoryScanner::Scan()
 			}
 		}
 	}
-	if (IsSession == true) { ShDrvCore::DetachSessionProcess(&SessionApcState); }
+	if (IsSession == TRUE) { ShDrvCore::DetachSessionProcess(&SessionApcState); }
 
 FINISH:
 	PRINT_ELAPSED;

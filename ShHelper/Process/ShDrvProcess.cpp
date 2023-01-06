@@ -28,7 +28,7 @@ NTSTATUS ShDrvProcess::Initialize(
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 	if(ProcessId == (HANDLE)4) { ERROR_END }
-	if (this->IsInit == true) { ERROR_END }
+	if (this->IsInit == TRUE) { ERROR_END }
 
 	this->Process = ShDrvUtil::GetProcessByProcessId(ProcessId);
 	if(this->Process == nullptr) { ERROR_END }
@@ -41,11 +41,11 @@ NTSTATUS ShDrvProcess::Initialize(
 
 	this->ProcessLock = ADD_OFFSET(this->Process, GET_GLOBAL_OFFSET(EPROCESS, ProcessLock), EX_PUSH_LOCK*);
 	this->ProcessId = ProcessId;
-	this->bAttached = false;
+	this->bAttached = FALSE;
 	RtlSecureZeroMemory(&this->ApcState, sizeof(KAPC_STATE));
 	this->ProcessDirBase = ADD_OFFSET(Process, DIR_BASE_OFFSET, PULONG64);
 	this->OldCr3 = 0;
-	this->IsInit = true;
+	this->IsInit = TRUE;
 	Status = STATUS_SUCCESS;
 
 FINISH:
@@ -73,7 +73,7 @@ NTSTATUS ShDrvProcess::Initialize(
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 	if(Process == PsInitialSystemProcess) { ERROR_END }
-	if (this->IsInit == true) { ERROR_END }
+	if (this->IsInit == TRUE) { ERROR_END }
 
 	this->ProcessId = PsGetProcessId(Process);
 	if(this->ProcessId == nullptr) { ERROR_END }
@@ -86,12 +86,12 @@ NTSTATUS ShDrvProcess::Initialize(
 
 	this->Process = Process;
 	this->ProcessLock = ADD_OFFSET(this->Process, GET_GLOBAL_OFFSET(EPROCESS, ProcessLock), EX_PUSH_LOCK*);
-	this->bAttached = false;
-	this->bAttachedEx = false;
+	this->bAttached = FALSE;
+	this->bAttachedEx = FALSE;
 	RtlSecureZeroMemory(&this->ApcState, sizeof(KAPC_STATE));
 	this->ProcessDirBase = ADD_OFFSET(Process, DIR_BASE_OFFSET, PULONG64);
 	this->OldCr3 = 0;
-	this->IsInit = true;
+	this->IsInit = TRUE;
 	Status = STATUS_SUCCESS;
 
 FINISH:
@@ -153,13 +153,13 @@ NTSTATUS ShDrvProcess::GetProcessModuleInformation(
 	while (ListHead != NextEntry)
 	{
 		ModuleEntry = CONTAINING_RECORD(NextEntry, LDR_DATA_TABLE_ENTRY, InLoadOrderModuleList);
-		if (MmIsAddressValid(ModuleEntry) == false)
+		if (MmIsAddressValid(ModuleEntry) == FALSE)
 		{
 			Status = STATUS_UNSUCCESSFUL;
 			ERROR_END
 		}
 
-		if (RtlCompareUnicodeString(&ModuleEntry->BaseDllName, &TargetString, true) == false)
+		if (RtlCompareUnicodeString(&ModuleEntry->BaseDllName, &TargetString, TRUE) == FALSE)
 		{
 			RtlCopyMemory(ModuleInformation, ModuleEntry, LDR_DATA_TABLE_ENTRY_SIZE);
 			break;
@@ -224,13 +224,13 @@ NTSTATUS ShDrvProcess::GetProcessModuleInformation32(
 	Status = Attach();
 	if(!NT_SUCCESS(Status)) { ERROR_END }
 
-	if (ShDrvUtil::IsWow64Process(Process) == true)
+	if (ShDrvUtil::IsWow64Process(Process) == TRUE)
 	{
 		RtlCopyMemory(&NextEntry, (PULONG)LdrHead, sizeof(ULONG));
 		while (LdrHead != NextEntry)
 		{
 			RtlCopyMemory(&ModuleEntry, (PULONG)NextEntry, LDR_DATA_TABLE_ENTRY32_SIZE);
-			if (ShDrvUtil::StringCompareW(TargetString.Buffer, (WCHAR*)ModuleEntry.BaseDllName.Buffer) == true)
+			if (ShDrvUtil::StringCompareW(TargetString.Buffer, (WCHAR*)ModuleEntry.BaseDllName.Buffer) == TRUE)
 			{
 				RtlCopyMemory(ModuleInformation, &ModuleEntry, LDR_DATA_TABLE_ENTRY32_SIZE);
 				break;
@@ -279,7 +279,7 @@ NTSTATUS ShDrvProcess::ReadProcessMemory(
 	CHECK_RWMEMORY_PARAM;
 	if (!NT_SUCCESS(Status)) { ERROR_END }
 
-	if (ShDrvMemory::IsUserMemorySpace(Address) == false || ShDrvMemory::IsUserMemorySpace(Buffer) == true)
+	if (ShDrvMemory::IsUserMemorySpace(Address) == FALSE || ShDrvMemory::IsUserMemorySpace(Buffer) == TRUE)
 	{
 		Status = STATUS_INVALID_PARAMETER;
 		ERROR_END;
@@ -331,9 +331,9 @@ NTSTATUS ShDrvProcess::WriteProcessMemory(
 	CHECK_RWMEMORY_PARAM;
 	if (!NT_SUCCESS(Status)) { ERROR_END }
 
-	if (ShDrvMemory::IsUserMemorySpace(Address) == false) { Status = STATUS_INVALID_PARAMETER; ERROR_END }
+	if (ShDrvMemory::IsUserMemorySpace(Address) == FALSE) { Status = STATUS_INVALID_PARAMETER; ERROR_END }
 
-	Status = Attach(true);
+	Status = Attach(TRUE);
 	if (!NT_SUCCESS(Status)) { ERROR_END }
 
 	CHECK_RWMEMORY_BUFFER;
@@ -343,7 +343,7 @@ NTSTATUS ShDrvProcess::WriteProcessMemory(
 	if (!NT_SUCCESS(Status)) { ERROR_END }
 
 FINISH:
-	Detach(true);
+	Detach(TRUE);
 	PRINT_ELAPSED;
 	return Status;
 }
@@ -383,7 +383,7 @@ ULONG ShDrvProcess::MemoryScan(
 	MemoryScanner* Scanner = nullptr;
 	if(Address == nullptr || Size == 0 || Result == nullptr) { ERROR_END }
 
-	if (ShDrvMemory::IsUserMemorySpace(Address) == false) { ERROR_END }
+	if (ShDrvMemory::IsUserMemorySpace(Address) == FALSE) { ERROR_END }
 	Scanner = new(MemoryScanner);
 	if(Scanner == nullptr) { ERROR_END }
 
@@ -440,7 +440,7 @@ ULONG ShDrvProcess::MemoryScan(
 	MemoryScanner* Scanner = nullptr;
 	if (Address == nullptr || SectionName == nullptr || Result == nullptr) { ERROR_END }
 
-	if (ShDrvMemory::IsUserMemorySpace(Address) == false) { ERROR_END }
+	if (ShDrvMemory::IsUserMemorySpace(Address) == FALSE) { ERROR_END }
 	Scanner = new(MemoryScanner);
 	if (Scanner == nullptr) { ERROR_END }
 
@@ -613,12 +613,13 @@ FINISH:
 /**
 * @brief Attach the process
 * @details Attach the process using `KeStackAttachProcess`
-* @param[in] BOOLEAN `bExclusive` : Never set this value to `true` unless a exclusive is required
+* @param[in] BOOLEAN `bExclusive` : Never set this value to `TRUE` unless a exclusive is required
 * @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
 * @author Shh0ya @date 2022-12-27
 * @see ShDrvProcess::Detach, ShDrvProcess::AttachEx, ShDrvProcess::DetachEx
 */
-NTSTATUS ShDrvProcess::Attach(BOOLEAN bExclusive)
+NTSTATUS ShDrvProcess::Attach(
+	IN BOOLEAN bExclusive)
 {
 #if TRACE_LOG_DEPTH & TRACE_PROCESS
 #if _CLANG
@@ -631,10 +632,10 @@ NTSTATUS ShDrvProcess::Attach(BOOLEAN bExclusive)
 
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
-	if (Process == nullptr || bAttached == true || bAttachedEx == true) { ERROR_END }
+	if (Process == nullptr || bAttached == TRUE || bAttachedEx == TRUE) { ERROR_END }
 	
 	KeStackAttachProcess(Process, &ApcState);
-	bAttached = true;
+	bAttached = TRUE;
 
 	if (bExclusive) { LOCK_EXCLUSIVE(ProcessLock, PushLock); }
 	else { LOCK_SHARED(ProcessLock, PushLock); }
@@ -649,12 +650,13 @@ FINISH:
 /**
 * @brief Attach the process
 * @details Attach the process using `DirBase`
-* @param[in] BOOLEAN `bExclusive` : Never set this value to `true` unless a exclusive is required
+* @param[in] BOOLEAN `bExclusive` : Never set this value to `TRUE` unless a exclusive is required
 * @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
 * @author Shh0ya @date 2022-12-27
 * @see ShDrvProcess::Attach, ShDrvProcess::Detach, ShDrvProcess::DetachEx
 */
-NTSTATUS ShDrvProcess::AttachEx(BOOLEAN bExclusive)
+NTSTATUS ShDrvProcess::AttachEx(
+	IN BOOLEAN bExclusive)
 {
 #if TRACE_LOG_DEPTH & TRACE_PROCESS
 #if _CLANG
@@ -667,13 +669,13 @@ NTSTATUS ShDrvProcess::AttachEx(BOOLEAN bExclusive)
 
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
-	if(MmIsAddressValid(ProcessDirBase) == false || bAttached == true || bAttachedEx == true) { ERROR_END }
+	if(MmIsAddressValid(ProcessDirBase) == FALSE || bAttached == TRUE || bAttachedEx == TRUE) { ERROR_END }
 	if(*ProcessDirBase == 0) { ERROR_END }
 
 	OldCr3 = __readcr3();
 
 	__writecr3(*ProcessDirBase);
-	bAttachedEx = true;
+	bAttachedEx = TRUE;
 
 	if (bExclusive) { LOCK_EXCLUSIVE(ProcessLock, PushLock); }
 	else { LOCK_SHARED(ProcessLock, PushLock); }
@@ -687,12 +689,13 @@ FINISH:
 /**
 * @brief Detach the process
 * @details Detach the process using `KeUnstackDetachProcess`
-* @param[in] BOOLEAN `bExclusive` : Never set this value to `true` unless a exclusive is required
+* @param[in] BOOLEAN `bExclusive` : Never set this value to `TRUE` unless a exclusive is required
 * @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
 * @author Shh0ya @date 2022-12-27
 * @see ShDrvProcess::Attach, ShDrvProcess::AttachEx, ShDrvProcess::DetachEx
 */
-NTSTATUS ShDrvProcess::Detach(BOOLEAN bExclusive)
+NTSTATUS ShDrvProcess::Detach(
+	IN BOOLEAN bExclusive)
 {
 #if TRACE_LOG_DEPTH & TRACE_PROCESS
 #if _CLANG
@@ -705,13 +708,13 @@ NTSTATUS ShDrvProcess::Detach(BOOLEAN bExclusive)
 
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
-	if (Process == nullptr || bAttached == false) { ERROR_END }
+	if (Process == nullptr || bAttached == FALSE) { ERROR_END }
 
 	if (bExclusive) { UNLOCK_EXCLUSIVE(ProcessLock, PushLock); }
 	else { UNLOCK_SHARED(ProcessLock, PushLock); }
 
 	KeUnstackDetachProcess(&ApcState);
-	bAttached = false;
+	bAttached = FALSE;
 
 	Status = STATUS_SUCCESS;
 
@@ -723,12 +726,13 @@ FINISH:
 /**
 * @brief Detach the process
 * @details Detach the process using `DirBase`
-* @param[in] BOOLEAN `bExclusive` : Never set this value to `true` unless a exclusive is required
+* @param[in] BOOLEAN `bExclusive` : Never set this value to `TRUE` unless a exclusive is required
 * @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
 * @author Shh0ya @date 2022-12-27
 * @see ShDrvProcess::Attach, ShDrvProcess::AttachEx, ShDrvProcess::Detach
 */
-NTSTATUS ShDrvProcess::DetachEx(BOOLEAN bExclusive)
+NTSTATUS ShDrvProcess::DetachEx(
+	IN BOOLEAN bExclusive)
 {
 #if TRACE_LOG_DEPTH & TRACE_PROCESS
 #if _CLANG
@@ -741,14 +745,14 @@ NTSTATUS ShDrvProcess::DetachEx(BOOLEAN bExclusive)
 
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
-	if (MmIsAddressValid(ProcessDirBase) == false || Process == nullptr || bAttachedEx == false) { ERROR_END }
+	if (MmIsAddressValid(ProcessDirBase) == FALSE || Process == nullptr || bAttachedEx == FALSE) { ERROR_END }
 	if (*ProcessDirBase == 0) { ERROR_END }
 
 	if (bExclusive) { UNLOCK_EXCLUSIVE(ProcessLock, PushLock); }
 	else { UNLOCK_SHARED(ProcessLock, PushLock); }
 
 	__writecr3(OldCr3);
-	bAttachedEx = false;
+	bAttachedEx = FALSE;
 
 	Status = STATUS_SUCCESS;
 FINISH:

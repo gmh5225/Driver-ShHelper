@@ -19,7 +19,7 @@ if(ptr == nullptr) { Status = STATUS_UNSUCCESSFUL; END }
 #define POOL_ENTRY_INITIALIZE(Entry, type, Size)\
 Entry->PoolType = type;\
 Entry->PoolSize = Size;\
-Entry->bUsed = false;
+Entry->bUsed = FALSE;
 
 /**
 * @brief Pool Manager
@@ -34,7 +34,7 @@ namespace ShDrvPoolManager {
 
 	NTSTATUS FreePoolEntry(
 		IN PVOID Buffer, 
-		IN BOOLEAN bReuse = false );
+		IN BOOLEAN bReuse = FALSE );
 
 	PVOID GetPool(IN SH_POOL_TYPE PoolType);
 

@@ -16,7 +16,7 @@ using namespace UNDOC_PEB;
 * @details Compare the string A and B (do not case-sensitive)
 * @param[in] PSTR `Source` : Source string buffer
 * @param[in] PSTR `Dest` : Destination string buffer
-* @return If equal, return `true`, else return `false`
+* @return If equal, return `TRUE`, else return `FALSE`
 * @author Shh0ya @date 2022-12-27
 * @see StringCompare, ShDrvUtil::StringCompareW
 */
@@ -32,12 +32,12 @@ BOOLEAN ShDrvUtil::StringCompareA(
 	TraceLog(__FUNCDNAME__, __FUNCTION__);
 #endif
 #endif
-	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return false; }
+	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return FALSE; }
 
 	SAVE_CURRENT_COUNTER;
 	ANSI_STRING SourceString = { 0, };
 	ANSI_STRING DestString = { 0, };
-	BOOLEAN Result = false;
+	BOOLEAN Result = FALSE;
     
 	if (Source == nullptr || Dest == nullptr) { END }
 
@@ -56,7 +56,7 @@ FINISH:
 * @details Compare the string A and B (do not case-sensitive)
 * @param[in] PWSTR `Source` : Source string buffer
 * @param[in] PWSTR `Dest` : Destination string buffer
-* @return If equal, return `true`, else return `false`
+* @return If equal, return `TRUE`, else return `FALSE`
 * @author Shh0ya @date 2022-12-27
 * @see ShDrvUtil::StringCompareA
 */
@@ -72,12 +72,12 @@ BOOLEAN ShDrvUtil::StringCompareW(
 	TraceLog(__FUNCDNAME__, __FUNCTION__);
 #endif
 #endif
-	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return false; }
+	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return FALSE; }
 
 	SAVE_CURRENT_COUNTER;
 	UNICODE_STRING SourceString = { 0, };
 	UNICODE_STRING DestString = { 0, };
-	BOOLEAN Result = false;
+	BOOLEAN Result = FALSE;
 
 	if (Source == nullptr || Dest == nullptr) { END }
 
@@ -117,6 +117,8 @@ NTSTATUS ShDrvUtil::StringCopyA(
 	auto Status = STATUS_SUCCESS;
 	Status = RtlStringCchCopyA(Dest, STR_MAX_LENGTH, Source);
 
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+FINISH:
 	PRINT_ELAPSED;
 	return Status;
 }
@@ -146,7 +148,76 @@ NTSTATUS ShDrvUtil::StringCopyW(
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_SUCCESS;
 	Status = RtlStringCchCopyW(Dest, STR_MAX_LENGTH, Source);
+	
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+FINISH:
+	PRINT_ELAPSED;
+	return Status;
+}
 
+/**
+* @brief Copy string routine
+* @details Copy the string from `Source` to `Dest`(strncpy, Size is a pure string length that does not contain null-byte)
+* @param[out] NTSTRSAFE_PSTR `Dest` : Target string buffer
+* @param[in] NTSTRSAFE_PCSTR `Source` : Original string
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+* @see StringCopyN, ShDrvUtil::StringNCopyW
+*/
+NTSTATUS ShDrvUtil::StringNCopyA(
+	OUT NTSTRSAFE_PSTR Dest, 
+	IN NTSTRSAFE_PCSTR Source, 
+	IN SIZE_T Size)
+{
+#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
+
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_SUCCESS;
+	Status = RtlStringCchCopyNA(Dest, STR_MAX_LENGTH, Source, Size + 1);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+FINISH:
+	PRINT_ELAPSED;
+	return Status;
+}
+
+/**
+* @brief Copy string routine
+* @details Copy the string from `Source` to `Dest`(strncpy, Size is a pure string length that does not contain null-byte)
+* @param[out] NTSTRSAFE_PWSTR `Dest` : Target string buffer
+* @param[in] NTSTRSAFE_PCWSTR `Source` : Original string
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+* @see ShDrvUtil::StringNCopyA
+*/
+NTSTATUS ShDrvUtil::StringNCopyW(
+	OUT NTSTRSAFE_PWSTR Dest, 
+	IN NTSTRSAFE_PCWSTR Source, 
+	IN SIZE_T Size)
+{
+#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
+
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_SUCCESS;
+	Status = RtlStringCchCopyNW(Dest, STR_MAX_LENGTH, Source, Size + 1);
+	if(!NT_SUCCESS(Status)) { ERROR_END }
+	Dest[Size + 1] = '\x00';
+
+FINISH:
 	PRINT_ELAPSED;
 	return Status;
 }
@@ -176,7 +247,9 @@ NTSTATUS ShDrvUtil::StringConcatenateA(
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_SUCCESS;
 	Status = RtlStringCchCatA(Dest, NTSTRSAFE_MAX_LENGTH, Source);
-
+	
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+FINISH:
 	PRINT_ELAPSED;
 	return Status;
 }
@@ -206,7 +279,9 @@ NTSTATUS ShDrvUtil::StringConcatenateW(
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_SUCCESS;
 	Status = RtlStringCchCatW(Dest, NTSTRSAFE_MAX_LENGTH, Source);
-
+	
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+FINISH:
 	PRINT_ELAPSED;
 	return Status;
 }
@@ -241,9 +316,9 @@ NTSTATUS ShDrvUtil::StringToUnicode(
 
 	RtlInitAnsiString(&SourceString, Source);
 	
-	Dest->MaximumLength = RtlxAnsiStringToUnicodeSize(&SourceString);
+	Dest->MaximumLength = (USHORT)RtlxAnsiStringToUnicodeSize(&SourceString);
 
-	Status = RtlAnsiStringToUnicodeString(Dest, &SourceString, false);
+	Status = RtlAnsiStringToUnicodeString(Dest, &SourceString, FALSE);
 	if (!NT_SUCCESS(Status)) { ERROR_END }
 
 FINISH:
@@ -278,12 +353,14 @@ NTSTATUS ShDrvUtil::WStringToAnsiString(
 	UNICODE_STRING SourceString = { 0, };
 
 	if (Source == nullptr || Dest == nullptr) { ERROR_END }
+	if (Dest->Buffer == nullptr) { ERROR_END }
 
+	RtlSecureZeroMemory(Dest->Buffer, STR_MAX_LENGTH);
 	RtlInitUnicodeString(&SourceString, Source);
 
-	Dest->MaximumLength = RtlxUnicodeStringToAnsiSize(&SourceString);
+	Dest->MaximumLength = (USHORT)RtlxUnicodeStringToAnsiSize(&SourceString);
 
-	Status = RtlUnicodeStringToAnsiString(Dest, &SourceString, false);
+	Status = RtlUnicodeStringToAnsiString(Dest, &SourceString, FALSE);
 	if (!NT_SUCCESS(Status)) { ERROR_END }
 
 FINISH:
@@ -305,9 +382,12 @@ SIZE_T ShDrvUtil::StringLengthA(
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return 0; }
 	
 	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_SUCCESS;
 	auto Length = 0ull;
-	RtlStringCchLengthA(Source, NTSTRSAFE_MAX_LENGTH, &Length);
+	Status = RtlStringCchLengthA(Source, NTSTRSAFE_MAX_LENGTH, &Length);
 
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+FINISH:
 	PRINT_ELAPSED;
 	return Length;
 }
@@ -326,9 +406,12 @@ SIZE_T ShDrvUtil::StringLengthW(
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return 0; }
 
 	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_SUCCESS;
 	auto Length = 0ull;
-	RtlStringCchLengthW(Source, NTSTRSAFE_MAX_LENGTH, &Length);
+	Status = RtlStringCchLengthW(Source, NTSTRSAFE_MAX_LENGTH, &Length);
 
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+FINISH:
 	PRINT_ELAPSED;
 	return Length;
 }
@@ -355,9 +438,9 @@ VOID ShDrvUtil::Sleep(
 	SAVE_CURRENT_COUNTER;
 	KEVENT Event = { 0, };
 	LARGE_INTEGER Time = { 0, };
-	KeInitializeEvent(&Event, NotificationEvent, false);
+	KeInitializeEvent(&Event, NotificationEvent, FALSE);
 	Time = RtlConvertLongToLargeInteger((LONG)-10000 * Milliseconds);
-	KeWaitForSingleObject(&Event, DelayExecution, KernelMode, false, &Time);
+	KeWaitForSingleObject(&Event, DelayExecution, KernelMode, FALSE, &Time);
 
 	PRINT_ELAPSED;
 }
@@ -391,8 +474,8 @@ VOID ShDrvUtil::PrintElapsedTime(
 	if (DiffCounter.QuadPart <= 0) { return; }
 	
 	DiffCounter.QuadPart /= Frequency->QuadPart;
-	Integral   = DiffCounter.QuadPart / MICROSECOND;
-	Fractional = DiffCounter.QuadPart % MICROSECOND;
+	Integral   = (ULONG)(DiffCounter.QuadPart / MICROSECOND);
+	Fractional = (ULONG)(DiffCounter.QuadPart % MICROSECOND);
 
 	DetailLog("Elapsed Time : %.2d.%.4d sec (%d ¥ìs) :: %s", Integral, Fractional, DiffCounter.QuadPart, FunctionName);
 }
@@ -461,12 +544,12 @@ PEPROCESS ShDrvUtil::GetProcessByImageFileName(
 	Status = StringCopy(TargetName, ProcessName);
 	if(!NT_SUCCESS(Status)) { ERROR_END }
 
-	for (auto i = 0; i < 0xFFFF; i++)
+	for (auto i = 1; i < 0xFFFF; i++)
 	{
 		Status = PsLookupProcessByProcessId((HANDLE)i, &Process);
 		if (!NT_SUCCESS(Status)) { continue; }
 		auto ImageFileName = SH_ROUTINE_CALL(PsGetProcessImageFileName)(Process);
-		if (strncmp(TargetName, ImageFileName, IMAGE_FILE_NAME_LENGTH) == false)
+		if (strncmp(TargetName, ImageFileName, IMAGE_FILE_NAME_LENGTH) == FALSE)
 		{
 			break;
 		}
@@ -502,8 +585,9 @@ NTSTATUS ShDrvUtil::GetPhysicalAddress(
 
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
-	if(VirtualAddress == nullptr || PhysicalAddress == nullptr) { ERROR_END }
+
 	PHYSICAL_ADDRESS Result = { 0, };
+	if(VirtualAddress == nullptr || PhysicalAddress == nullptr) { ERROR_END }
 	Result = MmGetPhysicalAddress(VirtualAddress);
 	if (Result.QuadPart == 0) { Status = STATUS_UNSUCCESSFUL; }
 
@@ -585,7 +669,6 @@ NTSTATUS ShDrvUtil::GetPhysicalAddressInternal(
 
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
-	if (Cr3 == nullptr || VirtualAddress == nullptr || PhysicalAddress == nullptr) { ERROR_END }
 
 	LINEAR_ADDRESS LinearAddress = { 0, };
 	PAGING_ENTRY_COMMON EntryAddress = { 0, };
@@ -599,6 +682,10 @@ NTSTATUS ShDrvUtil::GetPhysicalAddressInternal(
 	CR0 Cr0 = { 0, };
 	CR4 Cr4 = { 0, };
 	ULONG64 TableBase = 0;
+
+	if (Cr3 == nullptr || VirtualAddress == nullptr || PhysicalAddress == nullptr) { ERROR_END }
+
+	
 
 	Cr0.AsUInt = __readcr0();
 	if(Cr0.AsUInt == 0) { Status = STATUS_UNSUCCESSFUL; ERROR_END }
@@ -678,11 +765,12 @@ NTSTATUS ShDrvUtil::GetPagingStructureEntry(
 
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
-	if (Entry == nullptr) { ERROR_END }
-
+	
 	MM_COPY_ADDRESS CopyAddress = { 0, };
 	PAGING_ENTRY_COMMON RealAddress = { 0, };
 	SIZE_T ReturnSize = 0;
+
+	if (Entry == nullptr) { ERROR_END }
 
 	Entry->AsUInt = 0;
 
@@ -701,7 +789,7 @@ FINISH:
 * @brief Check that the process is a 32-bit process
 * @details using `PsGetProcessWow64Process`
 * @param[in] PEPROCESS `Process`
-* @return If 32-bit process, return value is true
+* @return If 32-bit process, return value is TRUE
 * @author Shh0ya @date 2022-12-27
 */
 BOOLEAN ShDrvUtil::IsWow64Process(
@@ -715,11 +803,11 @@ BOOLEAN ShDrvUtil::IsWow64Process(
 #endif
 #endif
 	SAVE_CURRENT_COUNTER;
-	BOOLEAN Result = false;
+	BOOLEAN Result = FALSE;
 
 	if (SH_ROUTINE_CALL(PsGetProcessWow64Process)(Process) != nullptr)
 	{
-		Result = true;
+		Result = TRUE;
 	}
 
 FINISH:
@@ -732,7 +820,7 @@ FINISH:
 * @param[in] PVOID `StartAddress`
 * @param[in] PVOID `EndAddress`
 * @param[in] PVOID `TargetAddress`
-* @return If the address is included in the scope, return value is true.
+* @return If the address is included in the scope, return value is TRUE
 * @author Shh0ya @date 2022-12-27
 */
 BOOLEAN ShDrvUtil::IsInRange(
@@ -749,16 +837,527 @@ BOOLEAN ShDrvUtil::IsInRange(
 #endif
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
-	BOOLEAN Result = false;
+	BOOLEAN Result = FALSE;
 
 	if(StartAddress == nullptr || EndAddress == nullptr || TargetAddress == nullptr) { ERROR_END }
 	if (StartAddress <= TargetAddress && 
 		TargetAddress <= EndAddress) 
 	{
-		Result = true;
+		Result = TRUE;
 	}
 
 FINISH:
 	PRINT_ELAPSED;
 	return Result;
+}
+
+/**
+* @brief Get the registry key corresponding to `RegistryPath`
+* @param[in] PCSTR `RegistryPath` : The registry path starting with "\Registry"
+* @param[in] ACCESS_MASK `AccessRight`
+* @param[out] PHANDLE `Handle`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+*/
+NTSTATUS ShDrvUtil::RegOpenKey(
+	IN PCSTR RegistryPath, 
+	IN ACCESS_MASK AccessRight,
+	OUT PHANDLE Handle)
+{
+#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
+
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+
+	HANDLE RegistryKey = nullptr;
+	OBJECT_ATTRIBUTES ObjAttrib = { 0, };
+	UNICODE_STRING RegistryString = { 0, };
+
+	if (RegistryPath == nullptr || Handle == nullptr) { ERROR_END }
+	RegistryString.Buffer = reinterpret_cast<PWSTR>(ALLOC_POOL(UNICODE_POOL));
+	if(RegistryString.Buffer == nullptr) { ERROR_END }
+
+	Status = ShDrvUtil::StringToUnicode((PSTR)RegistryPath, &RegistryString);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	InitializeObjectAttributes(
+		&ObjAttrib,
+		&RegistryString,
+		OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE,
+		nullptr,
+		nullptr);
+
+	Status = ZwOpenKey(&RegistryKey, AccessRight, &ObjAttrib);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	*Handle = RegistryKey;
+
+FINISH:
+	FREE_POOL(RegistryString.Buffer);
+	PRINT_ELAPSED;
+	return Status;
+}
+
+/**
+* @brief Get the key information corresponding to `RegistryPath`
+* @param[in] PCSTR `RegistryPath` : The registry path starting with "\Registry"
+* @param[in] PCSTR `ValueName` : Value key
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+*/
+PKEY_VALUE_FULL_INFORMATION ShDrvUtil::RegGetKeyValueInformation(
+	IN PCSTR RegistryPath, 
+	IN PCSTR ValueName)
+{
+#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return nullptr; }
+
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+
+	HANDLE RegistryKey = nullptr;
+	UNICODE_STRING ValueString = { 0, };
+	PKEY_VALUE_FULL_INFORMATION KeyInformation = nullptr;
+	ULONG ReturnLength = 0;
+
+	if (RegistryPath == nullptr || ValueName == nullptr) { ERROR_END }
+
+	ValueString.Buffer = reinterpret_cast<PWSTR>(ALLOC_POOL(UNICODE_POOL));
+	if (ValueString.Buffer == nullptr) { ERROR_END }
+
+	Status = ShDrvUtil::StringToUnicode((PSTR)ValueName, &ValueString);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	Status = RegOpenKey(RegistryPath, KEY_QUERY_VALUE, &RegistryKey);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	Status = ZwQueryValueKey(RegistryKey, &ValueString, KeyValueFullInformation, nullptr, 0, &ReturnLength);
+	if (Status == STATUS_BUFFER_OVERFLOW || Status == STATUS_BUFFER_TOO_SMALL)
+	{
+		Status = ShDrvCore::AllocatePool<PKEY_VALUE_FULL_INFORMATION>(ReturnLength, &KeyInformation);
+		if (!NT_SUCCESS(Status)) { ERROR_END }
+	}
+	else { ERROR_END; }
+
+	Status = ZwQueryValueKey(RegistryKey, &ValueString, KeyValueFullInformation, KeyInformation, ReturnLength, &ReturnLength);
+	if (!NT_SUCCESS(Status)) 
+	{ 
+		FREE_POOLEX(KeyInformation);
+		KeyInformation = nullptr;
+		ERROR_END 
+	}
+
+FINISH:
+	if (RegistryKey != nullptr) { ZwClose(RegistryKey); }
+	FREE_POOL(ValueString.Buffer);
+	PRINT_ELAPSED;
+	return KeyInformation;
+}
+
+NTSTATUS ShDrvUtil::RegCreateKey(
+	IN PCSTR RegistryPath)
+{
+#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
+
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+
+	HANDLE RegistryKey = nullptr;
+	OBJECT_ATTRIBUTES ObjAttrib = { 0, };
+	UNICODE_STRING RegistryString = { 0, };
+	ULONG Disposition = 0;
+	if (RegistryPath == nullptr) { ERROR_END }
+	RegistryString.Buffer = reinterpret_cast<PWSTR>(ALLOC_POOL(UNICODE_POOL));
+	if (RegistryString.Buffer == nullptr) { ERROR_END }
+
+	Status = ShDrvUtil::StringToUnicode((PSTR)RegistryPath, &RegistryString);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	InitializeObjectAttributes(
+		&ObjAttrib,
+		&RegistryString,
+		OBJ_CASE_INSENSITIVE | OBJ_OPENIF,
+		nullptr,
+		nullptr);
+
+	Status = ZwCreateKey(&RegistryKey, KEY_CREATE_SUB_KEY, &ObjAttrib, 0, nullptr, REG_OPTION_NON_VOLATILE, &Disposition);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	/*if (Disposition == REG_OPENED_EXISTING_KEY)
+	{
+		Status = STATUS_ALREADY_REGISTERED;
+	}*/
+FINISH:
+	if (RegistryKey != nullptr) { ZwClose(RegistryKey); }
+	FREE_POOL(RegistryString.Buffer);
+	return Status;
+}
+
+NTSTATUS ShDrvUtil::RegDeleteKey(
+	IN PCSTR RegistryPath)
+{
+#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
+
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	ShDrvCore::ShString RegPath;
+	HANDLE RegistryKey = nullptr;
+	OBJECT_ATTRIBUTES ObjAttrib = { 0, };
+	PKEY_BASIC_INFORMATION KeyInfo = nullptr;
+	PKEY_FULL_INFORMATION KeyFullInfo = nullptr;
+	ANSI_STRING TempString = { 0, };
+	PWCHAR TempWchar = nullptr;
+	ULONG ReturnLength = 0;
+
+	if (RegistryPath == nullptr) { ERROR_END }
+	
+	Status = RegOpenKey(RegistryPath, KEY_WRITE, &RegistryKey);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	ZwQueryKey(RegistryKey, KeyFullInformation, nullptr, 0, &ReturnLength);
+	ShDrvCore::AllocatePool<PKEY_FULL_INFORMATION>(ReturnLength, &KeyFullInfo);
+	Status = ZwQueryKey(RegistryKey,KeyFullInformation, KeyFullInfo, ReturnLength, &ReturnLength);
+
+	ReturnLength = 0;
+	for (auto i = 0; i < KeyFullInfo->SubKeys; i++)
+	{
+		RegPath = RegistryPath;
+		Status = ZwEnumerateKey(RegistryKey, i, KeyBasicInformation, nullptr, 0, &ReturnLength);
+		if (Status == STATUS_BUFFER_TOO_SMALL || Status == STATUS_BUFFER_OVERFLOW)
+		{
+			Status = ShDrvCore::AllocatePool<PKEY_BASIC_INFORMATION>(ReturnLength, &KeyInfo);
+			if (!NT_SUCCESS(Status)) { ERROR_END }
+
+			Status = ZwEnumerateKey(RegistryKey, i, KeyBasicInformation, KeyInfo, ReturnLength, &ReturnLength);
+			if (!NT_SUCCESS(Status)) { ERROR_END }
+
+			TempWchar = reinterpret_cast<PWSTR>(ALLOC_POOL(UNICODE_POOL));
+			if (TempWchar == nullptr) { ERROR_END }
+
+			RtlCopyBytes(TempWchar, KeyInfo->Name, KeyInfo->NameLength);
+
+			TempString.Buffer = reinterpret_cast<PSTR>(ALLOC_POOL(ANSI_POOL));
+			if (TempString.Buffer == nullptr) { ERROR_END }
+
+			Status = WStringToAnsiString(TempWchar, &TempString);
+			if (!NT_SUCCESS(Status)) { ERROR_END }
+
+			RegPath += "\\";
+			RegPath += TempString.Buffer;
+
+			Status = RegDeleteKey(RegPath.GetString());
+			if (!NT_SUCCESS(Status)) { ERROR_END }
+			FREE_POOL(TempWchar);
+			FREE_POOL(TempString.Buffer);
+			FREE_POOLEX(KeyInfo);
+		}
+		else { ERROR_END }
+	}
+
+	Status = ZwDeleteKey(RegistryKey);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+FINISH:
+	if (RegistryKey != nullptr) { ZwClose(RegistryKey); }
+	FREE_POOL(TempWchar);
+	FREE_POOL(TempString.Buffer);
+	FREE_POOLEX(KeyInfo);
+	FREE_POOLEX(KeyFullInfo);
+	PRINT_ELAPSED;
+	return Status;
+}
+
+/**
+* @brief Get the registry key value(bin)
+* @param[in] PCSTR `RegistryPath` : The registry path starting with "\Registry"
+* @param[in] PCSTR `ValueName` : Value key
+* @param[out] PUCHAR `Value`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+*/
+NTSTATUS ShDrvUtil::RegQueryBinary(
+	IN  PCSTR RegistryPath, 
+	IN  PCSTR ValueName, 
+	OUT PUCHAR Value)
+{
+#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	PKEY_VALUE_FULL_INFORMATION KeyInformation = nullptr;
+	PULONG Result = nullptr;
+	if (RegistryPath == nullptr || ValueName == nullptr || Value == nullptr) { ERROR_END }
+
+	KeyInformation = RegGetKeyValueInformation(RegistryPath, ValueName);
+	if (KeyInformation == nullptr) { ERROR_END }
+	if (KeyInformation->DataLength > PAGE_SIZE) { Status = STATUS_BUFFER_OVERFLOW; ERROR_END }
+
+	Result = ADD_OFFSET(KeyInformation, KeyInformation->DataOffset, PULONG);
+	if (Result == nullptr) { ERROR_END }
+	
+	RtlCopyBytes(Value, Result, KeyInformation->DataLength);
+
+FINISH:
+	FREE_POOLEX(KeyInformation);
+	PRINT_ELAPSED;
+	return Status;
+}
+
+/**
+* @brief Get the registry key value(dword)
+* @param[in] PCSTR `RegistryPath` : The registry path starting with "\Registry"
+* @param[in] PCSTR `ValueName` : Value key
+* @param[out] PULONG `Value`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+*/
+NTSTATUS ShDrvUtil::RegQueryDword(
+	IN  PCSTR RegistryPath, 
+	IN  PCSTR ValueName, 
+	OUT PULONG Value)
+{
+#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	PKEY_VALUE_FULL_INFORMATION KeyInformation = nullptr;
+	PULONG Result = nullptr;
+	if(RegistryPath == nullptr || ValueName == nullptr || Value == nullptr) { ERROR_END }
+	
+	KeyInformation = RegGetKeyValueInformation(RegistryPath, ValueName);
+	if(KeyInformation == nullptr) { ERROR_END }
+
+	Result = ADD_OFFSET(KeyInformation, KeyInformation->DataOffset, PULONG);
+	if(Result == nullptr) { ERROR_END }
+
+	*Value = *Result;
+
+FINISH:
+	FREE_POOLEX(KeyInformation);
+	PRINT_ELAPSED;
+	return Status;
+}
+
+/**
+* @brief Get the registry key value(str)
+* @param[in] PCSTR `RegistryPath` : The registry path starting with "\Registry"
+* @param[in] PCSTR `ValueName` : Value key
+* @param[out] PWSTR `Value`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+*/
+NTSTATUS ShDrvUtil::RegQueryStr(
+	IN  PCSTR RegistryPath, 
+	IN  PCSTR ValueName, 
+	OUT PWSTR Value)
+{
+#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	PKEY_VALUE_FULL_INFORMATION KeyInformation = nullptr;
+	PWSTR Result = nullptr;
+	if (RegistryPath == nullptr || ValueName == nullptr || Value == nullptr) { ERROR_END }
+
+	KeyInformation = RegGetKeyValueInformation(RegistryPath, ValueName);
+	if (KeyInformation == nullptr) { ERROR_END }
+
+	Result = ADD_OFFSET(KeyInformation, KeyInformation->DataOffset, PWSTR);
+	if (Result == nullptr) { ERROR_END }
+
+	Status = StringCopyW(Value, Result);
+	if(!NT_SUCCESS(Status)) { ERROR_END }
+
+FINISH:
+	FREE_POOLEX(KeyInformation);
+	PRINT_ELAPSED;
+	return Status;
+}
+
+/**
+* @brief Set the registry key value(bin)
+* @param[in] PCSTR `RegistryPath` : The registry path starting with "\Registry"
+* @param[in] PCSTR `ValueName` : Value key
+* @param[in] PUCHAR `Value`
+* @param[in] ULONG `Size` : binary size
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+*/
+NTSTATUS ShDrvUtil::RegSetBinary(
+	IN PCSTR RegistryPath, 
+	IN PCSTR ValueName, 
+	IN PUCHAR Value,
+	IN ULONG Size)
+{
+#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
+
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	HANDLE RegistryKey = nullptr;
+	UNICODE_STRING ValueString = { 0, };
+	if (RegistryPath == nullptr || ValueName == nullptr || Value == nullptr) { ERROR_END }
+
+	ValueString.Buffer = reinterpret_cast<PWSTR>(ALLOC_POOL(UNICODE_POOL));
+	if (ValueString.Buffer == nullptr) { ERROR_END }
+
+	Status = ShDrvUtil::StringToUnicode((PSTR)ValueName, &ValueString);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	Status = RegOpenKey(RegistryPath, KEY_SET_VALUE, &RegistryKey);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	Status = ZwSetValueKey(RegistryKey, &ValueString, 0, REG_BINARY, Value, Size);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+FINISH:
+	if (RegistryKey != nullptr) { ZwClose(RegistryKey); }
+	FREE_POOL(ValueString.Buffer);
+	PRINT_ELAPSED;
+	return Status;
+}
+
+/**
+* @brief Set the registry key value(dword)
+* @param[in] PCSTR `RegistryPath` : The registry path starting with "\Registry"
+* @param[in] PCSTR `ValueName` : Value key
+* @param[in] ULONG `Value`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+*/
+NTSTATUS ShDrvUtil::RegSetDword(
+	IN PCSTR RegistryPath, 
+	IN PCSTR ValueName, 
+	IN ULONG Value)
+{
+#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
+
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	HANDLE RegistryKey = nullptr;
+	UNICODE_STRING ValueString = { 0, };
+	if (RegistryPath == nullptr || ValueName == nullptr) { ERROR_END }
+
+	ValueString.Buffer = reinterpret_cast<PWSTR>(ALLOC_POOL(UNICODE_POOL));
+	if (ValueString.Buffer == nullptr) { ERROR_END }
+
+	Status = ShDrvUtil::StringToUnicode((PSTR)ValueName, &ValueString);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	Status = RegOpenKey(RegistryPath, KEY_SET_VALUE, &RegistryKey);
+	if(!NT_SUCCESS(Status)) { ERROR_END }
+
+	Status = ZwSetValueKey(RegistryKey, &ValueString, 0, REG_DWORD, &Value, sizeof(ULONG));
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+FINISH:
+	if (RegistryKey != nullptr) { ZwClose(RegistryKey); }
+	FREE_POOL(ValueString.Buffer);
+	PRINT_ELAPSED;
+	return Status;
+}
+
+/**
+* @brief Set the registry key value(str)
+* @param[in] PCSTR `RegistryPath` : The registry path starting with "\Registry"
+* @param[in] PCSTR `ValueName` : Value key
+* @param[in] PWSTR `Value`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+*/
+NTSTATUS ShDrvUtil::RegSetStr(
+	IN PCSTR RegistryPath, 
+	IN PCSTR ValueName, 
+	IN PWSTR Value)
+{
+#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
+
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	HANDLE RegistryKey = nullptr;
+	UNICODE_STRING ValueString = { 0, };
+	ULONG ValueLength = 0;
+	if (RegistryPath == nullptr || ValueName == nullptr || Value == nullptr) { ERROR_END }
+
+	ValueLength = (StringLengthW(Value) + 1) * 2 ; /**< This value must include space for any terminating zeros */
+
+	ValueString.Buffer = reinterpret_cast<PWSTR>(ALLOC_POOL(UNICODE_POOL));
+	if (ValueString.Buffer == nullptr) { ERROR_END }
+
+	Status = ShDrvUtil::StringToUnicode((PSTR)ValueName, &ValueString);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	Status = RegOpenKey(RegistryPath, KEY_SET_VALUE, &RegistryKey);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	Status = ZwSetValueKey(RegistryKey, &ValueString, 0, REG_SZ, Value, ValueLength);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+FINISH:
+	if (RegistryKey != nullptr) { ZwClose(RegistryKey); }
+	FREE_POOL(ValueString.Buffer);
+	PRINT_ELAPSED;
+	return Status;
 }

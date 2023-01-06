@@ -33,7 +33,7 @@ NTSTATUS ShDrvPe::Initialize(
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 	if (ImageBase == nullptr || Process == nullptr) { ERROR_END }
-	if (this->IsInit == true) { ERROR_END }
+	if (this->IsInit == TRUE) { ERROR_END }
 
 	CHECK_GLOBAL_OFFSET(EPROCESS, ProcessLock);
 	if (!NT_SUCCESS(Status)) { ERROR_END }
@@ -48,7 +48,7 @@ NTSTATUS ShDrvPe::Initialize(
 	this->ProcessLock = ADD_OFFSET(this->Process, GET_GLOBAL_OFFSET(EPROCESS, ProcessLock), EX_PUSH_LOCK*);
 	this->ApcState  = { 0, };
 	this->ImageBase = ImageBase;
-	this->bAttached = false;
+	this->bAttached = FALSE;
 	this->b32bit    = b32bit;
 
 	this->Pe = new(SH_PE_HEADER);
@@ -64,7 +64,7 @@ NTSTATUS ShDrvPe::Initialize(
 	Status = InitializeEx();
 	if (!NT_SUCCESS(Status)) { ERROR_END }
 
-	this->IsInit = true;
+	this->IsInit = TRUE;
 FINISH:
 	PRINT_ELAPSED;
 	return Status;
@@ -73,7 +73,7 @@ FINISH:
 /**
 * @brief Validation of the PE Format
 * @details Check the signatures of DOS Header and NT Header
-* @return If the format is invalid, return value is `false`
+* @return If the format is invalid, return value is `FALSE`
 * @author Shh0ya @date 2022-12-27
 */
 BOOLEAN ShDrvPe::ValidPeCheck()
@@ -87,17 +87,17 @@ BOOLEAN ShDrvPe::ValidPeCheck()
 #endif
 
 	SAVE_CURRENT_COUNTER;
-	BOOLEAN Result = false;
+	BOOLEAN Result = FALSE;
 
 	if (b32bit)
 	{
-		Result = Pe32->DosHeader->e_magic == IMAGE_DOS_SIGNATURE ? true : false;
-		Result = Pe32->NtHeaders->Signature == IMAGE_NT_SIGNATURE ? true : false;
+		Result = Pe32->DosHeader->e_magic == IMAGE_DOS_SIGNATURE ? TRUE : FALSE;
+		Result = Pe32->NtHeaders->Signature == IMAGE_NT_SIGNATURE ? TRUE : FALSE;
 	}
 	else
 	{
-		Result = Pe->DosHeader->e_magic == IMAGE_DOS_SIGNATURE ? true : false;
-		Result = Pe->NtHeaders->Signature == IMAGE_NT_SIGNATURE ? true : false;
+		Result = Pe->DosHeader->e_magic == IMAGE_DOS_SIGNATURE ? TRUE : FALSE;
+		Result = Pe->NtHeaders->Signature == IMAGE_NT_SIGNATURE ? TRUE : FALSE;
 	}
 
 FINISH:
@@ -203,7 +203,7 @@ ULONG64 ShDrvPe::GetAddressByExport(
 	for (auto i = 0; i < ExportDirectory->NumberOfNames; i++)
 	{
 		auto Name = ADD_OFFSET(ImageBase, AddressOfName[i], PCHAR);
-		if (StringCompare((PSTR)RoutineName, Name) == true)
+		if (StringCompare((PSTR)RoutineName, Name) == TRUE)
 		{
 			Result = ADD_OFFSET(ImageBase, AddressOfFunctions[AddressOfOrdinals[i]], ULONG64);
 			break;
@@ -324,7 +324,7 @@ NTSTATUS ShDrvPe::InitializeEx()
 	Attach();
 	LOCK_SHARED(ProcessLock, PushLock);
 
-	if (MmIsAddressValid(ImageBase) == false)
+	if (MmIsAddressValid(ImageBase) == FALSE)
 	{
 		if (Process == PsInitialSystemProcess)
 		{
@@ -339,7 +339,7 @@ NTSTATUS ShDrvPe::InitializeEx()
 			}
 			Attach();
 			LOCK_SHARED(ProcessLock, PushLock);
-			if (MmIsAddressValid(ImageBase) == false) { Status = STATUS_UNSUCCESSFUL; ERROR_END }
+			if (MmIsAddressValid(ImageBase) == FALSE) { Status = STATUS_UNSUCCESSFUL; ERROR_END }
 		}
 		else
 		{
@@ -347,7 +347,7 @@ NTSTATUS ShDrvPe::InitializeEx()
 			ERROR_END
 		}
 	}
-	if (b32bit == false)
+	if (b32bit == FALSE)
 	{
 		auto DosHeader = reinterpret_cast<PIMAGE_DOS_HEADER>(ImageBase);
 		auto NtHeaders = RtlImageNtHeader(ImageBase);
@@ -382,7 +382,7 @@ NTSTATUS ShDrvPe::InitializeEx()
 		Pe32->ImageEnd  = ADD_OFFSET(ImageBase, NtHeaders->OptionalHeader.SizeOfImage, ULONG);
 	}
 
-	ExportDirectory = reinterpret_cast<PIMAGE_EXPORT_DIRECTORY>(RtlImageDirectoryEntryToData(ImageBase, true, IMAGE_DIRECTORY_ENTRY_EXPORT, &ReturnSize));
+	ExportDirectory = reinterpret_cast<PIMAGE_EXPORT_DIRECTORY>(RtlImageDirectoryEntryToData(ImageBase, TRUE, IMAGE_DIRECTORY_ENTRY_EXPORT, &ReturnSize));
 
 FINISH:
 	UNLOCK_SHARED(ProcessLock, PushLock);

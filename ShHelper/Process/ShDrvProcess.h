@@ -62,7 +62,7 @@ public:
 		IN PCSTR Pattern,
 		OUT PVOID* Result,
 		IN PCSTR Mask = nullptr,
-		IN BOOLEAN bAllScan = false);
+		IN BOOLEAN bAllScan = FALSE);
 
 	ULONG MemoryScan(
 		IN PVOID Address,
@@ -70,7 +70,7 @@ public:
 		IN PCSTR Pattern,
 		OUT PVOID* Result,
 		IN PCSTR Mask = nullptr,
-		IN BOOLEAN bAllScan = false);
+		IN BOOLEAN bAllScan = FALSE);
 
 	PEPROCESS GetProcess() { return Process; }
 
@@ -87,10 +87,10 @@ private:
 		IN PCSTR Mask,
 		OUT PVOID* Result);
 
-	NTSTATUS Attach(BOOLEAN bExclusive = false);
-	NTSTATUS AttachEx(BOOLEAN bExclusive = false);
-	NTSTATUS Detach(BOOLEAN bExclusive = false);
-	NTSTATUS DetachEx(BOOLEAN bExclusive = false);
+	NTSTATUS Attach(IN BOOLEAN bExclusive = FALSE);
+	NTSTATUS AttachEx(IN BOOLEAN bExclusive = FALSE);
+	NTSTATUS Detach(IN BOOLEAN bExclusive = FALSE);
+	NTSTATUS DetachEx(IN BOOLEAN bExclusive = FALSE);
 };
 
 

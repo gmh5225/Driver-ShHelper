@@ -201,6 +201,7 @@
     <Link>
       <TreatLinkerWarningAsErrors>false</TreatLinkerWarningAsErrors>
       <EntryPointSymbol>DriverEntry</EntryPointSymbol>
+      <AdditionalDependencies>fltmgr.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ClCompile>
       <AdditionalIncludeDirectories>$(SolutionDir)$(ProjectName)\;$(SolutionDir)Common\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -219,6 +220,7 @@
     <Link>
       <TreatLinkerWarningAsErrors>false</TreatLinkerWarningAsErrors>
       <EntryPointSymbol>DriverEntry</EntryPointSymbol>
+      <AdditionalDependencies>fltmgr.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ClCompile>
       <AdditionalIncludeDirectories>$(SolutionDir)$(ProjectName)\;$(SolutionDir)Common\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -237,11 +239,13 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Callbacks\ShDrvCallbacks.h" />
     <ClInclude Include="Core\ShDrvCore.h" />
     <ClInclude Include="Enum\ShDrvEnum.h" />
     <ClInclude Include="Enum\ShDrvUndocEnum.h" />
     <ClInclude Include="Memory\ShDrvMemory.h" />
     <ClInclude Include="Memory\ShDrvMemoryScanner.h" />
+    <ClInclude Include="MiniFilter\ShDrvMiniFilter.h" />
     <ClInclude Include="Pe\ShDrvPe.h" />
     <ClInclude Include="PoolManager\ShDrvPoolManager.h" />
     <ClInclude Include="Process\ShDrvProcess.h" />
@@ -255,9 +259,11 @@
     <ClInclude Include="Util\ShDrvUtil.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Callbacks\ShDrvCallbacks.cpp" />
     <ClCompile Include="Core\ShDrvCore.cpp" />
     <ClCompile Include="Memory\ShDrvMemory.cpp" />
     <ClCompile Include="Memory\ShDrvMemoryScanner.cpp" />
+    <ClCompile Include="MiniFilter\ShDrvMiniFilter.cpp" />
     <ClCompile Include="Pe\ShDrvPe.cpp" />
     <ClCompile Include="PoolManager\ShDrvPoolManager.cpp" />
     <ClCompile Include="Process\ShDrvProcess.cpp" />

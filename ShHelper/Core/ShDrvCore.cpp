@@ -129,7 +129,7 @@ NTSTATUS ShDrvCore::GetSystemModuleInformation(
 	{
 		ModuleEntry = &SystemInformation->Module[i];
 		CompareName = strrchr(ModuleEntry->FullPathName, '\\') + 1;
-		if (StringCompare(TargetName, CompareName) == true)
+		if (StringCompare(TargetName, CompareName) == TRUE)
 		{
 			Status = STATUS_SUCCESS;
 			RtlCopyMemory(ModuleInfomration, ModuleEntry, SYSTEM_MODULE_ENTRY_SIZE);
@@ -202,14 +202,14 @@ NTSTATUS ShDrvCore::GetSystemModuleInformationEx(
 	while (g_Variables->PsLoadedModuleList != NextEntry)
 	{
 		ModuleEntry = CONTAINING_RECORD(NextEntry, LDR_DATA_TABLE_ENTRY, InLoadOrderModuleList);
-		if (MmIsAddressValid(ModuleEntry) == false)
+		if (MmIsAddressValid(ModuleEntry) == FALSE)
 		{
 			Status = STATUS_UNSUCCESSFUL;
 			UNLOCK_RESOURCE(ResourceLock);
 			ERROR_END
 		}
 
-		if (RtlCompareUnicodeString(&ModuleEntry->BaseDllName, &TargetString, true) == false)
+		if (RtlCompareUnicodeString(&ModuleEntry->BaseDllName, &TargetString, TRUE) == FALSE)
 		{
 			RtlCopyMemory(ModuleInformation, ModuleEntry, LDR_DATA_TABLE_ENTRY_SIZE);
 			break;
@@ -230,7 +230,7 @@ FINISH:
 * @brief Check the object type
 * @param[in] PVOID `Object`
 * @param[in] POBJECT_TYPE `ObjectType`
-* @return If object is invalid, return value is `false` 
+* @return If object is invalid, return value is `FALSE` 
 * @author Shh0ya @date 2022-12-27
 */
 BOOLEAN ShDrvCore::IsValidObject(
@@ -247,7 +247,7 @@ BOOLEAN ShDrvCore::IsValidObject(
 
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
-	auto Result = false;
+	BOOLEAN Result = FALSE;
 	POBJECT_TYPE SrcObjType = nullptr;
 
 	if (Object == nullptr || ObjectType == nullptr || g_Routines == nullptr) { ERROR_END }
@@ -255,7 +255,7 @@ BOOLEAN ShDrvCore::IsValidObject(
 	SrcObjType = SH_ROUTINE_CALL(ObGetObjectType)(Object);
 	if (SrcObjType == nullptr) { ERROR_END; }
 
-	if (SrcObjType == ObjectType) { Result = true; }
+	if (SrcObjType == ObjectType) { Result = TRUE; }
 
 FINISH:
 	PRINT_ELAPSED;
@@ -266,7 +266,7 @@ FINISH:
 * @brief Check that the memory address is the session address
 * @warning Unsafety routine, Windows kernel obsolete routines : https://learn.microsoft.com/en-us/windows-hardware/drivers/kernel/mmcreatemdl
 * @param[in] PVOID `Address`
-* @return If not session address, return value is `false`
+* @return If not session address, return value is `FALSE`
 * @author Shh0ya @date 2022-12-27
 * @see ShDrvCore::IsSessionAddressEx, ShDrvCore::IsSessionAddressEx2
 */
@@ -282,12 +282,12 @@ BOOLEAN ShDrvCore::IsSessionAddress(
 #endif
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
-	auto Result = true;
+	BOOLEAN Result = TRUE;
 
 	if(Address == nullptr) { ERROR_END }
-	if (MmIsNonPagedSystemAddressValid(Address) == true)
+	if (MmIsNonPagedSystemAddressValid(Address) == TRUE)
 	{
-		Result = false;
+		Result = FALSE;
 	}
 
 FINISH:
@@ -299,7 +299,7 @@ FINISH:
 * @brief Check that the memory address is the session address
 * @details Check using each address range within the global variable
 * @param[in] PVOID `Address`
-* @return If not session address, return value is `false`
+* @return If not session address, return value is `FALSE`
 * @author Shh0ya @date 2022-12-27
 * @see ShDrvCore::IsSessionAddress, ShDrvCore::IsSessionAddressEx2
 */
@@ -315,16 +315,16 @@ BOOLEAN ShDrvCore::IsSessionAddressEx(
 #endif
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
-	auto Result = false;
+	BOOLEAN Result = FALSE;
 
 	if (Address == nullptr ) { ERROR_END }
 	
-	if (IN_GLOBAL_RANGE(Win32k, Address) == true ||
-		IN_GLOBAL_RANGE(Win32kBase, Address) == true ||
-		IN_GLOBAL_RANGE(Win32kFull, Address) == true ||
-		IN_GLOBAL_RANGE(Cdd, Address) == true)
+	if (IN_GLOBAL_RANGE(Win32k, Address) == TRUE ||
+		IN_GLOBAL_RANGE(Win32kBase, Address) == TRUE ||
+		IN_GLOBAL_RANGE(Win32kFull, Address) == TRUE ||
+		IN_GLOBAL_RANGE(Cdd, Address) == TRUE)
 	{
-		Result = true;
+		Result = TRUE;
 	}
 
 FINISH:
@@ -336,7 +336,7 @@ FINISH:
 * @brief Check that the memory address is the session address
 * @details Attach to process where `Window Station` exists, and then check if can read the memory
 * @param[in] PVOID `Address`
-* @return If not session address, return value is `false`
+* @return If not session address, return value is `FALSE`
 * @author Shh0ya @date 2022-12-27
 * @see ShDrvCore::IsSessionAddress, ShDrvCore::IsSessionAddressEx
 */
@@ -352,17 +352,17 @@ BOOLEAN ShDrvCore::IsSessionAddressEx2(
 #endif
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
-	auto Result = false;
+	BOOLEAN Result = FALSE;
 	KAPC_STATE ApcState = { 0, };
 
 	if (Address == nullptr) { ERROR_END }
-	if (MmIsAddressValid(Address) == false)
+	if (MmIsAddressValid(Address) == FALSE)
 	{
 		Status = AttachSessionProcess(&ApcState);
 		if (!NT_SUCCESS(Status)) { ERROR_END }
 
 		Result = MmIsAddressValid(Address);
-		if (Result == false) { Log("this %p", Address); }
+		if (Result == FALSE) { Log("this %p", Address); }
 		DetachSessionProcess(&ApcState);
 	}
 
@@ -452,6 +452,32 @@ FINISH:
 	return;
 }
 
+ShDrvCore::ShString::ShString(
+	IN PCSTR s)
+{
+#if TRACE_LOG_DEPTH & TRACE_CORE
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+
+	this->Buffer = reinterpret_cast<PSTR>(ALLOC_POOL(ANSI_POOL));
+	if (this->Buffer == nullptr) { ERROR_END }
+
+	Status = StringCopy(this->Buffer, s);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	this->Length = StringLength(this->Buffer);
+
+FINISH:
+	PRINT_ELAPSED;
+	return;
+}
+
 ShDrvCore::ShString::~ShString()
 {
 #if TRACE_LOG_DEPTH & TRACE_CORE
@@ -482,10 +508,65 @@ BOOLEAN ShDrvCore::ShString::IsEqual(
 #endif
 #endif
 	SAVE_CURRENT_COUNTER;
-	BOOLEAN Result = false;
+	BOOLEAN Result = FALSE;
 	Result = StringCompare(this->Buffer, s.Buffer, CaseInsensitive);
 
 FINISH:
+	PRINT_ELAPSED;
+	return Result;
+}
+
+LONG ShDrvCore::ShString::IsContains(
+	IN PCSTR CheckString, 
+	IN LONG StartIndex, 
+	IN BOOLEAN CaseInsensitive)
+{
+#if TRACE_LOG_DEPTH & TRACE_CORE
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	PSTR CompareString = nullptr;
+	ShString Source;
+	ShString Original;
+	LONG Result = NOT_CONTAINS;
+	LONG LoopCount = 0;
+	if(CheckString == nullptr) { ERROR_END }
+
+	Source = CheckString;
+	if (StartIndex > 0) { Original = &Buffer[StartIndex]; }
+	if (StartIndex == 0) { Original = Buffer; }
+
+	if(Source.Length > Original.Length || Source.Length == 0 || StartIndex < 0) { ERROR_END }
+	if (Source.Length == Original.Length)
+	{
+		Result = IsEqual(Source) ? 0 : NOT_CONTAINS;
+		Result += StartIndex;
+		END;
+	}
+
+	CompareString = reinterpret_cast<PSTR>(ALLOC_POOL(ANSI_POOL));
+	LoopCount = Original.Length - Source.Length + 1;
+	for (auto i = 0; i < LoopCount; i++)
+	{
+		RtlSecureZeroMemory(CompareString, STR_MAX_LENGTH);
+		Status = StringCopyN(CompareString, &Original.Buffer[i], Source.Length - 1);
+		if (!NT_SUCCESS(Status)) { break; }
+
+		Result = StringCompare(Source.Buffer, CompareString, CaseInsensitive) ? i : NOT_CONTAINS;
+		if (Result != NOT_CONTAINS)
+		{ 
+			Result += StartIndex;
+			break;
+		}
+	}
+
+FINISH:
+	FREE_POOL(CompareString);
 	PRINT_ELAPSED;
 	return Result;
 }
@@ -604,6 +685,264 @@ ShDrvCore::ShString& ShDrvCore::ShString::operator+=(
 	if (!NT_SUCCESS(Status)) { ERROR_END }
 
 	this->Length = StringLength(this->Buffer);
+
+FINISH:
+	PRINT_ELAPSED;
+	return *this;
+}
+
+ShDrvCore::ShWString::ShWString()
+{
+#if TRACE_LOG_DEPTH & TRACE_CORE
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+	SAVE_CURRENT_COUNTER;
+
+	this->Buffer = reinterpret_cast<PWSTR>(ALLOC_POOL(UNICODE_POOL));
+	this->Length = 0;
+
+FINISH:
+	PRINT_ELAPSED;
+	return;
+}
+
+ShDrvCore::ShWString::ShWString(
+	IN PCWSTR s)
+{
+#if TRACE_LOG_DEPTH & TRACE_CORE
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+
+	this->Buffer = reinterpret_cast<PWSTR>(ALLOC_POOL(UNICODE_POOL));
+	if (this->Buffer == nullptr) { ERROR_END }
+
+	Status = ShDrvUtil::StringCopyW(this->Buffer, s);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	this->Length = ShDrvUtil::StringLengthW(this->Buffer);
+
+FINISH:
+	PRINT_ELAPSED;
+	return;
+}
+
+ShDrvCore::ShWString::~ShWString()
+{
+#if TRACE_LOG_DEPTH & TRACE_CORE
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+	SAVE_CURRENT_COUNTER;
+
+	FREE_POOL(this->Buffer);
+
+FINISH:
+	PRINT_ELAPSED;
+	return;
+}
+
+BOOLEAN ShDrvCore::ShWString::IsEqual(
+	IN const ShWString& s, 
+	IN BOOLEAN CaseInsensitive)
+{
+#if TRACE_LOG_DEPTH & TRACE_CORE
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+	SAVE_CURRENT_COUNTER;
+	BOOLEAN Result = FALSE;
+	Result = ShDrvUtil::StringCompareW(this->Buffer, s.Buffer, CaseInsensitive);
+
+FINISH:
+	PRINT_ELAPSED;
+	return Result;
+}
+
+LONG ShDrvCore::ShWString::IsContains(
+	IN PCWSTR CheckString, 
+	IN LONG StartIndex, 
+	IN BOOLEAN CaseInsensitive)
+{
+#if TRACE_LOG_DEPTH & TRACE_CORE
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	PWSTR CompareString = nullptr;
+	ShWString Source;
+	ShWString Original;
+	LONG Result = NOT_CONTAINS;
+	LONG LoopCount = 0;
+	if (CheckString == nullptr) { ERROR_END }
+
+	Source = CheckString;
+	if (StartIndex > 0) { Original = &Buffer[StartIndex]; }
+	if (StartIndex == 0) { Original = Buffer; }
+
+	if (Source.Length > Original.Length || Source.Length == 0 || StartIndex < 0) { ERROR_END }
+	if (Source.Length == Original.Length)
+	{
+		Result = IsEqual(Source) ? 0 : NOT_CONTAINS;
+		Result += (StartIndex);
+		END;
+	}
+
+	CompareString = reinterpret_cast<PWSTR>(ALLOC_POOL(UNICODE_POOL));
+	LoopCount = Original.Length - Source.Length + 1;
+	for (auto i = 0; i < LoopCount; i++)
+	{
+		RtlSecureZeroMemory(CompareString, STR_MAX_LENGTH);
+		Status = ShDrvUtil::StringNCopyW(CompareString, &Original.Buffer[i], Source.Length - 1);
+		if (!NT_SUCCESS(Status)) { break; }
+
+		Result = ShDrvUtil::StringCompareW(Source.Buffer, CompareString, CaseInsensitive) ? i : NOT_CONTAINS;
+		if (Result != NOT_CONTAINS)
+		{
+			Result += StartIndex;
+			break;
+		}
+	}
+
+FINISH:
+	FREE_POOL(CompareString);
+	PRINT_ELAPSED;
+	return Result;
+}
+
+ShDrvCore::ShWString& ShDrvCore::ShWString::operator=(
+	IN PCWSTR s)
+{
+#if TRACE_LOG_DEPTH & TRACE_CORE
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+
+	FREE_POOL(this->Buffer);
+
+	this->Buffer = reinterpret_cast<PWSTR>(ALLOC_POOL(UNICODE_POOL));
+	if (this->Buffer == nullptr) { ERROR_END }
+
+	Status = ShDrvUtil::StringCopyW(this->Buffer, s);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	this->Length = ShDrvUtil::StringLengthW(this->Buffer);
+
+FINISH:
+	PRINT_ELAPSED;
+	return *this;
+}
+
+ShDrvCore::ShWString& ShDrvCore::ShWString::operator+(
+	IN PCWSTR s)
+{
+#if TRACE_LOG_DEPTH & TRACE_CORE
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+
+	Status = ShDrvUtil::StringConcatenateW(this->Buffer, s);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	this->Length = ShDrvUtil::StringLengthW(this->Buffer);
+
+FINISH:
+	PRINT_ELAPSED;
+	return *this;
+}
+
+ShDrvCore::ShWString& ShDrvCore::ShWString::operator+(
+	IN const ShWString& s)
+{
+#if TRACE_LOG_DEPTH & TRACE_CORE
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+
+	Status = ShDrvUtil::StringConcatenateW(this->Buffer, s.Buffer);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	this->Length = ShDrvUtil::StringLengthW(this->Buffer);
+
+FINISH:
+	PRINT_ELAPSED;
+	return *this;
+}
+
+ShDrvCore::ShWString& ShDrvCore::ShWString::operator+=(
+	IN PCWSTR s)
+{
+#if TRACE_LOG_DEPTH & TRACE_CORE
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+
+	Status = ShDrvUtil::StringConcatenateW(this->Buffer, s);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	this->Length = ShDrvUtil::StringLengthW(this->Buffer);
+
+FINISH:
+	PRINT_ELAPSED;
+	return *this;
+}
+
+ShDrvCore::ShWString& ShDrvCore::ShWString::operator+=(
+	IN const ShWString& s)
+{
+#if TRACE_LOG_DEPTH & TRACE_CORE
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+
+	Status = ShDrvUtil::StringConcatenateW(this->Buffer, s.Buffer);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	this->Length = ShDrvUtil::StringLengthW(this->Buffer);
 
 FINISH:
 	PRINT_ELAPSED;

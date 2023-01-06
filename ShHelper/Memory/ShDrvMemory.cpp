@@ -11,14 +11,15 @@
 /**
 * @brief Check that the address is in user mode
 * @param[in] PVOID `Address`
-* @return If not in user mode, return value is `false`
+* @return If not in user mode, return value is `FALSE`
 * @author Shh0ya @date 2022-12-27
 */
-BOOLEAN ShDrvMemory::IsUserMemorySpace(IN PVOID Address)
+BOOLEAN ShDrvMemory::IsUserMemorySpace(
+	IN PVOID Address)
 {
 	SAVE_CURRENT_COUNTER;
 	BOOLEAN Result = 0;
-	Result = (ULONG64)Address <= END_USER_MEMORY_SPACE ? true : false;
+	Result = (ULONG64)Address <= END_USER_MEMORY_SPACE ? TRUE : FALSE;
 
 	PRINT_ELAPSED;
 	return Result;
@@ -220,7 +221,7 @@ NTSTATUS ShDrvMemory::ReadPhysicalMemory(
 	CHECK_RWMEMORY_BUFFER;
 	if (!NT_SUCCESS(Status)) { ERROR_END }
 
-	if (IsUserMemorySpace(Address) == true)
+	if (IsUserMemorySpace(Address) == TRUE)
 	{
 		Status = ShDrvUtil::GetPhysicalAddressEx(Address, UserMode, &PhysicalAddress);
 	}
@@ -345,7 +346,7 @@ NTSTATUS ShDrvMemory::WritePhysicalMemory(
 	CHECK_RWMEMORY_BUFFER;
 	if (!NT_SUCCESS(Status)) { ERROR_END }
 
-	if (IsUserMemorySpace(Address) == true)
+	if (IsUserMemorySpace(Address) == TRUE)
 	{
 		Status = ShDrvUtil::GetPhysicalAddressEx(Address, UserMode, &PhysicalAddress);
 	}
@@ -431,11 +432,11 @@ NTSTATUS ShDrvMemory::SafeCopyMemory(
 	auto Status = STATUS_INVALID_PARAMETER;
 
 	if(Source == nullptr || Size == 0 || Dest == nullptr) { ERROR_END }
-	if(MmIsAddressValid(Source) == false || MmIsAddressValid(Dest) == false) { ERROR_END }
+	if(MmIsAddressValid(Source) == FALSE || MmIsAddressValid(Dest) == FALSE) { ERROR_END }
 
 	Status = STATUS_SUCCESS;
 
-	if (IsUserMemorySpace(Source) == true)
+	if (IsUserMemorySpace(Source) == TRUE)
 	{
 		__try
 		{
@@ -448,7 +449,7 @@ NTSTATUS ShDrvMemory::SafeCopyMemory(
 		}
 	}
 
-	if (IsUserMemorySpace(Dest) == true)
+	if (IsUserMemorySpace(Dest) == TRUE)
 	{
 		__try
 		{
@@ -502,9 +503,9 @@ NTSTATUS ShDrvMemory::SafeCopyMemoryInternal(
 	PVOID MappingAddress = nullptr;
 
 	if (Source == nullptr || Size == 0 || Dest == nullptr) { ERROR_END }
-	if (MmIsAddressValid(Source) == false || MmIsAddressValid(Dest) == false) { ERROR_END }
+	if (MmIsAddressValid(Source) == FALSE || MmIsAddressValid(Dest) == FALSE) { ERROR_END }
 
-	Mdl = IoAllocateMdl(Dest, Size, false, false, nullptr);
+	Mdl = IoAllocateMdl(Dest, Size, FALSE, FALSE, nullptr);
 	if (Mdl == nullptr) { ERROR_END }
 
 	__try
@@ -516,7 +517,7 @@ NTSTATUS ShDrvMemory::SafeCopyMemoryInternal(
 		ERROR_END
 	}
 
-	MappingAddress = MmMapLockedPagesSpecifyCache(Mdl, KernelMode, MmNonCached, nullptr, false, NormalPagePriority);
+	MappingAddress = MmMapLockedPagesSpecifyCache(Mdl, KernelMode, MmNonCached, nullptr, FALSE, NormalPagePriority);
 	if(MappingAddress == nullptr) 
 	{
 		MmUnlockPages(Mdl);

@@ -75,7 +75,7 @@ public:
 	NTSTATUS Initialize(
 		IN PVOID ImageBase,
 		IN PEPROCESS Process,
-		IN BOOLEAN b32bit = false);
+		IN BOOLEAN b32bit = FALSE);
 
 	PVOID   GetImageBase() { return ImageBase; }
 	PVOID   GetImageEnd() { return b32bit ? (PVOID)Pe32->ImageEnd : Pe->ImageEnd; }
@@ -99,13 +99,13 @@ private:
 	NTSTATUS InitializeEx();
 	VOID Attach() {
 		KeStackAttachProcess(Process, &ApcState);
-		bAttached = true;
+		bAttached = TRUE;
 	}
 	VOID Detach() {
 		if (bAttached)
 		{
 			KeUnstackDetachProcess(&ApcState);
-			bAttached = false;
+			bAttached = FALSE;
 		}
 	}
 }PeParser, *PPeParser;

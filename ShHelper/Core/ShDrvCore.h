@@ -66,7 +66,7 @@ namespace ShDrvCore {
 		IN SIZE_T Size,
 		OUT T* Pool)
 	{
-#if TRACE_LOG_DEPTH & TRACE_MEMORY
+#if TRACE_LOG_DEPTH & TRACE_CORE
 #if _CLANG
 		TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -85,7 +85,7 @@ namespace ShDrvCore {
 	template <typename T>
 	T* New()
 	{
-#if TRACE_LOG_DEPTH & TRACE_MEMORY
+#if TRACE_LOG_DEPTH & TRACE_CORE
 #if _CLANG
 		TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -105,7 +105,7 @@ namespace ShDrvCore {
 	template <typename T>
 	VOID Delete(T* Instance)
 	{
-#if TRACE_LOG_DEPTH & TRACE_MEMORY
+#if TRACE_LOG_DEPTH & TRACE_CORE
 #if _CLANG
 		TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -114,12 +114,15 @@ namespace ShDrvCore {
 #endif
 		if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return; }
 
-		if (Instance != nullptr && MmIsAddressValid(Instance) == true)
+		if (Instance != nullptr && MmIsAddressValid(Instance) == TRUE)
 		{
 			Instance->~T();
 			FREE_POOLEX(Instance);
 		}
 	}
+
+
+#define NOT_CONTAINS -1
 
 	class ShString {
 
@@ -128,6 +131,7 @@ namespace ShDrvCore {
 		ULONG Length;
 	public:
 		ShString();
+		ShString(IN PCSTR s);
 		~ShString();
 
 		PSTR  GetString() { return Buffer; }
@@ -135,13 +139,49 @@ namespace ShDrvCore {
 
 		BOOLEAN IsEqual(
 			IN const ShString& s, 
-			IN BOOLEAN CaseInsensitive = false);
+			IN BOOLEAN CaseInsensitive = FALSE);
+
+		LONG IsContains(
+			IN PCSTR CheckString,
+			IN LONG StartIndex = 0,
+			IN BOOLEAN CaseInsensitive = FALSE);
+
 	public:
 		ShString& operator = (IN PCSTR s);
 		ShString& operator + (IN PCSTR s);
 		ShString& operator + (IN const ShString& s);
 		ShString& operator +=(IN PCSTR s);
 		ShString& operator +=(IN const ShString& s);
+	};
+
+	class ShWString {
+
+	private:
+		PWSTR Buffer;
+		ULONG Length;
+	public:
+		ShWString();
+		ShWString(IN PCWSTR s);
+		~ShWString();
+
+		PWSTR GetString() { return Buffer; }
+		ULONG GetLength() { return Length; }
+
+		BOOLEAN IsEqual(
+			IN const ShWString& s,
+			IN BOOLEAN CaseInsensitive = FALSE);
+
+		LONG IsContains(
+			IN PCWSTR CheckString,
+			IN LONG StartIndex = 0,
+			IN BOOLEAN CaseInsensitive = FALSE);
+
+	public:
+		ShWString& operator = (IN PCWSTR s);
+		ShWString& operator + (IN PCWSTR s);
+		ShWString& operator + (IN const ShWString& s);
+		ShWString& operator +=(IN PCWSTR s);
+		ShWString& operator +=(IN const ShWString& s);
 	};
 }
 

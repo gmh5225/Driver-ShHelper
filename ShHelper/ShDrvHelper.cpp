@@ -8,10 +8,11 @@
  * @copyright the GNU General Public License v3
  */
 
-PSH_GLOBAL_ROUTINES  g_Routines;  /**< Global routines */
-PSH_GLOBAL_VARIABLES g_Variables; /**< Global variables */
-PSH_GLOBAL_OFFSETS   g_Offsets;   /**< Global offsets data */
-PSH_POOL_INFORMATION g_Pools;     /**< Global pool manager */
+PSH_GLOBAL_ROUTINES      g_Routines;  /**< Global routines */
+PSH_GLOBAL_VARIABLES     g_Variables; /**< Global variables */
+PSH_GLOBAL_OFFSETS       g_Offsets;   /**< Global offsets data */
+PSH_POOL_INFORMATION     g_Pools;     /**< Global pool manager */
+PSH_GLOBAL_CALLBACKS     g_Callbacks; /**< Global callback manager */
 
 // LLVM is not support
 //#pragma alloc_text("INIT", DriverEntry)
@@ -39,19 +40,36 @@ NTSTATUS DriverEntry(
 	auto Status = STATUS_SUCCESS;
 
 	DriverObject->DriverUnload = HelperFinalize;
-
 	Status = DriverInitialize();
 	if (!NT_SUCCESS(Status)) { ShDrvPoolManager::Finalize(); ERROR_END }
+	
+	Status = MiniFilterInitialize(DriverObject);
+	if (!NT_SUCCESS(Status)) { ShDrvPoolManager::Finalize(); ERROR_END }
+
+	Status = ObCallbackInitialize(DriverObject);
+	if (!NT_SUCCESS(Status)) 
+	{ 
+		MiniFilterUnload(); 
+		ShDrvPoolManager::Finalize(); 
+		ERROR_END 
+	}
+
+	Status = NotifyRoutineInitialize();
+	if (!NT_SUCCESS(Status))
+	{
+		MiniFilterUnload();
+		ShDrvPoolManager::Finalize();
+		ERROR_END
+	}
+
+	/*ShDrvExample::MemoryScanTest();
+	ShDrvExample::PeTest((HANDLE)6752, (HANDLE)2584);
+	ShDrvExample::ProcessTest((HANDLE)6752);
+	ShDrvExample::ProcessTest32((HANDLE)2584);*/
+
+
 	Log("Loaded driver");
 
-	/*ShDrvExample::PeTest((HANDLE)848, (HANDLE)8764);
-	ShDrvExample::ProcessTest((HANDLE)848);
-	ShDrvExample::ProcessTest32((HANDLE)8764);
-	ShDrvExample::MemoryScanTest();
-
-	PHYSICAL_ADDRESS Physic = { 0, };
-	ShDrvUtil::GetPhysicalAddressEx(g_Pools, KernelMode, &Physic);
-	Log("%llX", Physic.QuadPart);*/
 FINISH:
 	PRINT_ELAPSED;
 	return Status;
@@ -75,6 +93,8 @@ VOID HelperFinalize(
 #endif
 #endif
 	SAVE_CURRENT_COUNTER;
+	if (g_Callbacks->CallbackRegistration != nullptr) { ObUnRegisterCallbacks(g_Callbacks->CallbackRegistration); }
+
 	ShDrvPoolManager::Finalize();
 
 	Log("Driver unload");
@@ -125,6 +145,7 @@ NTSTATUS DriverInitialize()
 	GET_GLOBAL_POOL(g_Routines, GLOBAL_ROUTINES);
 	GET_GLOBAL_POOL(g_Variables, GLOBAL_VARIABLES);
 	GET_GLOBAL_POOL(g_Offsets, GLOBAL_OFFSETS);
+	GET_GLOBAL_POOL(g_Callbacks, GLOBAL_CALLBACKS);
 
 	g_Variables->KUserSharedData = reinterpret_cast<PKUSER_SHARED_DATA>(KUSER_SHARED_DATA_ADDRESS);
 	g_Variables->BuildNumber = g_Variables->KUserSharedData->NtBuildNumber;
@@ -150,6 +171,7 @@ NTSTATUS DriverInitialize()
 	GET_EXPORT_ROUTINE(PsGetProcessPeb, Ps);
 	GET_EXPORT_ROUTINE(PsGetProcessWow64Process, Ps);
 	GET_EXPORT_ROUTINE(ObGetObjectType, Ob);
+	GET_EXPORT_ROUTINE(PsReferenceProcessFilePointer, Ps);
 
 	if (!NT_SUCCESS(Status)) { Status = STATUS_NOT_SUPPORTED; ERROR_END }
 
@@ -1136,6 +1158,13 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Initialize device
+* @details Initialize device object and symbolic link
+* @param[in] PDRIVER_OBJECT `DriverObject`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+*/
 NTSTATUS DeviceInitialize(
 	IN PDRIVER_OBJECT DriverObject)
 {
@@ -1153,6 +1182,228 @@ NTSTATUS DeviceInitialize(
 FINISH:
 	PRINT_ELAPSED;
 	return Status;
+}
+
+/**
+* @brief Set `Mini-Filter` registry value
+* @details Sets the registry value required for `Mini-Filter` registration
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+*/
+NTSTATUS SetFltRegistry()
+{
+#if TRACE_LOG_DEPTH & TRACE_ENTRY
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	ShDrvCore::ShString RegistryPath;
+
+	RegistryPath = REGISTRY_HKLM_SERVICE;
+	RegistryPath += "ShHelper\\Instances";
+
+	Status = ShDrvUtil::RegCreateKey(RegistryPath.GetString());
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	Status = ShDrvUtil::RegSetStr(RegistryPath.GetString(), "DefaultInstance", L"ShHelper Filter Instance");
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	RegistryPath += "\\ShHelper Filter Instance";
+	Status = ShDrvUtil::RegCreateKey(RegistryPath.GetString());
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	Status = ShDrvUtil::RegSetStr(RegistryPath.GetString(), "Altitude", L"390000");
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	Status = ShDrvUtil::RegSetDword(RegistryPath.GetString(), "Flags", 0);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+FINISH:
+	PRINT_ELAPSED;
+	return Status;
+}
+
+/**
+* @brief Initialize `Mini-Filter`
+* @details Load the `Mini-Filter`
+* @param[in] PDRIVER_OBJECT `DriverObject`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+*/
+NTSTATUS MiniFilterInitialize(
+	IN PDRIVER_OBJECT DriverObject)
+{
+#if TRACE_LOG_DEPTH & TRACE_ENTRY
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	PFLT_FILTER Filter = nullptr;
+	PSECURITY_DESCRIPTOR SecurityDescriptor = { 0, };
+	OBJECT_ATTRIBUTES ObjAttrib = { 0, };
+	UNICODE_STRING PortString = { 0, };
+
+	FLT_CONTEXT_REGISTRATION ContextRegistration[] = {
+		{
+			FLT_STREAMHANDLE_CONTEXT,
+			0,
+			nullptr,
+			sizeof(BOOLEAN),
+			'ShFt'},
+		{FLT_CONTEXT_END}
+	};
+
+	FLT_REGISTRATION FilterRegistration = {
+		sizeof(FLT_REGISTRATION),
+		FLT_REGISTRATION_VERSION,
+		0,
+		ContextRegistration,
+		MiniFilterCallbacks,
+		ShMiniFilter::MiniFilterUnload,
+		ShMiniFilter::MiniFilterInstanceSetup,
+		ShMiniFilter::MiniFilterInstanceQueryTeardown,
+		nullptr, // InstanceTeardownStartCallback
+		nullptr, // InstanceTeardownCompleteCallback
+		nullptr, // GenerateFileNameCallback
+		nullptr, // NormalizeNameComponentCallback
+		nullptr, // NormalizeContextCleanupCallback
+		nullptr, // TransactionNotificationCallback
+		nullptr, // NormalizeNameComponentExCallback
+		nullptr  // SectionNotificationCallback
+	};
+
+	RtlInitUnicodeString(&PortString, MINIFILTER_PORT);
+	
+	Status = SetFltRegistry();
+	if(!NT_SUCCESS(Status)) { ERROR_END }
+
+	Status = FltRegisterFilter(DriverObject, &FilterRegistration, &Filter);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	Status = FltBuildDefaultSecurityDescriptor(&SecurityDescriptor, FLT_PORT_ALL_ACCESS);
+	if(!NT_SUCCESS(Status)) 
+	{ 
+		FltUnregisterFilter(Filter); 
+		ERROR_END 
+	}
+
+	InitializeObjectAttributes(
+		&ObjAttrib, 
+		&PortString, 
+		OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE, 
+		nullptr, 
+		SecurityDescriptor);
+
+	Status = FltCreateCommunicationPort(
+		Filter,
+		&g_Callbacks->ServerPort,
+		&ObjAttrib,
+		nullptr,
+		ShMiniFilter::MiniFilterConnect,
+		ShMiniFilter::MiniFilterDisconnect,
+		ShMiniFilter::MiniFilterMessage,
+		1
+	);
+	if (!NT_SUCCESS(Status)) 
+	{ 
+		FltFreeSecurityDescriptor(SecurityDescriptor);
+		FltUnregisterFilter(Filter); 
+		ERROR_END
+	}
+
+	Status = FltStartFiltering(Filter);
+	if (!NT_SUCCESS(Status)) 
+	{
+		FltCloseCommunicationPort(g_Callbacks->ServerPort);
+		FltFreeSecurityDescriptor(SecurityDescriptor);
+		FltUnregisterFilter(Filter);
+		ERROR_END 
+	}
+
+	g_Callbacks->Filter = Filter;
+	Log("Mini-filter initialization completed");
+
+FINISH:
+	PRINT_ELAPSED;
+	return Status;
+}
+
+NTSTATUS ObCallbackInitialize(
+	IN PDRIVER_OBJECT DriverObject)
+{
+#if TRACE_LOG_DEPTH & TRACE_ENTRY
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	auto Section = reinterpret_cast<LDR_DATA_TABLE_ENTRY*>(DriverObject->DriverSection);
+	Section->Flags |= 0x20;
+
+	OB_CALLBACK_REGISTRATION  CallbackRegistration = { 0, };
+	OB_OPERATION_REGISTRATION OperationRegistration[2] = { 0, };
+
+	OperationRegistration[0].ObjectType    = PsProcessType;
+	OperationRegistration[0].Operations    = OB_OPERATION_HANDLE_CREATE;
+	OperationRegistration[0].PreOperation  = ObjectCallbacks::ProcessPreOperationCallback;
+	OperationRegistration[0].PostOperation = ObjectCallbacks::ProcessPostOperationCallback;
+	
+	OperationRegistration[1].ObjectType    = PsThreadType;
+	OperationRegistration[1].Operations    = OB_OPERATION_HANDLE_CREATE;
+	OperationRegistration[1].PreOperation  = ObjectCallbacks::ThreadPreOperationCallback;
+	OperationRegistration[1].PostOperation = ObjectCallbacks::ThreadPostOperationCallback;
+
+	RtlInitUnicodeString(&CallbackRegistration.Altitude, L"397000");
+	CallbackRegistration.Version = ObGetFilterVersion();
+	CallbackRegistration.OperationRegistrationCount = 2;
+	CallbackRegistration.OperationRegistration = OperationRegistration;
+	
+	Status = ObRegisterCallbacks(&CallbackRegistration, &g_Callbacks->CallbackRegistration);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+FINISH:
+	PRINT_ELAPSED;
+	return Status;
+}
+
+NTSTATUS NotifyRoutineInitialize()
+{
+#if TRACE_LOG_DEPTH & TRACE_ENTRY
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+
+
+	Status = STATUS_SUCCESS;
+FINISH:
+	PRINT_ELAPSED;
+	return Status;
+}
+
+VOID MiniFilterUnload()
+{
+	FltCloseCommunicationPort(g_Callbacks->ServerPort);
+	FltUnregisterFilter(g_Callbacks->Filter);
 }
 
 VOID ShDrvExample::PeTest(
@@ -1191,7 +1442,7 @@ VOID ShDrvExample::PeTest(
 		Process->GetProcessModuleInformation32("ntdll.dll", &LdrEntry32);
 	}
 
-	if (NT_SUCCESS(Pe->Initialize((PVOID)LdrEntry32.DllBase, Process->GetProcess(), true)))
+	if (NT_SUCCESS(Pe->Initialize((PVOID)LdrEntry32.DllBase, Process->GetProcess(), TRUE)))
 	{
 		Log("PE Test(Process 32) %p", Pe->GetAddressByExport("NtQuerySystemInformation"));
 	}
@@ -1264,7 +1515,7 @@ VOID ShDrvExample::ProcessTest(
 			"4C 8B D1 B8 ?? ?? ?? ?? F6 04 25 08 03 FE 7F 01 75 03 0F 05 C3",
 			Result,
 			nullptr,
-			true);
+			TRUE);
 
 		ResultCount = Process->MemoryScan(
 			LdrEntry.DllBase,
@@ -1272,7 +1523,7 @@ VOID ShDrvExample::ProcessTest(
 			"\x4c\x8b\xd1\xb8\x00\x00\x00\x00\xf6\x04\x25\x08\x03\xfe\x7f\x01\x75\x03\x0F\x05\xC3",
 			&Result,
 			"xxxx????xxxxxxxxxxxxx",
-			true);*/
+			TRUE);*/
 
 		for (auto i = 0; i < ResultCount; i++)
 		{

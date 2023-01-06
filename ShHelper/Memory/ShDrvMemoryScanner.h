@@ -44,13 +44,13 @@ public:
 		IN PVOID StartAddress, 
 		IN ULONG64 Size,
 		IN PEPROCESS Process = nullptr,
-		IN BOOLEAN bAllScan = false);
+		IN BOOLEAN bAllScan = FALSE);
 	
 	NTSTATUS Initialize(
 		IN PVOID ImageBase,
 		IN PCSTR SectionName,
 		IN PEPROCESS Process = nullptr,
-		IN BOOLEAN bAllScan = false);
+		IN BOOLEAN bAllScan = FALSE);
 
 	NTSTATUS MakePattern(
 		IN PCSTR Pattern);
@@ -61,7 +61,7 @@ public:
 		IN PCSTR Pattern,
 		IN PCSTR Mask);
 
-	VOID SetScanMethod(IN SH_MEMSCAN_METHOD Method) { this->Method = Method; }
+	VOID SetScanMethod(IN SH_MEMSCAN_METHOD method) { this->Method = method; }
 
 	PVOID* GetScanResult() { return Result; }
 	ULONG  GetResultCount() { return ResultCount; }

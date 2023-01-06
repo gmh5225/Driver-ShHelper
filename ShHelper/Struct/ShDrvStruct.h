@@ -198,12 +198,33 @@ typedef struct _SH_POOL_INFORMATION {
 PACK_END
 
 /********************************************************************************************
+* Callback manager structure
+********************************************************************************************/
+PACK_START(1)
+/**
+* @brief Callback manager structure
+* @author Shh0ya @date 2022-12-27
+*/
+typedef struct _SH_GLOBAL_CALLBACKS {
+	ULONG MFilterId;
+	PFLT_FILTER Filter;
+	PFLT_PORT ServerPort;
+	PFLT_PORT ClientPort;
+
+	PVOID CallbackRegistration;
+	
+#define SH_GLOBAL_CALLBACKS_SIZE sizeof(SH_GLOBAL_CALLBACKS)
+}SH_GLOBAL_CALLBACKS, * PSH_GLOBAL_CALLBACKS;
+PACK_END
+
+/********************************************************************************************
 * Extern global variable
 ********************************************************************************************/
 
-extern PSH_GLOBAL_ROUTINES  g_Routines;
-extern PSH_GLOBAL_VARIABLES g_Variables;
-extern PSH_GLOBAL_OFFSETS   g_Offsets;
-extern PSH_POOL_INFORMATION g_Pools;
+extern PSH_GLOBAL_ROUTINES      g_Routines;
+extern PSH_GLOBAL_VARIABLES     g_Variables;
+extern PSH_GLOBAL_OFFSETS       g_Offsets;
+extern PSH_POOL_INFORMATION     g_Pools;
+extern PSH_GLOBAL_CALLBACKS     g_Callbacks;
 
 #endif // !_SHDRVSTRUCT_H_

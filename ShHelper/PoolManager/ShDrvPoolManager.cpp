@@ -138,7 +138,7 @@ NTSTATUS ShDrvPoolManager::FreePoolEntry(
 
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
-	BOOLEAN bFound = false;
+	BOOLEAN bFound = FALSE;
 	KIRQL CurrentIrql = KeGetCurrentIrql();
 	
 	if (g_Pools == nullptr) { ERROR_END }
@@ -149,22 +149,21 @@ NTSTATUS ShDrvPoolManager::FreePoolEntry(
 	for (auto i = 0; i < g_Pools->PoolCount; i++)
 	{
 		auto Entry = &g_Pools->PoolEntry[i];
-		if (Entry->Buffer == Buffer)
+		if (Entry->Buffer == Buffer && Entry->bUsed == TRUE)
 		{
-			bFound = true;
+			bFound = TRUE;
 			RtlSecureZeroMemory(Buffer, Entry->PoolSize);
 			
-			if (bReuse == false)
+			if (bReuse == FALSE)
 			{
 				FREE_POOLEX(Buffer);
 				Status = ShDrvCore::AllocatePool<PVOID>(Entry->PoolSize, &Entry->Buffer);
-				if (!NT_SUCCESS(Status)) { Entry->bUsed = true; }
+				if (!NT_SUCCESS(Status)) { Log("Failed"); Entry->bUsed = TRUE; }
 			}
-			Entry->bUsed = false;
+			Entry->bUsed = FALSE;
 			break;
 		}
 	}
-	if (bFound == false && MmIsAddressValid(Buffer)) { FREE_POOLEX(Buffer); }
 
 	SPIN_UNLOCK(&g_Pools->Lock);
 
@@ -206,7 +205,7 @@ PVOID ShDrvPoolManager::GetPool(
 	if (PoolType < GlobalPoolTypeCount)
 	{
 		Result = g_Pools->PoolEntry[PoolType].Buffer;
-		g_Pools->PoolEntry[PoolType].bUsed = true;
+		g_Pools->PoolEntry[PoolType].bUsed = TRUE;
 	}
 	else
 	{
@@ -214,10 +213,10 @@ PVOID ShDrvPoolManager::GetPool(
 		for (auto i = 0; i < SH_POOL_ENTRY_MAX_COUNT; i++)
 		{
 			auto Entry = &g_Pools->PoolEntry[StartIndex + i];
-			if (Entry->bUsed == false && Entry->Buffer != nullptr)
+			if (Entry->bUsed == FALSE && Entry->Buffer != nullptr)
 			{
 				Result = Entry->Buffer;
-				Entry->bUsed = true;
+				Entry->bUsed = TRUE;
 				break;
 			}
 		}
@@ -259,6 +258,6 @@ VOID ShDrvPoolManager::Finalize()
 		SPIN_UNLOCK(&g_Pools->Lock);
 		FREE_POOLEX(g_Pools);
 	}
-
+	
 	PRINT_ELAPSED;
 }

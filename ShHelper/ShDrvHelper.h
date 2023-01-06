@@ -17,6 +17,12 @@ VOID     HelperFinalize(IN PDRIVER_OBJECT DriverObject);
 NTSTATUS DriverInitialize();
 NTSTATUS InitializeOffset_Unsafe();
 NTSTATUS DeviceInitialize(IN PDRIVER_OBJECT DriverObject);
+NTSTATUS SetFltRegistry();
+NTSTATUS MiniFilterInitialize(IN PDRIVER_OBJECT DriverObject);
+NTSTATUS ObCallbackInitialize(IN PDRIVER_OBJECT DriverObject);
+NTSTATUS NotifyRoutineInitialize();
+
+VOID MiniFilterUnload();
 
 EXTERN_C_END
 

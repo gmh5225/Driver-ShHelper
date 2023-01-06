@@ -9,20 +9,24 @@
  * @copyright the GNU General Public License v3
  */
 
+#define KERNEL_DRIVER
+
 #define TRACE_LOG     1 /**< Trace log on/off */
 #define DEBUG_LOG     1 /**< Debug log on/off */
 #define CHECK_ELAPSED 0 /**< Elapsed time log on/off */
 
-#define TRACE_OFF       0x0000
-#define TRACE_ENTRY     0x0001
-#define TRACE_UTIL      0x0002
-#define TRACE_POOL      0x0004
-#define TRACE_MEMORY    0x0008
-#define TRACE_CORE      0x0010
-#define TRACE_PE        0x0020
-#define TRACE_PROCESS   0x0040 
-#define TRACE_MEMSCAN   0x0080 
-#define TRACE_ALL       0xFFFF 
+#define TRACE_OFF        0x0000
+#define TRACE_ENTRY      0x0001
+#define TRACE_UTIL       0x0002
+#define TRACE_POOL       0x0004
+#define TRACE_MEMORY     0x0008
+#define TRACE_CORE       0x0010
+#define TRACE_PE         0x0020
+#define TRACE_PROCESS    0x0040 
+#define TRACE_MEMSCAN    0x0080 
+#define TRACE_MINIFILTER 0x0100
+#define TRACE_CALLBACK   0x0200
+#define TRACE_ALL        0xFFFF 
 
 
 /**
@@ -31,7 +35,7 @@
 * @author Shh0ya @date 2022-12-27
 * @see TRACE_LOG, TRACE_OFF, TRACE_ALL ...
 */
-#define TRACE_LOG_DEPTH TRACE_CORE | TRACE_UTIL
+#define TRACE_LOG_DEPTH (TRACE_OFF)
 
 #if CHECK_ELAPSED & TRACE_LOG
     #if _CLANG
@@ -105,6 +109,8 @@ LARGE_INTEGER CurrentCounter = KeQueryPerformanceCounter(&Frequency)
 #include <Memory/ShDrvMemoryScanner.h>
 #include <Process/ShDrvProcess.h>
 #include <Thread/ShDrvThread.h>
+#include <Callbacks/ShDrvCallbacks.h>
+#include <MiniFilter/ShDrvMiniFilter.h>
 
 #include <ShDrvHelper.h>
 

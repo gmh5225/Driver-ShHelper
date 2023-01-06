@@ -38,6 +38,7 @@ typedef enum _SH_POOL_TYPE {
 	GLOBAL_ROUTINES  = 0,
 	GLOBAL_VARIABLES = 1,
 	GLOBAL_OFFSETS   = 2,
+	GLOBAL_CALLBACKS = 3,
 
 	GlobalPoolTypeCount,
 
