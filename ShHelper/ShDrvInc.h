@@ -40,6 +40,7 @@
 #define TRACE_NOTIFY         0x00008000
 #define TRACE_INTERFACE      0x00010000
 #define TRACE_SOCKET         0x00020000
+#define TRACE_SYSTEM_THREAD  0x00040000
 
 #define TRACE_ALL            0xFFFFFFFF
 
@@ -49,7 +50,7 @@
 * @author Shh0ya @date 2022-12-27
 * @see TRACE_LOG, TRACE_OFF, TRACE_ALL ...
 */
-#define TRACE_LOG_DEPTH (TRACE_NOTIFY)
+#define TRACE_LOG_DEPTH (TRACE_OFF)
 
 #if CHECK_ELAPSED & TRACE_LOG
     #if _CLANG

@@ -250,6 +250,25 @@ namespace UNDOC_SYSTEM {
 		SYSTEM_BIGPOOL_ENTRY AllocatedInfo[ANYSIZE_ARRAY];
 #define SYSTEM_BIGPOOL_INFORMATION_SIZE sizeof(UNDOC_SYSTEM::SYSTEM_BIGPOOL_INFORMATION)
 	} SYSTEM_BIGPOOL_INFORMATION, * PSYSTEM_BIGPOOL_INFORMATION;
+
+	//======================================================
+	// System Service Descriptor Table
+	//======================================================
+	typedef struct _SYSTEM_SERVICE_DESCRIPTOR_TABLE
+	{
+		ULONG* ServiceTableBase;
+		PULONG ServiceCounterTableBase;
+		ULONG64 NumberOfServices;
+		PUCHAR ParamTableBase;
+	} SYSTEM_SERVICE_DESCRIPTOR_TABLE, * PSYSTEM_SERVICE_DESCRIPTOR_TABLE;
+
+	//======================================================
+	// Avl tree
+	//======================================================
+	typedef struct _RTL_AVL_TREE
+	{
+		struct _RTL_BALANCED_NODE* Root;
+	}RTL_AVL_TREE, * PRTL_AVL_TREE;
 }
 
 namespace UNDOC_PEB {
@@ -367,7 +386,6 @@ PACK_END
 #define EWOW64PROCESS_SIZE sizeof(UNDOC_PEB::EWOW64PROCESS)
 	}EWOW64PROCESS, * PEWOW64PROCESS;
 }
-
 
 
 #endif // !_SHDRVUNDOCSTRUCT_H_

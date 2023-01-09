@@ -105,9 +105,6 @@
     <ClCompile Include="Memory\ShDrvMemoryScanner.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Thread\ShDrvThead.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="MiniFilter\ShDrvMiniFilter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -118,6 +115,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Socket\ShDrvSocket.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Thread\ShDrvThread.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

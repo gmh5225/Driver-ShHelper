@@ -5,13 +5,357 @@
  * @file ShDrvFuncDef.h
  * @author Shh0ya (hunho88@gmail.com)
  * @brief Undocumented function definition
- * @date 2022-12-30
+ * @date 2022-12-03
  * @copyright the GNU General Public License v3
  */
 
 using namespace UNDOC_ENUM;
 
 namespace ShDrvFuncDef {
+	//======================================================
+	// Prefix : Ex
+	//======================================================
+	namespace Ex {
+		typedef PVOID(NTAPI* ExAllocatePool_t)(
+			IN POOL_TYPE PoolType,
+			IN SIZE_T NumberOfBytes);
+
+		typedef PVOID(NTAPI* ExAllocatePoolWithTag_t)(
+			IN POOL_TYPE PoolType,
+			IN SIZE_T NumberofBytes,
+			IN ULONG Tag);
+
+		typedef VOID(NTAPI* ExFreePool_t)(
+			IN PVOID Ptr);
+
+		typedef VOID(NTAPI* ExFreePoolWithTag_t)(
+			IN PVOID Ptr,
+			IN ULONG Tag);
+
+		typedef PVOID(NTAPI* ExpLookupHandleTableEntry_t)(
+			IN PVOID ObjectTable,
+			IN HANDLE Handle);
+
+		typedef VOID(NTAPI* ExpRemoveHandleTable_t)(
+			IN PVOID HandleTable);
+	}
+
+	//======================================================
+	// Prefix : Io
+	//======================================================
+	namespace Io {
+		//======================================================
+		// Io Process & Thread
+		//======================================================
+		typedef PEPROCESS(NTAPI* IoGetCurrentProcess_t)();
+
+		typedef PEPROCESS(NTAPI* IoThreadToProcess_t)(
+			IN PETHREAD Thread);
+
+		typedef BOOLEAN(NTAPI* IoIsSystemThread_t)(
+			IN PETHREAD Thread);
+
+		//======================================================
+		// Io Driver
+		//======================================================
+		typedef NTSTATUS(NTAPI* IoCreateDriver_t)(
+			IN PUNICODE_STRING DriverName,
+			IN PDRIVER_INITIALIZE InitializationFunction OPTIONAL);
+
+		typedef NTSTATUS(NTAPI* IoQueryFullDriverPath_t)(
+			IN PDRIVER_OBJECT DriverObject,
+			OUT PUNICODE_STRING FullPath);
+
+		typedef NTSTATUS(NTAPI* IofCallDriver_t)(
+			IN PDEVICE_OBJECT DeviceObject,
+			IN OUT __drv_aliasesMem PIRP Irp);
+
+		//======================================================
+		// Io Device & Link
+		//======================================================
+		typedef NTSTATUS(NTAPI* IoCreateDevice_t)(
+			IN PDRIVER_OBJECT DriverObject,
+			IN ULONG DeviceExtensionSize,
+			IN PUNICODE_STRING DeviceName OPTIONAL,
+			IN DEVICE_TYPE DeviceType,
+			IN ULONG DeviceCharacteristics,
+			IN BOOLEAN Exclusive,
+			OUT PDEVICE_OBJECT* DeviceObject);
+
+		typedef VOID(NTAPI* IoDeleteDevice_t)(
+			IN PDEVICE_OBJECT DeviceObject);
+
+		typedef NTSTATUS(NTAPI* IoCreateSymbolicLink_t)(
+			IN PUNICODE_STRING SymbolicLinkName,
+			IN PUNICODE_STRING DeviceName);
+
+		typedef NTSTATUS(NTAPI* IoDeleteSymbolicLink_t)(
+			IN PUNICODE_STRING SymbolicLinkName);
+
+		typedef NTSTATUS(NTAPI* IoEnumerateDeviceObjectList_t)(
+			IN PDRIVER_OBJECT DriverObject,
+			OUT PDEVICE_OBJECT* DeviceObjectList,
+			IN ULONG DeviceObjectListSize,
+			OUT PULONG ActualNumberDeviceobjects);
+
+		typedef NTSTATUS(NTAPI* IoEnumerateRegisteredFiltersList_t)(
+			OUT PDRIVER_OBJECT* DriverObjectList,
+			IN ULONG DriverObjectListSize,
+			OUT PULONG ActualNumberDriverObjects);
+
+		//======================================================
+		// Io File
+		//======================================================
+		typedef NTSTATUS(NTAPI* IoQueryFileInformation_t)(
+			IN PFILE_OBJECT FileObject,
+			IN FILE_INFORMATION_CLASS FileInformationClass,
+			IN ULONG Length,
+			OUT PVOID FileInformation,
+			OUT PULONG ReturnLength);
+
+		typedef NTSTATUS(NTAPI* IoQueryFileDosDeviceName_t)(
+			IN PFILE_OBJECT FileObject,
+			OUT POBJECT_NAME_INFORMATION* ObjectNameInformation);
+
+		typedef NTSTATUS(NTAPI* IoQueryVolumeInformation_t)(
+			IN PFILE_OBJECT FileObject,
+			IN FS_INFORMATION_CLASS FsInformationClass,
+			IN ULONG Length,
+			OUT PVOID FsInformation,
+			OUT PULONG ReturnLength);
+
+		//======================================================
+		// Io Memory Descriptor List
+		//======================================================
+		typedef PMDL(NTAPI* IoAllocateMdl_t)(
+			IN PVOID VirtualAddress OPTIONAL,
+			IN ULONG Length,
+			IN BOOLEAN SecondaryBuffer,
+			IN BOOLEAN ChargeQuota,
+			IN OUT PIRP Irp OPTIONAL);
+
+		typedef VOID(NTAPI* IoFreeMdl_t)(
+			IN PMDL Mdl);
+
+		//======================================================
+		// Io Irp, Etc...
+		//======================================================
+		typedef VOID(FASTCALL* IofCompleteRequest_t)(
+			IN PIRP Irp,
+			IN CCHAR PriorityBoost);
+
+		typedef PEPROCESS(NTAPI* IoGetRequestProcess_t)(
+			IN PIRP Irp);
+
+		typedef ULONG(NTAPI* IoGetRequestorProcessId_t)(
+			IN PIRP Irp);
+	}
+
+	//======================================================
+	// Prefix : Kd
+	//======================================================
+	namespace Kd {
+		typedef PVOID(NTAPI* KdGetDebugDevice_t)();
+		typedef NTSTATUS(NTAPI* KdEnableDebugger_t)();
+		typedef NTSTATUS(NTAPI* KdDisableDebugger_t)();
+
+		typedef NTSTATUS(NTAPI* KdSystemDebugControl_t)(
+			IN SYSDBG_COMMAND Command,
+			IN PVOID InputBuffer,
+			IN ULONG InputBufferLength,
+			OUT PVOID OutputBuffer,
+			OUT ULONG OutputBufferLength,
+			IN OUT PULONG ReturnLength,
+			IN KPROCESSOR_MODE PreviousMode);
+	}
+
+	//======================================================
+	// Prefix : Ke
+	//======================================================
+	namespace Ke {
+		//======================================================
+		// APC 
+		//======================================================
+		typedef VOID(NTAPI* PKNORMAL_ROUTINE)(
+			IN PVOID NormalContext OPTIONAL,
+			IN PVOID SystemArgument1 OPTIONAL,
+			IN PVOID SystemArgument2 OPTIONAL);
+
+		typedef VOID(NTAPI* PKKERNEL_ROUTINE)(
+			IN struct _KAPC* Apc,
+			IN OUT PKNORMAL_ROUTINE* NormalRoutine OPTIONAL,
+			IN OUT PVOID* NormalContext OPTIONAL,
+			IN OUT PVOID* SystemArgument1 OPTIONAL,
+			IN OUT PVOID* SystemArgument2 OPTIONAL);
+
+		typedef VOID(NTAPI* PKRUNDOWN_ROUTINE)(
+			IN struct _KAPC* Apc);
+
+		typedef VOID(NTAPI* KeInitializeApc_t)(
+			IN PKAPC             Apc,
+			IN PKTHREAD          Thread,
+			IN KAPC_ENVIRONMENT  TargetEnvironment,
+			IN PKKERNEL_ROUTINE  KernelRoutine,
+			IN PKRUNDOWN_ROUTINE RundownRoutine OPTIONAL,
+			IN PKNORMAL_ROUTINE  NormalRoutine,
+			IN KPROCESSOR_MODE   Mode,
+			IN PVOID             Context);
+
+		typedef BOOLEAN(NTAPI* KeInsertQueueApc_t)(
+			IN PRKAPC    Apc,
+			IN PVOID     SystemArgument1,
+			IN PVOID     SystemArgument2,
+			IN KPRIORITY PriorityBoost);
+
+		typedef BOOLEAN(NTAPI* KeTestAlertThread_t)(
+			IN KPROCESSOR_MODE AlertMode);
+
+		//======================================================
+		// DPC 
+		//======================================================
+		typedef _IRQL_requires_max_(APC_LEVEL) _IRQL_requires_min_(PASSIVE_LEVEL) _IRQL_requires_same_
+			VOID(NTAPI* KeGenericCallDpc_t)(
+				_In_ PKDEFERRED_ROUTINE Routine,
+				_In_opt_ PVOID Context
+				);
+
+		typedef _IRQL_requires_(DISPATCH_LEVEL) _IRQL_requires_same_
+			VOID(NTAPI* KeSignalCallDpcDone_t)(
+				_In_ PVOID SystemArgument1
+				);
+
+		typedef _IRQL_requires_(DISPATCH_LEVEL) _IRQL_requires_same_
+			ULONG(NTAPI* KeSignalCallDpcSynchronize_t)(
+				_In_ PVOID SystemArgument2
+				);
+	}
+
+	//======================================================
+	// Prefix : Mi
+	//======================================================
+	namespace Mi {
+		typedef VOID(NTAPI* MiUnloadSystemImage_t)(
+			IN PVOID DriverSection,
+			IN ULONG UnloadValue);
+
+		typedef VOID(NTAPI* MiProcessLoaderEntry_t)(
+			IN PVOID DriverSection,
+			IN BOOLEAN Load);
+
+		typedef PVOID(NTAPI* MiGetPdeAddress_t)(
+			IN PVOID VirtualAddress);
+
+		typedef PVOID(NTAPI* MiGetPteAddress_t)(
+			IN PVOID VirtualAddress);
+
+		typedef PVOID(NTAPI* MiMapSinglePage_t)(
+			IN PVOID VirtualAddress,
+			IN ULONG64 PageFrameNumber);
+	}
+
+	//======================================================
+	// Prefix : Mm
+	//======================================================
+	namespace Mm {
+		typedef NTSTATUS(NTAPI* MmCopyMemory_t)(
+			IN PVOID TargetAddress,
+			IN MM_COPY_ADDRESS SourceAddress,
+			IN SIZE_T NumberOfBytes,
+			IN ULONG Flags,
+			OUT SIZE_T* NumberOfBytesTransferred);
+
+		typedef NTSTATUS(NTAPI* MmCopyVirtualMemory_t)(
+			IN PEPROCESS SourceProcess,
+			IN PVOID SourceAddress,
+			IN PEPROCESS TargetProcess,
+			IN PVOID TargetAddress,
+			IN SIZE_T BufferSize,
+			IN KPROCESSOR_MODE PreviousMode,
+			OUT PSIZE_T ReturnSize);
+
+		typedef PVOID(NTAPI* MmAllocateContiguousMemory_t)(
+			IN SIZE_T NumberOfBytes,
+			IN PHYSICAL_ADDRESS HighestAcceptableAddress);
+
+		typedef PVOID(NTAPI* MmMapIoSpace_t)(
+			IN PHYSICAL_ADDRESS PhysicalAddress,
+			IN SIZE_T NumberOfBytes,
+			IN MEMORY_CACHING_TYPE CacheType);
+
+		typedef VOID(NTAPI* MmUnmapIoSpace_t)(
+			IN PVOID BaseAddress,
+			IN SIZE_T NumberOfBytes);
+
+		//======================================================
+		// Mm Memory Descriptor List
+		//======================================================
+		typedef VOID(NTAPI* MmProbeAndLockPages_t)(
+			IN OUT PMDL MemoryDescriptorList,
+			IN KPROCESSOR_MODE AccessMode,
+			IN LOCK_OPERATION Operation);
+
+		typedef VOID(NTAPI* MmUnlockPages_t)(
+			IN OUT PMDL MemoryDescriptorList);
+
+		typedef PVOID(NTAPI* MmMapLockedPagesSpecifyCache_t)(
+			IN OUT PMDL MemoryDescriptorList,
+			IN KPROCESSOR_MODE AccessMode,
+			IN MEMORY_CACHING_TYPE CacheType,
+			IN PVOID RequestedAddress OPTIONAL,
+			IN ULONG BugCheckOnFailure,
+			IN ULONG Priority);
+
+		typedef VOID(NTAPI* MmUnmapLockedPages_t)(
+			IN PVOID BaseAddress,
+			IN OUT PMDL MemoryDescriptorList);
+
+		typedef NTSTATUS(NTAPI* MmProtectMdlSysteAddress_t)(
+			IN PMDL MemoryDescriptorList,
+			IN ULONG NewProtect);
+
+		typedef PMDL(NTAPI* MmAllocateNodePagesForMdlEx_t)(
+			IN PHYSICAL_ADDRESS LowAddress,
+			IN PHYSICAL_ADDRESS HighAddress,
+			IN PHYSICAL_ADDRESS SkipBytes,
+			IN SIZE_T TotalBytes,
+			IN MEMORY_CACHING_TYPE CacheType,
+			IN ULONG Flags);
+
+		typedef VOID(NTAPI* MmBuildMdlForNonPagedPool_t)(
+			IN OUT PMDL MemoryDescriptorList);
+	}
+
+	//======================================================
+	// Prefix : Ob
+	//======================================================
+	namespace Ob {
+		typedef NTSTATUS(NTAPI* ObRegisterCallbacks_t)(
+			IN POB_CALLBACK_REGISTRATION CallbackRegistration,
+			OUT PVOID* RegistrationHandle);
+
+		typedef VOID(NTAPI* ObUnRegisterCallbacks_t)(
+			IN PVOID RegistrationHandle);
+
+		typedef NTSTATUS(NTAPI* ObpCallPreOperationCallbacks_t)(
+			IN POBJECT_TYPE ObjectType,
+			IN POB_PRE_OPERATION_INFORMATION PreOperationInformation,
+			IN PVOID Unknown);
+
+		typedef POBJECT_TYPE(NTAPI* ObGetObjectType_t)(
+			IN PVOID Object);
+
+		typedef NTSTATUS(NTAPI* ObReferenceObjectByName_t)(
+			IN PUNICODE_STRING ObjectName,
+			IN ULONG Attributes,
+			IN PACCESS_STATE PassedAccessState OPTIONAL,
+			IN ACCESS_MASK DesiredAccess OPTIONAL,
+			IN POBJECT_TYPE ObjectType,
+			IN KPROCESSOR_MODE AccessMode,
+			IN OUT PVOID ParseContext OPTIONAL,
+			OUT PVOID* Object);
+
+	}
+
 	//======================================================
 	// Prefix : Ps
 	//======================================================
@@ -65,6 +409,12 @@ namespace ShDrvFuncDef {
 			IN PEPROCESS Process,
 			OUT PFILE_OBJECT* OutFileObject);
 
+		typedef NTSTATUS(NTAPI* PsSuspendProcess_t)(
+			IN PEPROCESS Process);
+
+		typedef NTSTATUS(NTAPI* PsResumeProcess_t)(
+			IN PEPROCESS Process);
+
 		//======================================================
 		// Ps Thread Information
 		//======================================================
@@ -109,6 +459,18 @@ namespace ShDrvFuncDef {
 			IN OUT PCONTEXT ThreadContext,
 			IN KPROCESSOR_MODE Mode);
 
+		typedef PVOID(NTAPI* PsQueryThreadStartAddress_t)(
+			IN PETHREAD Thread,
+			IN BOOLEAN bIsKernelThread);
+
+		typedef NTSTATUS(NTAPI* PsSuspendThread_t)(
+			IN PETHREAD Thread,
+			IN PULONG SuspendCount OPTIONAL);
+
+		typedef NTSTATUS(NTAPI* PsResumeThread_t)(
+			IN PETHREAD Thread,
+			IN PULONG SuspendCount OPTIONAL);
+
 		//======================================================
 		// Ps System
 		//======================================================
@@ -151,45 +513,6 @@ namespace ShDrvFuncDef {
 	}
 
 	//======================================================
-	// Prefix : Kd
-	//======================================================
-	namespace Kd {
-		typedef PVOID(NTAPI* KdGetDebugDevice_t)();
-		typedef NTSTATUS(NTAPI* KdEnableDebugger_t)();
-		typedef NTSTATUS(NTAPI* KdDisableDebugger_t)();
-
-		typedef NTSTATUS(NTAPI* KdSystemDebugControl_t)(
-			IN SYSDBG_COMMAND Command,
-			IN PVOID InputBuffer,
-			IN ULONG InputBufferLength,
-			OUT PVOID OutputBuffer,
-			OUT ULONG OutputBufferLength,
-			IN OUT PULONG ReturnLength,
-			IN KPROCESSOR_MODE PreviousMode);
-	}
-
-	//======================================================
-	// Prefix : Ex
-	//======================================================
-	namespace Ex {
-		typedef PVOID(NTAPI* ExAllocatePool_t)(
-			IN POOL_TYPE PoolType,
-			IN SIZE_T NumberOfBytes);
-
-		typedef PVOID(NTAPI* ExAllocatePoolWithTag_t)(
-			IN POOL_TYPE PoolType,
-			IN SIZE_T NumberofBytes,
-			IN ULONG Tag);
-
-		typedef void(NTAPI* ExFreePool_t)(
-			IN PVOID Ptr);
-
-		typedef void(NTAPI* ExFreePoolWithTag_t)(
-			IN PVOID Ptr,
-			IN ULONG Tag);
-	}
-
-	//======================================================
 	// Prefix : Rtl
 	//======================================================
 	namespace Rtl {
@@ -217,7 +540,7 @@ namespace ShDrvFuncDef {
 			OUT PUNICODE_STRING DestinationString,
 			IN  PCWSTR SourceString);
 
-		typedef void(NTAPI* RtlInitUnicodeString_t)(
+		typedef VOID(NTAPI* RtlInitUnicodeString_t)(
 			OUT PUNICODE_STRING DestinationString,
 			IN  PCWSTR SourceString OPTIONAL);
 
@@ -226,11 +549,11 @@ namespace ShDrvFuncDef {
 			IN PUNICODE_STRING String2,
 			IN BOOLEAN CaseInSensitive);
 
-		typedef void(NTAPI* RtlFreeUnicodeString_t)(
+		typedef VOID(NTAPI* RtlFreeUnicodeString_t)(
 			IN OUT PUNICODE_STRING UnicodeString);
 
 
-		typedef void(NTAPI* RtlInitAnsiString_t)(
+		typedef VOID(NTAPI* RtlInitAnsiString_t)(
 			OUT PANSI_STRING DestinationString,
 			IN  PCSZ	SourceString OPTIONAL);
 
@@ -239,169 +562,12 @@ namespace ShDrvFuncDef {
 			IN STRING String2,
 			IN BOOLEAN CaseInSensitive);
 
-		typedef void(NTAPI* RtlFreeAnsiString_t)(
+		typedef VOID(NTAPI* RtlFreeAnsiString_t)(
 			IN OUT PANSI_STRING AnsiString);
-	}
 
-	//======================================================
-	// Prefix : Io
-	//======================================================
-	namespace Io {
-		//======================================================
-		// Io Process & Thread
-		//======================================================
-		typedef PEPROCESS(NTAPI* IoGetCurrentProcess_t)();
-
-		typedef PEPROCESS(NTAPI* IoThreadToProcess_t)(
-			IN PETHREAD Thread);
-
-		typedef BOOLEAN(NTAPI* IoIsSystemThread_t)(
-			IN PETHREAD Thread);
-
-		//======================================================
-		// Io Device & Link
-		//======================================================
-		typedef NTSTATUS(NTAPI* IoCreateDevice_t)(
-			IN PDRIVER_OBJECT DriverObject,
-			IN ULONG DeviceExtensionSize,
-			IN PUNICODE_STRING DeviceName OPTIONAL,
-			IN DEVICE_TYPE DeviceType,
-			IN ULONG DeviceCharacteristics,
-			IN BOOLEAN Exclusive,
-			OUT PDEVICE_OBJECT* DeviceObject);
-
-		typedef void(NTAPI* IoDeleteDevice_t)(
-			IN PDEVICE_OBJECT DeviceObject);
-
-		typedef NTSTATUS(NTAPI* IoCreateSymbolicLink_t)(
-			IN PUNICODE_STRING SymbolicLinkName,
-			IN PUNICODE_STRING DeviceName);
-
-		typedef NTSTATUS(NTAPI* IoDeleteSymbolicLink_t)(
-			IN PUNICODE_STRING SymbolicLinkName);
-
-		typedef NTSTATUS(NTAPI* IoEnumerateDeviceObjectList_t)(
-			IN PDRIVER_OBJECT DriverObject,
-			OUT PDEVICE_OBJECT* DeviceObjectList,
-			IN ULONG DeviceObjectListSize,
-			OUT PULONG ActualNumberDeviceobjects);
-
-		typedef NTSTATUS(NTAPI* IoEnumerateRegisteredFiltersList_t)(
-			OUT PDRIVER_OBJECT* DriverObjectList,
-			IN ULONG DriverObjectListSize,
-			OUT PULONG ActualNumberDriverObjects);
-
-		//======================================================
-		// Io File
-		//======================================================
-		typedef NTSTATUS(NTAPI* IoQueryFileInformation_t)(
-			IN PFILE_OBJECT FileObject,
-			IN FILE_INFORMATION_CLASS FileInformationClass,
-			IN ULONG Length,
-			OUT PVOID FileInformation,
-			OUT PULONG ReturnLength);
-
-		typedef NTSTATUS(NTAPI* IoQueryFileDosDeviceName_t)(
-			IN PFILE_OBJECT FileObject,
-			OUT POBJECT_NAME_INFORMATION* ObjectNameInformation);
-
-		typedef NTSTATUS(NTAPI* IoQueryVolumeInformation_t)(
-			IN PFILE_OBJECT FileObject,
-			IN FS_INFORMATION_CLASS FsInformationClass,
-			IN ULONG Length,
-			OUT PVOID FsInformation,
-			OUT PULONG ReturnLength);
-
-		//======================================================
-		// Io Memory Descriptor List
-		//======================================================
-		typedef PMDL(NTAPI* IoAllocateMdl_t)(
-			IN PVOID VirtualAddress OPTIONAL,
-			IN ULONG Length,
-			IN BOOLEAN SecondaryBuffer,
-			IN BOOLEAN ChargeQuota,
-			IN OUT PIRP Irp OPTIONAL);
-
-		typedef void(NTAPI* IoFreeMdl_t)(
-			IN PMDL Mdl);
-
-		//======================================================
-		// Io Irp, Etc...
-		//======================================================
-		typedef void(FASTCALL* IofCompleteRequest_t)(
-			IN PIRP Irp,
-			IN CCHAR PriorityBoost);
-
-		typedef PEPROCESS(NTAPI* IoGetRequestProcess_t)(
-			IN PIRP Irp);
-
-		typedef ULONG(NTAPI* IoGetRequestorProcessId_t)(
-			IN PIRP Irp);
-	}
-
-	//======================================================
-	// Prefix : Ob
-	//======================================================
-	namespace Ob {
-		typedef NTSTATUS(NTAPI* ObRegisterCallbacks_t)(
-			IN POB_CALLBACK_REGISTRATION CallbackRegistration,
-			OUT PVOID* RegistrationHandle);
-
-		typedef void(NTAPI* ObUnRegisterCallbacks_t)(
-			IN PVOID RegistrationHandle);
-
-		typedef POBJECT_TYPE(NTAPI* ObGetObjectType_t)(
-			IN PVOID Object);
-	}
-
-	//======================================================
-	// Prefix : Mm
-	//======================================================
-	namespace Mm {
-		typedef NTSTATUS(NTAPI* MmCopyMemory_t)(
-			IN PVOID TargetAddress,
-			IN MM_COPY_ADDRESS SourceAddress,
-			IN SIZE_T NumberOfBytes,
-			IN ULONG Flags,
-			OUT SIZE_T* NumberOfBytesTransferred);
-
-		//======================================================
-		// Mm Memory Descriptor List
-		//======================================================
-		typedef void(NTAPI* MmProbeAndLockPages_t)(
-			IN OUT PMDL MemoryDescriptorList,
-			IN KPROCESSOR_MODE AccessMode,
-			IN LOCK_OPERATION Operation);
-
-		typedef void(NTAPI* MmUnlockPages_t)(
-			IN OUT PMDL MemoryDescriptorList);
-
-		typedef PVOID(NTAPI* MmMapLockedPagesSpecifyCache_t)(
-			IN OUT PMDL MemoryDescriptorList,
-			IN KPROCESSOR_MODE AccessMode,
-			IN MEMORY_CACHING_TYPE CacheType,
-			IN PVOID RequestedAddress OPTIONAL,
-			IN ULONG BugCheckOnFailure,
-			IN ULONG Priority);
-
-		typedef void(NTAPI* MmUnmapLockedPages_t)(
-			IN PVOID BaseAddress,
-			IN OUT PMDL MemoryDescriptorList);
-
-		typedef NTSTATUS(NTAPI* MmProtectMdlSysteAddress_t)(
-			IN PMDL MemoryDescriptorList,
-			IN ULONG NewProtect);
-
-		typedef PMDL(NTAPI* MmAllocateNodePagesForMdlEx_t)(
-			IN PHYSICAL_ADDRESS LowAddress,
-			IN PHYSICAL_ADDRESS HighAddress,
-			IN PHYSICAL_ADDRESS SkipBytes,
-			IN SIZE_T TotalBytes,
-			IN MEMORY_CACHING_TYPE CacheType,
-			IN ULONG Flags);
-
-		typedef void(NTAPI* MmBuildMdlForNonPagedPool_t)(
-			IN OUT PMDL MemoryDescriptorList);
+		typedef PVOID(NTAPI* RtlAvlRemoveNode_t)(
+			IN struct _RTL_AVL_TREE* VadRoot,
+			IN PVOID Vad);
 	}
 
 	//======================================================
@@ -714,12 +880,12 @@ namespace ShDrvFuncDef {
 	// Prefix : None
 	//======================================================
 	namespace None {
-		typedef void(NTAPI* ProbeForRead_t)(
+		typedef VOID(NTAPI* ProbeForRead_t)(
 			IN volatile PVOID Address,
 			IN SIZE_T Length,
 			IN ULONG Alignment);
 
-		typedef void(NTAPI* ProbeForWrite_t)(
+		typedef VOID(NTAPI* ProbeForWrite_t)(
 			IN volatile PVOID Address,
 			IN SIZE_T Length,
 			IN ULONG Alignment);

@@ -1,5 +1,11 @@
 #include <ShDrvInc.h>
 
+/**
+* @brief Get the system buffer
+* @param[in] PIRP `Irp`
+* @return If succeeds, return value is nonzero
+* @author Shh0ya @date 2022-12-30
+*/
 PVOID ShDrvInterface::GetIoSystemBuffer(IN PIRP Irp)
 {
 #if TRACE_LOG_DEPTH & TRACE_INTERFACE
@@ -19,6 +25,13 @@ FINISH:
 	return Result;
 }
 
+/**
+* @brief I/O Completion routine
+* @param[in] PIRP `Irp`
+* @param[in] NTSTATUS `Status`
+* @param[in] ULONG `Size`
+* @author Shh0ya @date 2022-12-30
+*/
 VOID ShDrvInterface::IoCompleteRoutine(
 	IN PIRP Irp, 
 	IN NTSTATUS Status, 
@@ -41,6 +54,12 @@ FINISH:
 	PRINT_ELAPSED;
 }
 
+/**
+* @brief Dispatcher of the `DeviceIoControl`
+* @param[in] PIRP `Irp`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-30
+*/
 NTSTATUS ShDrvInterface::DeviceIoControlEx(IN PIRP Irp)
 {
 #if TRACE_LOG_DEPTH & TRACE_INTERFACE
@@ -115,6 +134,13 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Dispatcher of the `Major function`
+* @param[in] PDEVICE_OBJECT `DeviceObject`
+* @param[in] PIRP `Irp`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-30
+*/
 NTSTATUS ShDrvMjFunction::DispatchRoutine(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 {
 #if TRACE_LOG_DEPTH & TRACE_INTERFACE

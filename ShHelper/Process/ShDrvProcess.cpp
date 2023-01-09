@@ -462,7 +462,13 @@ FINISH:
 	return ResultCount;
 }
 
-
+/**
+* @brief Sets the shared memory between the kernel and the process
+* @param[in] ULONG `Size`
+* @param[out] PSH_SHARED_INFORMATION `SharedData`
+* @return If succeeds, return value is nonzero
+* @author Shh0ya @date 2022-12-27
+*/
 PVOID ShDrvProcess::SetSharedMemory(
 	IN ULONG Size, 
 	OUT PSH_SHARED_INFORMATION SharedData)

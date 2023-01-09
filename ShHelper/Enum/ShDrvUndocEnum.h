@@ -363,6 +363,17 @@ namespace UNDOC_ENUM {
 	} REDEF_VIRTUAL_MEMORY_INFORMAITION_CLASS, *PREDEF_VIRTUAL_MEMORY_INFORMAITION_CLASS;
 
 	//======================================================
+	// APC environment
+	//======================================================
+	typedef enum _KAPC_ENVIRONMENT
+	{
+		OriginalApcEnvironment,
+		AttachedApcEnvironment,
+		CurrentApcEnvironment,
+		InsertApcEnvironment
+	}KAPC_ENVIRONMENT, * PKAPC_ENVIRONMENT;
+
+	//======================================================
 	// DBG Command
 	//======================================================
 	typedef enum _SYSDBG_COMMAND {

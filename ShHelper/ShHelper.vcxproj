@@ -365,7 +365,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_LLVM|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Socket\ShDrvSocket.cpp" />
-    <ClCompile Include="Thread\ShDrvThead.cpp" />
+    <ClCompile Include="Thread\ShDrvThread.cpp" />
     <ClCompile Include="Util\ShDrvUtil.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

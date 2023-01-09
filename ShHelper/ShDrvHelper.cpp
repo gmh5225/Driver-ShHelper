@@ -69,19 +69,15 @@ NTSTATUS DriverEntry(
 		ShDrvPoolManager::Finalize();
 		ERROR_END
 	}
-	
-	ShDrvExample::SocketTest("192.168.0.3","Hello?name=Shh0ya","","", GET);
 
-	ShDrvExample::SocketTest("192.168.0.3","Hello", "", "Name=Shh0ya", POST);
-
-	
-	/*ShDrvExample::MemoryScanTest();
+	/*
+	ShDrvExample::MemoryScanTest();
 	ShDrvExample::PeTest((HANDLE)6752, (HANDLE)2584);
 	ShDrvExample::ProcessTest((HANDLE)6752);
-	ShDrvExample::ProcessTest32((HANDLE)2584);*/
-
-
-	Log("Loaded driver");
+	ShDrvExample::ProcessTest32((HANDLE)2584);
+	ShDrvExample::SocketTest("192.168.0.3","Hello?name=Shh0ya","","", GET);
+	ShDrvExample::SocketTest("192.168.0.3","Hello", "", "Name=Shh0ya", POST);
+	*/
 
 FINISH:
 	PRINT_ELAPSED;

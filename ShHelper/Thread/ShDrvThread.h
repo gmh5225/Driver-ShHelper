@@ -9,4 +9,24 @@
  * @copyright the GNU General Public License v3
  */
 
+typedef struct _SH_THREAD_INFORMATION {
+	PETHREAD ThreadObject;
+	SH_THREAD_STATE State;
+}SH_THREAD_INFORMATION, * PSH_THREAD_INFORMATION;
+
+namespace ShDrvThread {
+	NTSTATUS StartThreadRoutine(
+		IN KSTART_ROUTINE Routine,
+		IN PVOID Context,
+		OUT PSH_THREAD_INFORMATION ThreadInformation);
+
+	NTSTATUS StopThreadRoutine(
+		IN PSH_THREAD_INFORMATION ThreadInformation);
+
+	NTSTATUS WaitTerminate(
+		IN PSH_THREAD_INFORMATION ThreadInformation);
+
+	VOID TestThread(IN PVOID StartContext);
+}
+
 #endif // !_SHDRVTHREAD_H_

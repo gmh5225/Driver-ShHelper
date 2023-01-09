@@ -50,6 +50,13 @@ typedef enum _SH_POOL_TYPE {
 	AllPoolTypeCount
 }SH_POOL_TYPE, *PSH_POOL_TYPE;
 
+typedef enum _SH_THREAD_STATE {
+	ThreadReady = 0,
+	ThreadRunning,
+	ThreadTerminating,
+	ThreadTerminated
+}SH_THREAD_STATE, *PSH_THREAD_STATE;
+
 typedef enum _SH_SOCKET_STATE {
 	Finalized = 0,
 	Finalizing,

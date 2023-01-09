@@ -11,6 +11,7 @@
 
 #define SOCKET_ERROR            (-1)
 
+
 typedef struct _SH_SOCKET_SEND {
 	PSTR IPv4Address;
 	PSTR Url;
@@ -29,13 +30,17 @@ typedef struct _SH_SOCKET_RECV {
 #define SH_SOCKET_RECV_SIZE sizeof(SH_SOCKET_RECV)
 }SH_SOCKET_RECV, *PSH_SOCKET_RECV;
 
+/**
+* @brief Socket utility
+* @author Shh0ya @date 2022-12-30
+*/
 namespace ShSocketAPI {
-	LONG Inet_Addr(IN PSTR IPv4Address);
+	ULONG Inet_Addr(IN PSTR IPv4Address);
 
 	NTSTATUS CreateHeader(
 		IN BOOLEAN bPost,
 		IN PSTR Path,
-		IN PSTR Url,
+		IN PSTR Host,
 		OUT PSTR Header,
 		IN PSTR ContentLength = nullptr OPTIONAL);
 

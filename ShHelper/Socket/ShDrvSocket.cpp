@@ -1,16 +1,31 @@
 #include <ShDrvInc.h>
 
+/**
+* @brief [MACRO] `htons` kernel
+* @author Shh0ya @date 2022-12-30
+*/
 #define HTONS(n) (((((USHORT)(n) & 0xFFu  )) << 8) | \
 					(((USHORT)(n) & 0xFF00u) >> 8))
 
+/**
+* @brief [MACRO] `htonl` kernel
+* @author Shh0ya @date 2022-12-30
+*/
 #define HTONL(n)	(((((n)& 0xff)<<24) | ((n)>>24) & 0xff) | \
 					(((n) & 0xff0000)>>8) | (((n) & 0xff00)<<8))
 
-
-LONG ShSocketAPI::Inet_Addr(
+/**
+* @brief inet_addr kernel
+* @details The inet_addr function converts a string containing an IPv4 dotted-decimal address into a proper address for the IN_ADDR structure
+* @param[in] PSTR `IPv4Address`
+* @return If no error occurs, the inet_addr function returns an unsigned long value containing a suitable binary representation of the Internet address given
+* @author Shh0ya @date 2022-12-30
+* @see ShSocketAPI::Request
+*/
+ULONG ShSocketAPI::Inet_Addr(
 	IN PSTR IPv4Address)
 {
-	LONG Result = 0;
+	ULONG Result = 0;
 	int Index = 0;
 	char StrAddress[20] = "";
 	PSTR TempBuffer = nullptr;
@@ -28,10 +43,21 @@ LONG ShSocketAPI::Inet_Addr(
 	return Result;
 }
 
+/**
+* @brief Make the request header
+* @param[in] BOOLEAN `bPost`
+* @param[in] PSTR `Path`
+* @param[in] PSTR `Host`
+* @param[out] PSTR `Header`
+* @param[in] PSTR `ContentLength`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-30
+* @see ShSocketAPI::Request
+*/
 NTSTATUS ShSocketAPI::CreateHeader(
 	IN BOOLEAN bPost, 
 	IN PSTR Path, 
-	IN PSTR Url, 
+	IN PSTR Host, 
 	OUT PSTR Header, 
 	IN PSTR ContentLength)
 {
@@ -61,7 +87,7 @@ NTSTATUS ShSocketAPI::CreateHeader(
 	HeaderString += Path;
 	HeaderString += " HTTP/1.1\n";
 	HeaderString += "Host: ";
-	HeaderString += Url;
+	HeaderString += Host;
 	HeaderString += "\nConnection: keep-alive\n";
 	HeaderString += "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36\n";
 	if (bPost == TRUE)
@@ -83,6 +109,16 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief GET or POST request
+* @details Forward the request to the `GET` or `POST` method
+* @param[in] PSH_SOCKET_SEND `SendData`
+* @param[out] PSH_SOCKET_RECV `RecvData`
+* @param[in] SH_REQUEST_METHOD `Method`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-30
+* @see _SH_SOCKET_SEND, _SH_SOCKET_RECV, _SH_REQUEST_METHOD 
+*/
 NTSTATUS ShSocketAPI::Request(
 	IN PSH_SOCKET_SEND SendData, 
 	OUT PSH_SOCKET_RECV RecvData, 
@@ -169,6 +205,11 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Initialize `WinSock`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-30
+*/
 NTSTATUS ShSocketAPI::WskStartup()
 {
 #if TRACE_LOG_DEPTH & TRACE_SOCKET
@@ -213,6 +254,10 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Finalize `WinSock`
+* @author Shh0ya @date 2022-12-30
+*/
 VOID ShSocketAPI::WskCleanup()
 {
 #if TRACE_LOG_DEPTH & TRACE_SOCKET
@@ -244,6 +289,14 @@ FINISH:
 	return;
 }
 
+/**
+* @brief Initialize `WinSock`
+* @param[in] PIRP* `Irp`
+* @param[out] PKEVENT `Event`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-30
+* @see https://learn.microsoft.com/ko-kr/windows-hardware/drivers/network/using-irps-with-winsock-kernel-functions
+*/
 NTSTATUS ShSocketAPI::WskInitialize(
 	OUT PIRP* Irp, 
 	OUT PKEVENT Event)
@@ -280,6 +333,15 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Initialize `WinSock` buffer
+* @param[in] PVOID `Buffer`
+* @param[in] ULONG `Size`
+* @param[out] PWSK_BUF `WskBuffer`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-30
+* @see ShSocketAPI::Send, ShSocketAPI::Recv, ShSocketAPI::WskBufferFinalize
+*/
 NTSTATUS ShSocketAPI::WskBufferInitialize(
 	IN PVOID Buffer, 
 	IN ULONG Size, 
@@ -322,6 +384,12 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Finalize `WinSock` buffer
+* @param[in] PWSK_BUF `WskBuffer`
+* @author Shh0ya @date 2022-12-30
+* @see ShSocketAPI::Send, ShSocketAPI::Recv
+*/
 VOID ShSocketAPI::WskBufferFinalize(
 	IN PWSK_BUF WskBuffer)
 {
@@ -345,6 +413,15 @@ FINISH:
 	PRINT_ELAPSED;
 }
 
+/**
+* @brief I/O Completion routine
+* @param[in] PDEVICE_OBJECT `DeviceObject`
+* @param[in] PIRP `Irp`
+* @param[in] PKEVENT `Event`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-30
+* @see ShSocketAPI::WskInitialize
+*/
 NTSTATUS ShSocketAPI::CompletionRoutine(
 	IN PDEVICE_OBJECT DeviceObject, 
 	IN PIRP Irp, 
@@ -373,6 +450,16 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Create a socket for connection
+* @param[in] ADDRESS_FAMILY `AddressFamily`
+* @param[in] USHORT `SocketType`
+* @param[in] ULONG `Protocol`
+* @param[in] ULONG `Flags`
+* @return If succeeds, return value is nonzero 
+* @author Shh0ya @date 2022-12-30
+* @see ShSocketAPI::CloseSocket
+*/
 PWSK_SOCKET ShSocketAPI::CreateSocket(
 	IN ADDRESS_FAMILY AddressFamily, 
 	IN USHORT SocketType, 
@@ -426,6 +513,13 @@ FINISH:
 	return Socket;
 }
 
+/**
+* @brief Close a socket
+* @param[in] PWSK_SOCKET `Socket`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-30
+* @see _WSK_PROVIDER_BASIC_DISPATCH, ShSocketAPI::CreateSocket
+*/
 NTSTATUS ShSocketAPI::CloseSocket(
 	IN PWSK_SOCKET Socket)
 {
@@ -466,6 +560,14 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Establishes a connection to a specified socket
+* @param[in] PWSK_SOCKET `Socket`
+* @param[in] PSOCKADDR `Address`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-30
+* @see _WSK_PROVIDER_CONNECTION_DISPATCH
+*/
 NTSTATUS ShSocketAPI::Connect(
 	IN PWSK_SOCKET Socket, 
 	IN PSOCKADDR Address)
@@ -507,6 +609,17 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Send data on a connected socket
+* @param[in] PWSK_SOCKET `Socket`
+* @param[in] PVOID `Buffer`
+* @param[in] ULONG `Size`
+* @param[in] ULONG `Flags`
+* @param[out] PULONG `SentBytes`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-30
+* @see _WSK_PROVIDER_CONNECTION_DISPATCH, ShSocketAPI::Recv
+*/
 NTSTATUS ShSocketAPI::Send(
 	IN PWSK_SOCKET Socket, 
 	IN PVOID Buffer, 
@@ -565,6 +678,17 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Receives data from a connected socket or a bound connectionless socket
+* @param[in] PWSK_SOCKET `Socket`
+* @param[out] PVOID `Buffer`
+* @param[in] ULONG `Size`
+* @param[in] ULONG `Flags`
+* @param[out] PULONG `ReceivedBytes`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-30
+* @see _WSK_PROVIDER_CONNECTION_DISPATCH, ShSocketAPI::Send
+*/
 NTSTATUS ShSocketAPI::Recv(
 	IN PWSK_SOCKET Socket, 
 	OUT PVOID Buffer, 
@@ -623,6 +747,14 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Associates a local address with a socket
+* @param[in] PWSK_SOCKET `Socket`
+* @param[in] PSOCKADDR `Address`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-30
+* @see _WSK_PROVIDER_CONNECTION_DISPATCH
+*/
 NTSTATUS ShSocketAPI::Bind(
 	IN PWSK_SOCKET Socket,
 	IN PSOCKADDR Address)
@@ -667,6 +799,16 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Permit an incoming connection attempt on a socket
+* @param[in] PWSK_SOCKET `Socket`
+* @param[out] PSOCKADDR `LocalAddress`
+* @param[out] PSOCKADDR `RemoteAddress`
+* @param[out] PWSK_SOCKET* `AcceptedSocket`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-30
+* @see _WSK_PROVIDER_LISTEN_DISPATCH
+*/
 NTSTATUS ShSocketAPI::Accept(
 	IN PWSK_SOCKET Socket,
 	OUT PSOCKADDR LocalAddress OPTIONAL, 

@@ -110,6 +110,20 @@
 //	}
 //}
 
+struct SH_SHARED_INFORMATION;
+
+struct TESTS {
+	SH_SHARED_INFORMATION aa;
+};
+
+struct SH_SHARED_INFORMATION {
+	PVOID MappedPhysicalMDL;
+	PVOID MappedVirtualMDL;
+	PVOID MappedPhysicalAddress;
+	PVOID MappedVirtualAddress;
+	PVOID Data;
+};
+
 int main()
 {
 	printf("%d %X",inet_addr("192.168.0.1"), inet_addr("192.168.0.1"));
