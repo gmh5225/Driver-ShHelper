@@ -15,19 +15,33 @@
 #define DEBUG_LOG     1 /**< Debug log on/off */
 #define CHECK_ELAPSED 0 /**< Elapsed time log on/off */
 
-#define TRACE_OFF        0x0000
-#define TRACE_ENTRY      0x0001
-#define TRACE_UTIL       0x0002
-#define TRACE_POOL       0x0004
-#define TRACE_MEMORY     0x0008
-#define TRACE_CORE       0x0010
-#define TRACE_PE         0x0020
-#define TRACE_PROCESS    0x0040 
-#define TRACE_MEMSCAN    0x0080 
-#define TRACE_MINIFILTER 0x0100
-#define TRACE_CALLBACK   0x0200
-#define TRACE_ALL        0xFFFF 
+#define TRACE_OFF            0x00000000
+#define TRACE_ENTRY          0x00000001
 
+#define TRACE_UTIL_STRING    0x00000002
+#define TRACE_UTIL_CORE      0x00000004
+#define TRACE_UTIL_REG       0x00000008
+#define TRACE_UTIL_QUEUE     0x00000010
+#define TRACE_UTIL_ALL       (TRACE_UTIL_STRING | TRACE_UTIL_CORE | TRACE_UTIL_REG | TRACE_UTIL_QUEUE)
+
+#define TRACE_POOL           0x00000020
+#define TRACE_MEMORY         0x00000040
+
+#define TRACE_CORE_BASE      0x00000080
+#define TRACE_CORE_MEMORY    0x00000100
+#define TRACE_CORE_STRING    0x00000200
+#define TRACE_CORE_ALL       (TRACE_CORE_BASE | TRACE_CORE_MEMORY | TRACE_CORE_STRING)
+
+#define TRACE_PE             0x00000400
+#define TRACE_PROCESS        0x00000800 
+#define TRACE_MEMSCAN        0x00001000 
+#define TRACE_MINIFILTER     0x00002000
+#define TRACE_CALLBACK       0x00004000
+#define TRACE_NOTIFY         0x00008000
+#define TRACE_INTERFACE      0x00010000
+#define TRACE_SOCKET         0x00020000
+
+#define TRACE_ALL            0xFFFFFFFF
 
 /**
 * @brief [MACRO] Depth of trace log
@@ -35,7 +49,7 @@
 * @author Shh0ya @date 2022-12-27
 * @see TRACE_LOG, TRACE_OFF, TRACE_ALL ...
 */
-#define TRACE_LOG_DEPTH (TRACE_OFF)
+#define TRACE_LOG_DEPTH (TRACE_NOTIFY)
 
 #if CHECK_ELAPSED & TRACE_LOG
     #if _CLANG
@@ -83,7 +97,9 @@ LARGE_INTEGER CurrentCounter = KeQueryPerformanceCounter(&Frequency)
 #include <ntifs.h>
 #include <ntimage.h>
 #include <ntstrsafe.h>
+#include <wsk.h>
 #include <intrin.h>
+#include <stdlib.h>
 
 #include <fltKernel.h>
 
@@ -106,11 +122,14 @@ LARGE_INTEGER CurrentCounter = KeQueryPerformanceCounter(&Frequency)
 
 #include <Util/ShDrvUtil.h>
 
+#include <Socket/ShDrvSocket.h>
 #include <Memory/ShDrvMemoryScanner.h>
 #include <Process/ShDrvProcess.h>
 #include <Thread/ShDrvThread.h>
 #include <Callbacks/ShDrvCallbacks.h>
 #include <MiniFilter/ShDrvMiniFilter.h>
+
+#include <Interface/ShDrvInterface.h>
 
 #include <ShDrvHelper.h>
 

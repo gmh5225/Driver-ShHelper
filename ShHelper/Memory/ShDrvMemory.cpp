@@ -146,6 +146,122 @@ FINISH:
 	return Status;
 }
 
+PVOID ShDrvMemory::GetMappedPhysicalAddress(
+	IN ULONG Size, 
+	OUT PMDL* Mdl)
+{
+#if TRACE_LOG_DEPTH & TRACE_MEMORY
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return nullptr; }
+
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	PVOID Result = nullptr;
+	PMDL TargetMdl = nullptr;
+	PHYSICAL_ADDRESS LowAddress = { 0, };
+	PHYSICAL_ADDRESS HighAddress = { 0, };
+	PHYSICAL_ADDRESS SkipBytes = { 0, };
+
+	if(Size == 0 || Mdl == nullptr) { ERROR_END }
+
+	HighAddress.QuadPart = MAXULONG64;
+	TargetMdl = MmAllocatePagesForMdlEx(LowAddress, HighAddress, SkipBytes, Size, MmCached, MM_ALLOCATE_NO_WAIT);
+	if(TargetMdl == nullptr) { ERROR_END }
+
+	if (TargetMdl->MdlFlags & (MDL_MAPPED_TO_SYSTEM_VA | MDL_SOURCE_IS_NONPAGED_POOL))
+	{
+		Result = TargetMdl->MappedSystemVa;
+	}
+	else
+	{
+		Result = MmMapLockedPagesSpecifyCache(TargetMdl, KernelMode, MmCached, nullptr, FALSE, NormalPagePriority);
+		if (Result != nullptr)
+		{
+			Status = MmProtectMdlSystemAddress(TargetMdl, PAGE_READWRITE);
+			if (!NT_SUCCESS(Status)) 
+			{
+				MmUnmapLockedPages(Result, TargetMdl);
+				MmFreePagesFromMdl(TargetMdl);
+				FREE_POOLEX(TargetMdl);
+				Result = nullptr;
+				ERROR_END 
+			}
+		}
+		else
+		{
+			/**< https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/wdm/nf-wdm-mmallocatepagesformdlex#remarks */
+			MmFreePagesFromMdl(TargetMdl);
+			FREE_POOLEX(TargetMdl);
+			ERROR_END;
+		}
+	}
+
+	if (Result == nullptr) { ERROR_END }
+
+	RtlSecureZeroMemory(Result, Size);
+	
+	*Mdl = TargetMdl;
+
+FINISH:
+	PRINT_ELAPSED;
+	return Result;
+}
+
+PVOID ShDrvMemory::GetMappedVirtualAddress(
+	IN PVOID Address, 
+	IN ULONG Size, 
+	OUT PMDL* Mdl)
+{
+#if TRACE_LOG_DEPTH & TRACE_MEMORY
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return nullptr; }
+
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	PVOID Result = nullptr;
+	PMDL TargetMdl = nullptr;
+	if(Address == nullptr || Mdl == nullptr || Size == 0 ) { ERROR_END }
+	
+	TargetMdl = IoAllocateMdl(Address, Size, FALSE, FALSE, nullptr);
+	if(TargetMdl == nullptr) { ERROR_END }
+	
+	MmBuildMdlForNonPagedPool(TargetMdl);
+
+	__try
+	{
+		Result = MmMapLockedPagesSpecifyCache(TargetMdl, UserMode, MmCached, nullptr, FALSE, NormalPagePriority);
+	}
+	__except (EXCEPTION_EXECUTE_HANDLER)
+	{
+		Result = nullptr;
+		IoFreeMdl(TargetMdl);
+		ERROR_END
+
+	}
+	if (Result == nullptr) 
+	{ 
+		IoFreeMdl(TargetMdl);
+		Status = STATUS_UNSUCCESSFUL;
+		ERROR_END 
+	}
+
+	*Mdl = TargetMdl;
+
+FINISH:
+	PRINT_ELAPSED;
+	return Result;
+}
+
 /**
 * @brief Read Memory
 * @details Read the memory using `MmCopyMemory`
@@ -514,6 +630,7 @@ NTSTATUS ShDrvMemory::SafeCopyMemoryInternal(
 	}
 	__except (EXCEPTION_EXECUTE_HANDLER)
 	{
+		Status = STATUS_ACCESS_VIOLATION;
 		ERROR_END
 	}
 

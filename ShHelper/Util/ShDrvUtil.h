@@ -249,7 +249,7 @@ entry.AsUInt = EntryAddress.AsUInt; TableBase = entry.PageFrameNumber << 12;
 		IN PWSTR Name,
 		OUT T* Routine)
 	{
-#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if TRACE_LOG_DEPTH & TRACE_UTIL_CORE
 #if _CLANG
 		TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -290,7 +290,7 @@ entry.AsUInt = EntryAddress.AsUInt; TableBase = entry.PageFrameNumber << 12;
 		OUT T* Routine,
 		IN  PVOID ImageBase = nullptr OPTIONAL)
 	{
-#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if TRACE_LOG_DEPTH & TRACE_UTIL_CORE
 #if _CLANG
 		TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else

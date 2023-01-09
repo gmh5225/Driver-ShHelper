@@ -14,6 +14,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestApp", "TestApp\TestApp.
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug_LLVM|x64 = Debug_LLVM|x64
+		Debug_LLVM|x86 = Debug_LLVM|x86
 		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86
 		Release_LLVM|x64 = Release_LLVM|x64
@@ -22,6 +24,12 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D9484BB9-8952-48E9-9B14-5A5514587CFB}.Debug_LLVM|x64.ActiveCfg = Debug_LLVM|x64
+		{D9484BB9-8952-48E9-9B14-5A5514587CFB}.Debug_LLVM|x64.Build.0 = Debug_LLVM|x64
+		{D9484BB9-8952-48E9-9B14-5A5514587CFB}.Debug_LLVM|x64.Deploy.0 = Debug_LLVM|x64
+		{D9484BB9-8952-48E9-9B14-5A5514587CFB}.Debug_LLVM|x86.ActiveCfg = Debug_LLVM|Win32
+		{D9484BB9-8952-48E9-9B14-5A5514587CFB}.Debug_LLVM|x86.Build.0 = Debug_LLVM|Win32
+		{D9484BB9-8952-48E9-9B14-5A5514587CFB}.Debug_LLVM|x86.Deploy.0 = Debug_LLVM|Win32
 		{D9484BB9-8952-48E9-9B14-5A5514587CFB}.Debug|x64.ActiveCfg = Debug|x64
 		{D9484BB9-8952-48E9-9B14-5A5514587CFB}.Debug|x64.Build.0 = Debug|x64
 		{D9484BB9-8952-48E9-9B14-5A5514587CFB}.Debug|x64.Deploy.0 = Debug|x64
@@ -40,6 +48,10 @@ Global
 		{D9484BB9-8952-48E9-9B14-5A5514587CFB}.Release|x86.ActiveCfg = Release|Win32
 		{D9484BB9-8952-48E9-9B14-5A5514587CFB}.Release|x86.Build.0 = Release|Win32
 		{D9484BB9-8952-48E9-9B14-5A5514587CFB}.Release|x86.Deploy.0 = Release|Win32
+		{98991C3D-9814-40BB-829E-E4942BE8DCA5}.Debug_LLVM|x64.ActiveCfg = Debug_LLVM|x64
+		{98991C3D-9814-40BB-829E-E4942BE8DCA5}.Debug_LLVM|x64.Build.0 = Debug_LLVM|x64
+		{98991C3D-9814-40BB-829E-E4942BE8DCA5}.Debug_LLVM|x86.ActiveCfg = Debug_LLVM|Win32
+		{98991C3D-9814-40BB-829E-E4942BE8DCA5}.Debug_LLVM|x86.Build.0 = Debug_LLVM|Win32
 		{98991C3D-9814-40BB-829E-E4942BE8DCA5}.Debug|x64.ActiveCfg = Debug|x64
 		{98991C3D-9814-40BB-829E-E4942BE8DCA5}.Debug|x64.Build.0 = Debug|x64
 		{98991C3D-9814-40BB-829E-E4942BE8DCA5}.Debug|x86.ActiveCfg = Debug|Win32

@@ -39,6 +39,7 @@ typedef enum _SH_POOL_TYPE {
 	GLOBAL_VARIABLES = 1,
 	GLOBAL_OFFSETS   = 2,
 	GLOBAL_CALLBACKS = 3,
+	GLOBAL_SOCKETS   = 4,
 
 	GlobalPoolTypeCount,
 
@@ -48,6 +49,13 @@ typedef enum _SH_POOL_TYPE {
 	UNICODE_POOL,
 	AllPoolTypeCount
 }SH_POOL_TYPE, *PSH_POOL_TYPE;
+
+typedef enum _SH_SOCKET_STATE {
+	Finalized = 0,
+	Finalizing,
+	Initialized,
+	Initializing
+}SH_SOCKET_STATE, *PSH_SOCKET_STATE;
 
 typedef enum _SH_GET_BASE_METHOD {
 	LoadedModuleList = 0,
@@ -66,5 +74,10 @@ typedef enum _SH_MEMSCAN_METHOD {
 	MEMSCAN_Section_One,
 	MEMSCAN_Section_All
 }SH_MEMSCAN_METHOD, *PSH_MEMSCAN_METHOD;
+
+typedef enum _SH_REQUEST_METHOD {
+	GET = 0,
+	POST
+}SH_REQUEST_METHOD,*PSH_REQUEST_METHOD;
 
 #endif // !_SHDRVENUM_H_

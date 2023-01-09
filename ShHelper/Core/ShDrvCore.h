@@ -37,11 +37,15 @@ namespace ShDrvCore {
 		OUT PLDR_DATA_TABLE_ENTRY ModuleInformation);
 
 	//======================================================
-	// System object core
+	// System core
 	//======================================================
 	BOOLEAN IsValidObject(
 		IN PVOID Object,
 		IN POBJECT_TYPE ObjectType);
+
+	NTSTATUS SetWriteProtection(
+		IN  BOOLEAN bDisable,
+		OUT PKIRQL Irql);
 
 	//======================================================
 	// System window station
@@ -66,7 +70,7 @@ namespace ShDrvCore {
 		IN SIZE_T Size,
 		OUT T* Pool)
 	{
-#if TRACE_LOG_DEPTH & TRACE_CORE
+#if TRACE_LOG_DEPTH & TRACE_CORE_MEMORY
 #if _CLANG
 		TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -85,7 +89,7 @@ namespace ShDrvCore {
 	template <typename T>
 	T* New()
 	{
-#if TRACE_LOG_DEPTH & TRACE_CORE
+#if TRACE_LOG_DEPTH & TRACE_CORE_MEMORY
 #if _CLANG
 		TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -105,7 +109,7 @@ namespace ShDrvCore {
 	template <typename T>
 	VOID Delete(T* Instance)
 	{
-#if TRACE_LOG_DEPTH & TRACE_CORE
+#if TRACE_LOG_DEPTH & TRACE_CORE_MEMORY
 #if _CLANG
 		TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else

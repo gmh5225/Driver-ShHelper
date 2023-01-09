@@ -72,7 +72,7 @@ NTSTATUS ShDrvProcess::Initialize(
 #endif
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
-	if(Process == PsInitialSystemProcess) { ERROR_END }
+	if(Process == PsInitialSystemProcess || Process == nullptr) { ERROR_END }
 	if (this->IsInit == TRUE) { ERROR_END }
 
 	this->ProcessId = PsGetProcessId(Process);
@@ -461,6 +461,58 @@ FINISH:
 	PRINT_ELAPSED;
 	return ResultCount;
 }
+
+
+PVOID ShDrvProcess::SetSharedMemory(
+	IN ULONG Size, 
+	OUT PSH_SHARED_INFORMATION SharedData)
+{
+#if TRACE_LOG_DEPTH & TRACE_PROCESS
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return nullptr; }
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	PVOID Result = nullptr;
+	PVOID MappedPhysical = nullptr;
+	PMDL PhysicalMdl = nullptr;
+	PMDL VirtualMdl = nullptr;
+	if(Size == 0 || SharedData == nullptr) { ERROR_END }
+
+	Attach();
+
+	MappedPhysical = ShDrvMemory::GetMappedPhysicalAddress(Size, &PhysicalMdl);
+	if (MappedPhysical == nullptr)
+	{
+		ERROR_END
+	}
+	Result = ShDrvMemory::GetMappedVirtualAddress(MappedPhysical, Size, &VirtualMdl);
+	if (Result == nullptr)
+	{
+		MmUnmapLockedPages(MappedPhysical, PhysicalMdl);
+		MmFreePagesFromMdl(PhysicalMdl);
+		FREE_POOLEX(PhysicalMdl);
+		ERROR_END
+	}
+
+	RtlSecureZeroMemory(Result, Size);
+
+	SharedData->MappedPhysicalMDL = PhysicalMdl;
+	SharedData->MappedVirtualMDL = VirtualMdl;
+	SharedData->MappedPhysicalAddress = MappedPhysical;
+	SharedData->MappedVirtualAddress = Result;
+	SharedData->Data = Result;
+
+FINISH:
+	Detach();
+	PRINT_ELAPSED;
+	return Result;
+}
+
 
 /**
 * @brief Get the LdrListHead in process PEB(64)

@@ -72,6 +72,10 @@ public:
 		IN PCSTR Mask = nullptr,
 		IN BOOLEAN bAllScan = FALSE);
 
+	PVOID SetSharedMemory(
+		IN ULONG Size, 
+		OUT PSH_SHARED_INFORMATION SharedData);
+
 	PEPROCESS GetProcess() { return Process; }
 
 private:

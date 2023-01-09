@@ -1,6 +1,18 @@
 #ifndef _SHDRVMINIFILTER_H_
 #define _SHDRVMINIFILTER_H_
 
+/**
+ * @file ShDrvMiniFilter.h
+ * @author Shh0ya (hunho88@gmail.com)
+ * @brief Mini-filter header
+ * @date 2022-12-30
+ * @copyright the GNU General Public License v3
+ */
+
+/**
+* @brief Mini-Filter Pre-Operation
+* @author Shh0ya @date 2022-12-30
+*/
 namespace MiniFilterPreOperation {
 	FLT_PREOP_CALLBACK_STATUS MiniFilterPreCreate(
 		IN OUT PFLT_CALLBACK_DATA Data,
@@ -28,6 +40,10 @@ namespace MiniFilterPreOperation {
 		_Flt_CompletionContext_Outptr_ PVOID* CompletionContext);
 }
 
+/**
+* @brief Mini-Filter Post-Operation
+* @author Shh0ya @date 2022-12-30
+*/
 namespace MiniFilterPostOperation {
 	FLT_POSTOP_CALLBACK_STATUS MiniFilterPostCreate(
 		IN OUT PFLT_CALLBACK_DATA Data,
@@ -60,6 +76,10 @@ namespace MiniFilterPostOperation {
 		IN FLT_POST_OPERATION_FLAGS Flags);
 }
 
+/**
+* @brief Mini-Filter common
+* @author Shh0ya @date 2022-12-30
+*/
 namespace ShMiniFilter {
 
 	NTSTATUS MiniFilterUnload(IN FLT_FILTER_UNLOAD_FLAGS Flags);
@@ -88,6 +108,10 @@ namespace ShMiniFilter {
 		_Out_writes_bytes_to_opt_(OutBufferSize, *ReturnOutBufferLength) PVOID OutBuffer,
 		IN ULONG OutBufferSize,
 		OUT PULONG ReturnOutBufferLength);
+
+	NTSTATUS SendFilterMessage(
+		IN PFLT_CALLBACK_DATA Data,
+		IN PCFLT_RELATED_OBJECTS FltObjects);
 
 	VOID MiniFilterDisconnect(IN OPTIONAL PVOID ConnectionCookie);
 }

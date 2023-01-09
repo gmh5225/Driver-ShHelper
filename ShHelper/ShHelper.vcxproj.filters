@@ -73,6 +73,12 @@
     <ClInclude Include="Callbacks\ShDrvCallbacks.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Interface\ShDrvInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Socket\ShDrvSocket.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ShDrvHelper.cpp">
@@ -106,6 +112,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Callbacks\ShDrvCallbacks.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Interface\ShDrvInterface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Socket\ShDrvSocket.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

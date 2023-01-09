@@ -7,9 +7,21 @@
 
 #define SH_TAG 'PLHS'
 
+#define DEVICE_NAME   L"\\Device\\ShHelper"
+#define SYMBOLIC_NAME L"\\DosDevices\\Shpr"
+
+#define SERVICE_NAME "ShHelper"
+#define DRIVER_NAME  "ShHelper.sys"
+#define LINK_NAME    "\\\\.\\Shpr"
+
 #define MINIFILTER_PORT L"\\ShMiniFilter"
 
 #define QUEUE_MAX_SIZE 0x4000
+
+enum FilterMessageFlag {
+	FLTMSG_None = 0,
+	FLTMSG_InitQueue
+};
 
 enum FilterOperationFlag {
 	PRE_CREATE_FLAG = 1,
@@ -30,21 +42,27 @@ enum QueueFlag {
 	EmptyQueue
 };
 
-PACK_START(1)
+typedef struct _SH_QUEUE_INFORMATION {
+	PVOID QueueData;
+	PVOID QueuePointer;
+#define SH_QUEUE_INFORMATION_SIZE sizeof(SH_QUEUE_INFORMATION)
+}SH_QUEUE_INFORMATION, *PSH_QUEUE_INFORMATION;
+
+typedef struct _SH_QUEUE_POINTER {
+	int FrontPointer;
+	int RearPointer;
+#define SH_QUEUE_POINTER_SIZE sizeof(SH_QUEUE_POINTER)
+}SH_QUEUE_POINTER, * PSH_QUEUE_POINTER;
+
 typedef struct _SH_QUEUE_DATA {
+	ULONG MessageId;
 	QueueFlag Flag;
 	FilterOperationFlag OpFlag;
 	ULONG ProcessId;
 	WCHAR ProcessName[260];
+	WCHAR Path[260];
 #define SH_QUEUE_DATA_SIZE sizeof(SH_QUEUE_DATA)
 }SH_QUEUE_DATA, *PSH_QUEUE_DATA;
-
-typedef struct _SH_MFILTER_MESSAGE_BODY {
-	ULONG MessageId;
-	WCHAR ProcessName[260];
-	WCHAR Path[260];
-#define SH_MFILTER_MESSAGE_BODY_SIZE sizeof(SH_MFILTER_MESSAGE_BODY)
-}SH_MFILTER_MESSAGE_BODY, *PSH_MFILTER_MESSAGE_BODY;
 
 #ifdef KERNEL_DRIVER
 typedef struct _OVERLAPPED {
@@ -61,6 +79,15 @@ typedef struct _OVERLAPPED {
 	HANDLE  hEvent;
 } OVERLAPPED, * LPOVERLAPPED;
 #endif
+
+PACK_START(1)
+typedef struct _SH_MFILTER_MESSAGE_BODY {
+	ULONG MessageId;
+	FilterMessageFlag MessageFlag;
+	WCHAR ProcessName[260];
+	WCHAR Path[260];
+#define SH_MFILTER_MESSAGE_BODY_SIZE sizeof(SH_MFILTER_MESSAGE_BODY)
+}SH_MFILTER_MESSAGE_BODY, * PSH_MFILTER_MESSAGE_BODY;
 
 typedef struct _SH_MFILTER_MESSAGE {
 	FILTER_MESSAGE_HEADER MessageHeader;
@@ -144,5 +171,11 @@ namespace ShCommon {
 		return true;
 	}
 }
+
+#define REQ_AAAA_BBBB          0x1000000
+#define IOCTL_AAAA_BBBB        CTL_CODE(FILE_DEVICE_UNKNOWN, REQ_AAAA_BBBB, METHOD_BUFFERED, FILE_ANY_ACCESS)
+#define REQ_CCCC_DDDD          0x1000001
+#define IOCTL_CCCC_DDDD        CTL_CODE(FILE_DEVICE_UNKNOWN, REQ_CCCC_DDDD, METHOD_BUFFERED, FILE_ANY_ACCESS)
+
 
 #endif // !_SHCOMMON_H_

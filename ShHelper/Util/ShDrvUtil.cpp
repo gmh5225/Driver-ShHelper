@@ -25,7 +25,7 @@ BOOLEAN ShDrvUtil::StringCompareA(
 	IN PSTR Dest,
 	IN BOOLEAN CaseInSensitive)
 {
-#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if TRACE_LOG_DEPTH & TRACE_UTIL_STRING
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -65,7 +65,7 @@ BOOLEAN ShDrvUtil::StringCompareW(
 	IN PWSTR Dest,
 	IN BOOLEAN CaseInSensitive)
 {
-#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if TRACE_LOG_DEPTH & TRACE_UTIL_STRING
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -104,7 +104,7 @@ NTSTATUS ShDrvUtil::StringCopyA(
 	OUT NTSTRSAFE_PSTR Dest, 
 	IN  NTSTRSAFE_PCSTR Source )
 {
-#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if TRACE_LOG_DEPTH & TRACE_UTIL_STRING
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -115,7 +115,7 @@ NTSTATUS ShDrvUtil::StringCopyA(
 
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_SUCCESS;
-	Status = RtlStringCchCopyA(Dest, STR_MAX_LENGTH, Source);
+	Status = RtlStringCchCopyA(Dest, NTSTRSAFE_MAX_LENGTH, Source);
 
 	if (!NT_SUCCESS(Status)) { ERROR_END }
 FINISH:
@@ -136,7 +136,7 @@ NTSTATUS ShDrvUtil::StringCopyW(
 	OUT NTSTRSAFE_PWSTR Dest,
 	IN  NTSTRSAFE_PCWSTR Source )
 {
-#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if TRACE_LOG_DEPTH & TRACE_UTIL_STRING
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -147,7 +147,7 @@ NTSTATUS ShDrvUtil::StringCopyW(
 
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_SUCCESS;
-	Status = RtlStringCchCopyW(Dest, STR_MAX_LENGTH, Source);
+	Status = RtlStringCchCopyW(Dest, NTSTRSAFE_MAX_LENGTH, Source);
 	
 	if (!NT_SUCCESS(Status)) { ERROR_END }
 FINISH:
@@ -169,7 +169,7 @@ NTSTATUS ShDrvUtil::StringNCopyA(
 	IN NTSTRSAFE_PCSTR Source, 
 	IN SIZE_T Size)
 {
-#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if TRACE_LOG_DEPTH & TRACE_UTIL_STRING
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -180,7 +180,7 @@ NTSTATUS ShDrvUtil::StringNCopyA(
 
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_SUCCESS;
-	Status = RtlStringCchCopyNA(Dest, STR_MAX_LENGTH, Source, Size + 1);
+	Status = RtlStringCchCopyNA(Dest, NTSTRSAFE_MAX_LENGTH, Source, Size + 1);
 	if (!NT_SUCCESS(Status)) { ERROR_END }
 
 FINISH:
@@ -202,7 +202,7 @@ NTSTATUS ShDrvUtil::StringNCopyW(
 	IN NTSTRSAFE_PCWSTR Source, 
 	IN SIZE_T Size)
 {
-#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if TRACE_LOG_DEPTH & TRACE_UTIL_STRING
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -213,7 +213,7 @@ NTSTATUS ShDrvUtil::StringNCopyW(
 
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_SUCCESS;
-	Status = RtlStringCchCopyNW(Dest, STR_MAX_LENGTH, Source, Size + 1);
+	Status = RtlStringCchCopyNW(Dest, NTSTRSAFE_MAX_LENGTH, Source, Size + 1);
 	if(!NT_SUCCESS(Status)) { ERROR_END }
 	Dest[Size + 1] = '\x00';
 
@@ -235,7 +235,7 @@ NTSTATUS ShDrvUtil::StringConcatenateA(
 	OUT NTSTRSAFE_PSTR Dest, 
 	IN  NTSTRSAFE_PCSTR Source )
 {
-#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if TRACE_LOG_DEPTH & TRACE_UTIL_STRING
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -267,7 +267,7 @@ NTSTATUS ShDrvUtil::StringConcatenateW(
 	OUT  NTSTRSAFE_PWSTR Dest, 
 	IN   NTSTRSAFE_PCWSTR Source )
 {
-#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if TRACE_LOG_DEPTH & TRACE_UTIL_STRING
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -299,7 +299,7 @@ NTSTATUS ShDrvUtil::StringToUnicode(
 	IN  PSTR Source, 
 	OUT PUNICODE_STRING Dest )
 {
-#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if TRACE_LOG_DEPTH & TRACE_UTIL_STRING
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -339,7 +339,7 @@ NTSTATUS ShDrvUtil::WStringToAnsiString(
 	IN  PWSTR Source, 
 	OUT PANSI_STRING Dest )
 {
-#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if TRACE_LOG_DEPTH & TRACE_UTIL_STRING
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -425,7 +425,7 @@ FINISH:
 VOID ShDrvUtil::Sleep(
 	IN ULONG Milliseconds)
 {
-#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if TRACE_LOG_DEPTH & TRACE_UTIL_CORE
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -489,7 +489,7 @@ VOID ShDrvUtil::PrintElapsedTime(
 PEPROCESS ShDrvUtil::GetProcessByProcessId(
 	IN HANDLE ProcessId)
 {
-#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if TRACE_LOG_DEPTH & TRACE_UTIL_CORE
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -522,7 +522,7 @@ FINISH:
 PEPROCESS ShDrvUtil::GetProcessByImageFileName(
 	IN PCSTR ProcessName)
 {
-#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if TRACE_LOG_DEPTH & TRACE_UTIL_CORE
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -575,7 +575,7 @@ NTSTATUS ShDrvUtil::GetPhysicalAddress(
 	IN  PVOID VirtualAddress, 
 	OUT PPHYSICAL_ADDRESS PhysicalAddress )
 {
-#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if TRACE_LOG_DEPTH & TRACE_UTIL_CORE
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -613,7 +613,7 @@ NTSTATUS ShDrvUtil::GetPhysicalAddressEx(
 	IN KPROCESSOR_MODE Mode, 
 	OUT PPHYSICAL_ADDRESS PhysicalAddress )
 {
-#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if TRACE_LOG_DEPTH & TRACE_UTIL_CORE
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -658,7 +658,7 @@ NTSTATUS ShDrvUtil::GetPhysicalAddressInternal(
 	IN  PVOID VirtualAddress, 
 	OUT PPHYSICAL_ADDRESS PhysicalAddress )
 {
-#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if TRACE_LOG_DEPTH & TRACE_UTIL_CORE
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -754,7 +754,7 @@ NTSTATUS ShDrvUtil::GetPagingStructureEntry(
 	IN  ULONG64 ReferenceBit, 
 	OUT PPAGING_ENTRY_COMMON Entry )
 {
-#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if TRACE_LOG_DEPTH & TRACE_UTIL_CORE
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -795,7 +795,7 @@ FINISH:
 BOOLEAN ShDrvUtil::IsWow64Process(
 	IN PEPROCESS Process)
 {
-#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if TRACE_LOG_DEPTH & TRACE_UTIL_CORE
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -828,7 +828,7 @@ BOOLEAN ShDrvUtil::IsInRange(
 	IN PVOID EndAddress, 
 	IN PVOID TargetAddress)
 {
-#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if TRACE_LOG_DEPTH & TRACE_UTIL_CORE
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -864,7 +864,7 @@ NTSTATUS ShDrvUtil::RegOpenKey(
 	IN ACCESS_MASK AccessRight,
 	OUT PHANDLE Handle)
 {
-#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if TRACE_LOG_DEPTH & TRACE_UTIL_REG
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -916,7 +916,7 @@ PKEY_VALUE_FULL_INFORMATION ShDrvUtil::RegGetKeyValueInformation(
 	IN PCSTR RegistryPath, 
 	IN PCSTR ValueName)
 {
-#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if TRACE_LOG_DEPTH & TRACE_UTIL_REG
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -967,10 +967,16 @@ FINISH:
 	return KeyInformation;
 }
 
+/**
+* @brief Create the key corresponding to `RegistryPath`
+* @param[in] PCSTR `RegistryPath` : The registry path starting with "\Registry"
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+*/
 NTSTATUS ShDrvUtil::RegCreateKey(
 	IN PCSTR RegistryPath)
 {
-#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if TRACE_LOG_DEPTH & TRACE_UTIL_REG
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -1013,10 +1019,16 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Delete the key corresponding to `RegistryPath`
+* @param[in] PCSTR `RegistryPath` : The registry path starting with "\Registry"
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+*/
 NTSTATUS ShDrvUtil::RegDeleteKey(
 	IN PCSTR RegistryPath)
 {
-#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if TRACE_LOG_DEPTH & TRACE_UTIL_REG
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -1107,7 +1119,7 @@ NTSTATUS ShDrvUtil::RegQueryBinary(
 	IN  PCSTR ValueName, 
 	OUT PUCHAR Value)
 {
-#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if TRACE_LOG_DEPTH & TRACE_UTIL_REG
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -1148,7 +1160,7 @@ NTSTATUS ShDrvUtil::RegQueryDword(
 	IN  PCSTR ValueName, 
 	OUT PULONG Value)
 {
-#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if TRACE_LOG_DEPTH & TRACE_UTIL_REG
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -1188,7 +1200,7 @@ NTSTATUS ShDrvUtil::RegQueryStr(
 	IN  PCSTR ValueName, 
 	OUT PWSTR Value)
 {
-#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if TRACE_LOG_DEPTH & TRACE_UTIL_REG
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -1231,7 +1243,7 @@ NTSTATUS ShDrvUtil::RegSetBinary(
 	IN PUCHAR Value,
 	IN ULONG Size)
 {
-#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if TRACE_LOG_DEPTH & TRACE_UTIL_REG
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -1278,7 +1290,7 @@ NTSTATUS ShDrvUtil::RegSetDword(
 	IN PCSTR ValueName, 
 	IN ULONG Value)
 {
-#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if TRACE_LOG_DEPTH & TRACE_UTIL_REG
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -1325,7 +1337,7 @@ NTSTATUS ShDrvUtil::RegSetStr(
 	IN PCSTR ValueName, 
 	IN PWSTR Value)
 {
-#if TRACE_LOG_DEPTH & TRACE_UTIL
+#if TRACE_LOG_DEPTH & TRACE_UTIL_REG
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else

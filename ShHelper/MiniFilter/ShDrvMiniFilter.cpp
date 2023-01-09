@@ -8,7 +8,7 @@ FLT_PREOP_CALLBACK_STATUS MiniFilterPreOperation::MiniFilterPreCreate(
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return FLT_PREOP_SUCCESS_WITH_CALLBACK; }
 
 	auto Status = FLT_PREOP_SUCCESS_WITH_CALLBACK;
-	auto NtStatus = STATUS_SUCCESS;
+	auto NtStatus = STATUS_INVALID_PARAMETER;
 	PSH_MFILTER_MESSAGE_BODY MsgBody = nullptr;
 	ULONG ReplyLength = 0;
 	LARGE_INTEGER TimeOut = { 0, };
@@ -18,10 +18,10 @@ FLT_PREOP_CALLBACK_STATUS MiniFilterPreOperation::MiniFilterPreCreate(
 
 	TimeOut.QuadPart = -(3000 * 10000);
 
-	if (g_Callbacks->ClientPort != nullptr)
+	/*if (g_Callbacks->ClientPort != nullptr)
 	{
 		ShDrvCore::AllocatePool<PSH_MFILTER_MESSAGE_BODY>(SH_MFILTER_MESSAGE_BODY_SIZE, &MsgBody);
-		
+
 		if (FltObjects->FileObject != nullptr && FltObjects->FileObject->FileName.Buffer != nullptr)
 		{
 			Process = IoThreadToProcess(Data->Thread);
@@ -29,7 +29,7 @@ FLT_PREOP_CALLBACK_STATUS MiniFilterPreOperation::MiniFilterPreCreate(
 
 			g_Routines->PsReferenceProcessFilePointer(Process, &FileObject);
 			if (FileObject == nullptr) { ERROR_END }
-			
+
 			ShDrvUtil::StringCopyW(MsgBody->Path, FltObjects->FileObject->FileName.Buffer);
 			ShDrvUtil::StringCopyW(MsgBody->ProcessName, FileObject->FileName.Buffer);
 
@@ -48,9 +48,7 @@ FLT_PREOP_CALLBACK_STATUS MiniFilterPreOperation::MiniFilterPreCreate(
 			g_Callbacks->MFilterId++;
 		}
 		FREE_POOLEX(MsgBody);
-
-	}
-
+	}*/
 FINISH:
 	return Status;
 }
@@ -200,11 +198,11 @@ FINISH:
 }
 
 NTSTATUS ShMiniFilter::MiniFilterMessage(
-	IN PVOID ConnectionCookie, 
-	PVOID InputBuffer, 
-	IN ULONG InputBufferSize, 
-	PVOID OutBuffer, 
-	IN ULONG OutBufferSize, 
+	IN PVOID ConnectionCookie,
+	PVOID InputBuffer,
+	IN ULONG InputBufferSize,
+	PVOID OutBuffer,
+	IN ULONG OutBufferSize,
 	OUT PULONG ReturnOutBufferLength)
 {
 #if TRACE_LOG_DEPTH & TRACE_MINIFILTER
@@ -216,15 +214,67 @@ NTSTATUS ShMiniFilter::MiniFilterMessage(
 #endif
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
-	if(InputBuffer == nullptr || MmIsAddressValid(InputBuffer) == false) { ERROR_END }
+	HANDLE ProcessId = nullptr;
+	ShDrvProcess* Process = nullptr;
+	PSH_QUEUE_DATA SharedQueue = nullptr;
+	PSH_QUEUE_POINTER SharedPointer = nullptr;
+	SH_QUEUE_INFORMATION QueueInformation = { 0, };
+	ULONG QueueSize = (SH_QUEUE_DATA_SIZE * QUEUE_MAX_SIZE);
 
-	auto ProcessId = *reinterpret_cast<PULONG>(InputBuffer);
-	
-	auto Process = ShDrvUtil::GetProcessByProcessId((HANDLE)ProcessId);
-	Log("%p %p",ConnectionCookie, Process);
-	
+	if (InputBuffer == nullptr || MmIsAddressValid(InputBuffer) == FALSE) { ERROR_END }
+	if (OutBuffer == nullptr || MmIsAddressValid(OutBuffer) == FALSE) { ERROR_END }
 
-	Status = STATUS_SUCCESS;
+	g_Variables->QueueMsgId = 0;
+
+	ProcessId = reinterpret_cast<HANDLE>(*reinterpret_cast<PULONG>(InputBuffer));
+	if (ProcessId <= (HANDLE)4) { ERROR_END }
+
+	Process = new(ShDrvProcess);
+	if (Process == nullptr) { ERROR_END }
+
+	Status = Process->Initialize((HANDLE)ProcessId);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	SharedQueue = reinterpret_cast<PSH_QUEUE_DATA>(Process->SetSharedMemory(QueueSize, &g_Variables->SharedData1));
+	if (SharedQueue == nullptr) { Status = STATUS_UNSUCCESSFUL; ERROR_END }
+
+	for (auto i = 0; i < QUEUE_MAX_SIZE; i++)
+	{
+		SharedQueue[i].Flag = EmptyQueue;
+	}
+
+	SharedPointer = reinterpret_cast<PSH_QUEUE_POINTER>(Process->SetSharedMemory(SH_QUEUE_POINTER_SIZE, &g_Variables->SharedData2));
+	if (SharedPointer == nullptr) { Status = STATUS_UNSUCCESSFUL; ERROR_END }
+
+	g_Variables->TargetProcess = ShDrvUtil::GetProcessByProcessId(ProcessId);
+	g_Variables->QueueData = SharedQueue;
+	g_Variables->QueuePointer = SharedPointer;
+	QueueInformation.QueueData = SharedQueue;
+	QueueInformation.QueuePointer = SharedPointer;
+
+	RtlCopyMemory(OutBuffer, &QueueInformation, SH_QUEUE_INFORMATION_SIZE);
+
+
+FINISH:
+	delete(Process);
+	PRINT_ELAPSED;
+	return Status;
+}
+
+NTSTATUS ShMiniFilter::SendFilterMessage(
+	IN PFLT_CALLBACK_DATA Data, 
+	IN PCFLT_RELATED_OBJECTS FltObjects)
+{
+#if TRACE_LOG_DEPTH & TRACE_MINIFILTER
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
 
 FINISH:
 	PRINT_ELAPSED;

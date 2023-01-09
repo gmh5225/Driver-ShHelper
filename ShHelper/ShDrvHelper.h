@@ -22,7 +22,9 @@ NTSTATUS MiniFilterInitialize(IN PDRIVER_OBJECT DriverObject);
 NTSTATUS ObCallbackInitialize(IN PDRIVER_OBJECT DriverObject);
 NTSTATUS NotifyRoutineInitialize();
 
+VOID CallbackFinalize();
 VOID MiniFilterUnload();
+VOID SharedMemoryFinalize();
 
 EXTERN_C_END
 
@@ -35,6 +37,7 @@ namespace ShDrvExample {
 	VOID ProcessTest(IN HANDLE ProcessId);
 	VOID ProcessTest32(IN HANDLE ProcessId32);
 	VOID MemoryScanTest();
+	VOID SocketTest(IN PCSTR IPv4Address, IN PCSTR Path, IN PCSTR Url, IN PCSTR PostData, IN SH_REQUEST_METHOD Method);
 }
 
 

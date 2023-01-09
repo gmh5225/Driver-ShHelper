@@ -13,6 +13,8 @@ PSH_GLOBAL_VARIABLES     g_Variables; /**< Global variables */
 PSH_GLOBAL_OFFSETS       g_Offsets;   /**< Global offsets data */
 PSH_POOL_INFORMATION     g_Pools;     /**< Global pool manager */
 PSH_GLOBAL_CALLBACKS     g_Callbacks; /**< Global callback manager */
+PSH_GLOBAL_SOCKETS       g_Sockets;   /**< Global socket manager */
+
 
 // LLVM is not support
 //#pragma alloc_text("INIT", DriverEntry)
@@ -39,8 +41,13 @@ NTSTATUS DriverEntry(
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_SUCCESS;
 
+	for (auto i = 0; i < IRP_MJ_MAXIMUM_FUNCTION; i++) { DriverObject->MajorFunction[i] = ShDrvMjFunction::DispatchRoutine; }
 	DriverObject->DriverUnload = HelperFinalize;
+
 	Status = DriverInitialize();
+	if (!NT_SUCCESS(Status)) { ShDrvPoolManager::Finalize(); ERROR_END }
+
+	Status = DeviceInitialize(DriverObject);
 	if (!NT_SUCCESS(Status)) { ShDrvPoolManager::Finalize(); ERROR_END }
 	
 	Status = MiniFilterInitialize(DriverObject);
@@ -57,11 +64,17 @@ NTSTATUS DriverEntry(
 	Status = NotifyRoutineInitialize();
 	if (!NT_SUCCESS(Status))
 	{
+		CallbackFinalize();
 		MiniFilterUnload();
 		ShDrvPoolManager::Finalize();
 		ERROR_END
 	}
+	
+	ShDrvExample::SocketTest("192.168.0.3","Hello?name=Shh0ya","","", GET);
 
+	ShDrvExample::SocketTest("192.168.0.3","Hello", "", "Name=Shh0ya", POST);
+
+	
 	/*ShDrvExample::MemoryScanTest();
 	ShDrvExample::PeTest((HANDLE)6752, (HANDLE)2584);
 	ShDrvExample::ProcessTest((HANDLE)6752);
@@ -93,7 +106,18 @@ VOID HelperFinalize(
 #endif
 #endif
 	SAVE_CURRENT_COUNTER;
-	if (g_Callbacks->CallbackRegistration != nullptr) { ObUnRegisterCallbacks(g_Callbacks->CallbackRegistration); }
+	UNICODE_STRING LinkName = { 0, };
+
+	CallbackFinalize();
+
+	SharedMemoryFinalize();
+
+	if (g_Variables->DeviceObject != nullptr)
+	{
+		RtlInitUnicodeString(&LinkName, SYMBOLIC_NAME);
+		IoDeleteDevice(g_Variables->DeviceObject);
+		IoDeleteSymbolicLink(&LinkName);
+	}
 
 	ShDrvPoolManager::Finalize();
 
@@ -146,6 +170,9 @@ NTSTATUS DriverInitialize()
 	GET_GLOBAL_POOL(g_Variables, GLOBAL_VARIABLES);
 	GET_GLOBAL_POOL(g_Offsets, GLOBAL_OFFSETS);
 	GET_GLOBAL_POOL(g_Callbacks, GLOBAL_CALLBACKS);
+	GET_GLOBAL_POOL(g_Sockets, GLOBAL_SOCKETS);
+
+	g_Sockets->Dispatch.Version = MAKE_WSK_VERSION(1, 0);
 
 	g_Variables->KUserSharedData = reinterpret_cast<PKUSER_SHARED_DATA>(KUSER_SHARED_DATA_ADDRESS);
 	g_Variables->BuildNumber = g_Variables->KUserSharedData->NtBuildNumber;
@@ -1178,6 +1205,20 @@ NTSTATUS DeviceInitialize(
 
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
+	PDEVICE_OBJECT DeviceObject = nullptr;
+	UNICODE_STRING DeviceName = { 0, };
+	UNICODE_STRING LinkName = { 0, };
+
+	RtlInitUnicodeString(&DeviceName, DEVICE_NAME);
+	RtlInitUnicodeString(&LinkName, SYMBOLIC_NAME);
+
+	Status = IoCreateDevice(DriverObject, 0, &DeviceName, FILE_DEVICE_UNKNOWN, FILE_DEVICE_SECURE_OPEN, FALSE, &DeviceObject);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	Status = IoCreateSymbolicLink(&LinkName, &DeviceName);
+	if (NT_SUCCESS(Status) == FALSE) { ERROR_END }
+
+	g_Variables->DeviceObject = DeviceObject;
 
 FINISH:
 	PRINT_ELAPSED;
@@ -1338,6 +1379,13 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Initialize `Object Callbacks`
+* @details Set the `Object Callbacks`
+* @param[in] PDRIVER_OBJECT `DriverObject`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+*/
 NTSTATUS ObCallbackInitialize(
 	IN PDRIVER_OBJECT DriverObject)
 {
@@ -1380,6 +1428,12 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Initialize `Notify routines`
+* @details Set the `Notify routines`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+*/
 NTSTATUS NotifyRoutineInitialize()
 {
 #if TRACE_LOG_DEPTH & TRACE_ENTRY
@@ -1393,17 +1447,113 @@ NTSTATUS NotifyRoutineInitialize()
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 
+	Status = PsSetCreateProcessNotifyRoutine(NotifyRoutines::ProcessNotifyRoutine, FALSE);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+	g_Callbacks->bProcessNotify = TRUE;
 
-	Status = STATUS_SUCCESS;
+	Status = PsSetCreateProcessNotifyRoutineEx(NotifyRoutines::ProcessNotifyRoutineEx, FALSE);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+	g_Callbacks->bProcessNotifyEx = TRUE;
+
+	Status = PsSetCreateThreadNotifyRoutine(NotifyRoutines::ThreadNotifyRoutine);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+	g_Callbacks->bThreadNotify = TRUE;
+
+	Status = PsSetLoadImageNotifyRoutine(NotifyRoutines::LoadImageNotifyRoutine);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+	g_Callbacks->bImageNotify = TRUE;
+
 FINISH:
 	PRINT_ELAPSED;
 	return Status;
 }
 
+/**
+* @brief Finalize `Object Callbacks` & `Notify routines`
+* @details Remove all callbacks
+* @author Shh0ya @date 2022-12-27
+*/
+VOID CallbackFinalize()
+{
+#if TRACE_LOG_DEPTH & TRACE_ENTRY
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+	SAVE_CURRENT_COUNTER;
+
+	if (g_Callbacks->CallbackRegistration != nullptr) { ObUnRegisterCallbacks(g_Callbacks->CallbackRegistration); }
+	if (g_Callbacks->bProcessNotify) { PsSetCreateProcessNotifyRoutine(NotifyRoutines::ProcessNotifyRoutine, TRUE); }
+	if (g_Callbacks->bProcessNotifyEx) { PsSetCreateProcessNotifyRoutineEx(NotifyRoutines::ProcessNotifyRoutineEx, TRUE); }
+	if (g_Callbacks->bProcessNotify) { PsRemoveCreateThreadNotifyRoutine(NotifyRoutines::ThreadNotifyRoutine); }
+	if (g_Callbacks->bProcessNotify) { PsRemoveLoadImageNotifyRoutine(NotifyRoutines::LoadImageNotifyRoutine); }
+
+FINISH:
+	PRINT_ELAPSED;
+}
+
+/**
+* @brief Finalize `Mini-Filter`
+* @details Unload mini filter
+* @author Shh0ya @date 2022-12-27
+*/
 VOID MiniFilterUnload()
 {
+#if TRACE_LOG_DEPTH & TRACE_ENTRY
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+	SAVE_CURRENT_COUNTER;
+
 	FltCloseCommunicationPort(g_Callbacks->ServerPort);
 	FltUnregisterFilter(g_Callbacks->Filter);
+
+FINISH:
+	PRINT_ELAPSED;
+}
+
+/**
+* @brief Finalize shared memory
+* @author Shh0ya @date 2022-12-27
+*/
+VOID SharedMemoryFinalize()
+{
+#if TRACE_LOG_DEPTH & TRACE_ENTRY
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+	SAVE_CURRENT_COUNTER;
+
+	auto SharedData1 = &g_Variables->SharedData1;
+	auto SharedData2 = &g_Variables->SharedData2;
+	if (SharedData1->Data != nullptr)
+	{
+		MmUnmapLockedPages(SharedData1->MappedPhysicalAddress, SharedData1->MappedPhysicalMDL);
+		MmUnmapLockedPages(SharedData1->MappedVirtualAddress, SharedData1->MappedVirtualMDL);
+		MmFreePagesFromMdl(SharedData1->MappedPhysicalMDL);
+		IoFreeMdl(SharedData1->MappedVirtualMDL);
+		FREE_POOLEX(SharedData1->MappedPhysicalMDL);
+	}
+
+	if (SharedData2->Data != nullptr)
+	{
+		MmUnmapLockedPages(SharedData2->MappedPhysicalAddress, SharedData2->MappedPhysicalMDL);
+		MmUnmapLockedPages(SharedData2->MappedVirtualAddress, SharedData2->MappedVirtualMDL);
+		MmFreePagesFromMdl(SharedData2->MappedPhysicalMDL);
+		IoFreeMdl(SharedData2->MappedVirtualMDL);
+		FREE_POOLEX(SharedData2->MappedPhysicalMDL);
+	}
+
+FINISH:
+	PRINT_ELAPSED;
 }
 
 VOID ShDrvExample::PeTest(
@@ -1616,4 +1766,61 @@ VOID ShDrvExample::MemoryScanTest()
 		Log("%p", *Result);
 	}
 	delete(Scanner);
+}
+
+VOID ShDrvExample::SocketTest(
+	IN PCSTR IPv4Address, 
+	IN PCSTR Path, 
+	IN PCSTR Url, 
+	IN PCSTR PostData, 
+	IN SH_REQUEST_METHOD Method)
+{
+	PWSK_SOCKET Socket = nullptr;
+	SH_SOCKET_SEND SendData = { 0, };
+	SH_SOCKET_RECV RecvData = { 0, };
+
+	RecvData.ReceiveBuffer = ALLOC_POOL(NONE_SPECIAL);
+
+	SendData.IPv4Address = reinterpret_cast<PSTR>(ALLOC_POOL(ANSI_POOL));
+	SendData.Url = reinterpret_cast<PSTR>(ALLOC_POOL(ANSI_POOL));
+	SendData.Path = reinterpret_cast<PSTR>(ALLOC_POOL(ANSI_POOL));
+	SendData.Optional = reinterpret_cast<PSTR>(ALLOC_POOL(ANSI_POOL));
+	SendData.PostData = reinterpret_cast<PSTR>(ALLOC_POOL(ANSI_POOL));
+	SendData.ConetentLength = reinterpret_cast<PSTR>(ALLOC_POOL(ANSI_POOL));
+	SendData.Port = 80;
+
+	StringCopy(SendData.IPv4Address, IPv4Address);
+	StringCopy(SendData.Path, Path);
+	StringCopy(SendData.Url, Url);
+	StringCopy(SendData.PostData, PostData);
+	RtlStringCchPrintfA(SendData.ConetentLength, NTSTRSAFE_MAX_LENGTH, "%d", StringLength(SendData.PostData));
+
+	ShSocketAPI::WskStartup();
+
+	switch (Method)
+	{
+	case GET:
+	{
+		ShSocketAPI::Request(&SendData, &RecvData, GET);
+		break;
+	}
+	case POST:
+	{
+		ShSocketAPI::Request(&SendData, &RecvData, POST);
+		break;
+	}
+	default:
+	{
+
+	}
+	}
+
+	ShSocketAPI::WskCleanup();
+
+	FREE_POOL(SendData.IPv4Address);
+	FREE_POOL(SendData.Url);
+	FREE_POOL(SendData.Path);
+	FREE_POOL(SendData.Optional);
+	FREE_POOL(SendData.PostData);
+	FREE_POOL(SendData.ConetentLength);
 }

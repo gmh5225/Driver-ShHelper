@@ -12,6 +12,24 @@
 using namespace ShDrvFuncDef;
 
 /********************************************************************************************
+* Shared queue structure
+********************************************************************************************/
+PACK_START(1)
+/**
+* @brief Global shared data structure
+* @author Shh0ya @date 2022-12-27
+*/
+typedef struct _SH_SHARED_INFORMATION {
+	PMDL MappedPhysicalMDL;
+	PMDL MappedVirtualMDL;
+	PVOID MappedPhysicalAddress;
+	PVOID MappedVirtualAddress;
+	PVOID Data;
+#define SH_SHARED_INFORMATION_SIZE sizeof(SH_SHARED_INFORMATION)
+}SH_SHARED_INFORMATION, * PSH_SHARED_INFORMATION;
+PACK_END
+
+/********************************************************************************************
 * Global routine structure
 ********************************************************************************************/
 
@@ -82,6 +100,12 @@ typedef struct _SH_GLOBAL_VARIABLES{
 	SH_VARIABLE_MEMBER(IoDriverObjectType, POBJECT_TYPE*);
 	SH_VARIABLE_MEMBER(IoDeviceObjectType, POBJECT_TYPE*);
 
+	SH_VARIABLE_MEMBER(TargetProcess, PEPROCESS);
+	SH_VARIABLE_MEMBER(QueueMsgId, ULONG);
+	SH_VARIABLE_MEMBER(QueueData, PSH_QUEUE_DATA);
+	SH_VARIABLE_MEMBER(QueuePointer, PSH_QUEUE_POINTER);
+	SH_VARIABLE_MEMBER(SharedData1, SH_SHARED_INFORMATION);     /**< Queue Data */
+	SH_VARIABLE_MEMBER(SharedData2, SH_SHARED_INFORMATION);     /**< Queue Pointer */
 
 
 #define KUSER_SHARED_DATA_ADDRESS 0xFFFFF78000000000
@@ -213,8 +237,29 @@ typedef struct _SH_GLOBAL_CALLBACKS {
 
 	PVOID CallbackRegistration;
 	
+	BOOLEAN bProcessNotify;
+	BOOLEAN bProcessNotifyEx;
+	BOOLEAN bThreadNotify;
+	BOOLEAN bImageNotify;
 #define SH_GLOBAL_CALLBACKS_SIZE sizeof(SH_GLOBAL_CALLBACKS)
 }SH_GLOBAL_CALLBACKS, * PSH_GLOBAL_CALLBACKS;
+PACK_END
+
+/********************************************************************************************
+* Socket manager structure
+********************************************************************************************/
+PACK_START(1)
+/**
+* @brief Global socket data structure
+* @author Shh0ya @date 2022-12-27
+*/
+typedef struct _SH_GLOBAL_SOCKETS {
+	WSK_REGISTRATION Registration;
+	WSK_PROVIDER_NPI Provider;
+	WSK_CLIENT_DISPATCH Dispatch;
+	SH_SOCKET_STATE State;
+#define SH_GLOBAL_SOCKETS_SIZE sizeof(SH_GLOBAL_SOCKETS)
+}SH_GLOBAL_SOCKETS, * PSH_GLOBAL_SOCKETS;
 PACK_END
 
 /********************************************************************************************
@@ -226,5 +271,6 @@ extern PSH_GLOBAL_VARIABLES     g_Variables;
 extern PSH_GLOBAL_OFFSETS       g_Offsets;
 extern PSH_POOL_INFORMATION     g_Pools;
 extern PSH_GLOBAL_CALLBACKS     g_Callbacks;
+extern PSH_GLOBAL_SOCKETS       g_Sockets;
 
 #endif // !_SHDRVSTRUCT_H_

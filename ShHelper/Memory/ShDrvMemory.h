@@ -41,6 +41,15 @@ namespace ShDrvMemory {
 		IN PVOID Buffer,
 		IN SH_RW_MEMORY_METHOD Method = RW_Normal);
 
+	PVOID GetMappedPhysicalAddress(
+		IN ULONG  Size, 
+		OUT PMDL* Mdl);
+
+	PVOID GetMappedVirtualAddress(
+		IN PVOID  Address, 
+		IN ULONG  Size, 
+		OUT PMDL* Mdl);
+
 	static RWMEMORY_ROUTINE ReadMemoryNormal;
 	static RWMEMORY_ROUTINE ReadPhysicalMemory;
 	static RWMEMORY_ROUTINE ReadMemoryEx;

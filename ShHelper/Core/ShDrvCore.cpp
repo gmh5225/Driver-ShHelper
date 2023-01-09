@@ -23,7 +23,7 @@ PVOID ShDrvCore::GetKernelBaseAddress(
 	OUT PULONG64 ImageSize,
 	IN SH_GET_BASE_METHOD Method)
 {
-#if TRACE_LOG_DEPTH & TRACE_CORE
+#if TRACE_LOG_DEPTH & TRACE_CORE_BASE
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -81,7 +81,7 @@ NTSTATUS ShDrvCore::GetSystemModuleInformation(
 	IN PCSTR ModuleName,
 	OUT PSYSTEM_MODULE_ENTRY ModuleInfomration)
 {
-#if TRACE_LOG_DEPTH & TRACE_CORE
+#if TRACE_LOG_DEPTH & TRACE_CORE_BASE
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -157,7 +157,7 @@ NTSTATUS ShDrvCore::GetSystemModuleInformationEx(
 	IN PCSTR ModuleName,
 	OUT PLDR_DATA_TABLE_ENTRY ModuleInformation)
 {
-#if TRACE_LOG_DEPTH & TRACE_CORE
+#if TRACE_LOG_DEPTH & TRACE_CORE_BASE
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -237,7 +237,7 @@ BOOLEAN ShDrvCore::IsValidObject(
 	IN PVOID Object, 
 	IN POBJECT_TYPE ObjectType)
 {
-#if TRACE_LOG_DEPTH & TRACE_CORE
+#if TRACE_LOG_DEPTH & TRACE_CORE_BASE
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -263,8 +263,60 @@ FINISH:
 }
 
 /**
+* @brief On/Off the `Write Protection`
+* @warning Unsafely routine
+* @param[in] BOOLEAN `bDisable`
+* @param[out] PKIRQL `Irql`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-27
+*/
+NTSTATUS ShDrvCore::SetWriteProtection(
+	IN BOOLEAN bDisable, 
+	OUT PKIRQL Irql)
+{
+#if TRACE_LOG_DEPTH & TRACE_CORE_BASE
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FUNCDNAME__, __FUNCTION__);
+#endif
+#endif
+
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	auto CurrentIrql = 0;
+	CR0 Cr0 = { 0, };
+
+	if (Irql == nullptr) { ERROR_END }
+	
+	Cr0.AsUInt = __readcr0();
+
+	if (bDisable == TRUE)
+	{
+		CurrentIrql = KeRaiseIrqlToDpcLevel();
+		Cr0.WriteProtect = 0;
+		__writecr0(Cr0.AsUInt);
+		_disable();
+		*Irql = CurrentIrql;
+	}
+	else
+	{
+		Cr0.WriteProtect = 1;
+		_enable();
+		__writecr0(Cr0.AsUInt);
+		KeLowerIrql(*Irql);
+	}
+
+	Status = STATUS_SUCCESS;
+
+FINISH:
+	PRINT_ELAPSED;
+	return Status;
+}
+
+/**
 * @brief Check that the memory address is the session address
-* @warning Unsafety routine, Windows kernel obsolete routines : https://learn.microsoft.com/en-us/windows-hardware/drivers/kernel/mmcreatemdl
+* @warning Unsafely routine, Windows kernel obsolete routines : https://learn.microsoft.com/en-us/windows-hardware/drivers/kernel/mmcreatemdl
 * @param[in] PVOID `Address`
 * @return If not session address, return value is `FALSE`
 * @author Shh0ya @date 2022-12-27
@@ -273,7 +325,7 @@ FINISH:
 BOOLEAN ShDrvCore::IsSessionAddress(
 	IN PVOID Address)
 {
-#if TRACE_LOG_DEPTH & TRACE_CORE
+#if TRACE_LOG_DEPTH & TRACE_CORE_BASE
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -306,7 +358,7 @@ FINISH:
 BOOLEAN ShDrvCore::IsSessionAddressEx(
 	IN PVOID Address)
 {
-#if TRACE_LOG_DEPTH & TRACE_CORE
+#if TRACE_LOG_DEPTH & TRACE_CORE_BASE
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -343,7 +395,7 @@ FINISH:
 BOOLEAN ShDrvCore::IsSessionAddressEx2(
 	IN PVOID Address)
 {
-#if TRACE_LOG_DEPTH & TRACE_CORE
+#if TRACE_LOG_DEPTH & TRACE_CORE_BASE
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -382,7 +434,7 @@ FINISH:
 NTSTATUS ShDrvCore::AttachSessionProcess(
 	OUT PKAPC_STATE ApcState)
 {
-#if TRACE_LOG_DEPTH & TRACE_CORE
+#if TRACE_LOG_DEPTH & TRACE_CORE_BASE
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -412,7 +464,7 @@ FINISH:
 VOID ShDrvCore::DetachSessionProcess(
 	OUT PKAPC_STATE ApcState)
 {
-#if TRACE_LOG_DEPTH & TRACE_CORE
+#if TRACE_LOG_DEPTH & TRACE_CORE_BASE
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -435,7 +487,7 @@ void __cdecl operator delete(void* p, unsigned __int64) { ShDrvCore::Delete(p); 
 
 ShDrvCore::ShString::ShString()
 {
-#if TRACE_LOG_DEPTH & TRACE_CORE
+#if TRACE_LOG_DEPTH & TRACE_CORE_STRING
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -455,7 +507,7 @@ FINISH:
 ShDrvCore::ShString::ShString(
 	IN PCSTR s)
 {
-#if TRACE_LOG_DEPTH & TRACE_CORE
+#if TRACE_LOG_DEPTH & TRACE_CORE_STRING
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -480,7 +532,7 @@ FINISH:
 
 ShDrvCore::ShString::~ShString()
 {
-#if TRACE_LOG_DEPTH & TRACE_CORE
+#if TRACE_LOG_DEPTH & TRACE_CORE_STRING
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -500,7 +552,7 @@ BOOLEAN ShDrvCore::ShString::IsEqual(
 	IN const ShString& s, 
 	IN BOOLEAN CaseInsensitive)
 {
-#if TRACE_LOG_DEPTH & TRACE_CORE
+#if TRACE_LOG_DEPTH & TRACE_CORE_STRING
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -521,7 +573,7 @@ LONG ShDrvCore::ShString::IsContains(
 	IN LONG StartIndex, 
 	IN BOOLEAN CaseInsensitive)
 {
-#if TRACE_LOG_DEPTH & TRACE_CORE
+#if TRACE_LOG_DEPTH & TRACE_CORE_STRING
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -574,7 +626,7 @@ FINISH:
 ShDrvCore::ShString& ShDrvCore::ShString::operator=(
 	IN PCSTR s)
 {
-#if TRACE_LOG_DEPTH & TRACE_CORE
+#if TRACE_LOG_DEPTH & TRACE_CORE_STRING
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -602,7 +654,7 @@ FINISH:
 ShDrvCore::ShString& ShDrvCore::ShString::operator+(
 	IN PCSTR s)
 {
-#if TRACE_LOG_DEPTH & TRACE_CORE
+#if TRACE_LOG_DEPTH & TRACE_CORE_STRING
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -625,7 +677,7 @@ FINISH:
 ShDrvCore::ShString& ShDrvCore::ShString::operator+(
 	IN const ShString& s)
 {
-#if TRACE_LOG_DEPTH & TRACE_CORE
+#if TRACE_LOG_DEPTH & TRACE_CORE_STRING
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -648,7 +700,7 @@ FINISH:
 ShDrvCore::ShString& ShDrvCore::ShString::operator+=(
 	IN PCSTR s)
 {
-#if TRACE_LOG_DEPTH & TRACE_CORE
+#if TRACE_LOG_DEPTH & TRACE_CORE_STRING
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -671,7 +723,7 @@ FINISH:
 ShDrvCore::ShString& ShDrvCore::ShString::operator+=(
 	IN const ShString& s)
 {
-#if TRACE_LOG_DEPTH & TRACE_CORE
+#if TRACE_LOG_DEPTH & TRACE_CORE_STRING
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -693,7 +745,7 @@ FINISH:
 
 ShDrvCore::ShWString::ShWString()
 {
-#if TRACE_LOG_DEPTH & TRACE_CORE
+#if TRACE_LOG_DEPTH & TRACE_CORE_STRING
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -713,7 +765,7 @@ FINISH:
 ShDrvCore::ShWString::ShWString(
 	IN PCWSTR s)
 {
-#if TRACE_LOG_DEPTH & TRACE_CORE
+#if TRACE_LOG_DEPTH & TRACE_CORE_STRING
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -738,7 +790,7 @@ FINISH:
 
 ShDrvCore::ShWString::~ShWString()
 {
-#if TRACE_LOG_DEPTH & TRACE_CORE
+#if TRACE_LOG_DEPTH & TRACE_CORE_STRING
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -758,7 +810,7 @@ BOOLEAN ShDrvCore::ShWString::IsEqual(
 	IN const ShWString& s, 
 	IN BOOLEAN CaseInsensitive)
 {
-#if TRACE_LOG_DEPTH & TRACE_CORE
+#if TRACE_LOG_DEPTH & TRACE_CORE_STRING
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -779,7 +831,7 @@ LONG ShDrvCore::ShWString::IsContains(
 	IN LONG StartIndex, 
 	IN BOOLEAN CaseInsensitive)
 {
-#if TRACE_LOG_DEPTH & TRACE_CORE
+#if TRACE_LOG_DEPTH & TRACE_CORE_STRING
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -832,7 +884,7 @@ FINISH:
 ShDrvCore::ShWString& ShDrvCore::ShWString::operator=(
 	IN PCWSTR s)
 {
-#if TRACE_LOG_DEPTH & TRACE_CORE
+#if TRACE_LOG_DEPTH & TRACE_CORE_STRING
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -860,7 +912,7 @@ FINISH:
 ShDrvCore::ShWString& ShDrvCore::ShWString::operator+(
 	IN PCWSTR s)
 {
-#if TRACE_LOG_DEPTH & TRACE_CORE
+#if TRACE_LOG_DEPTH & TRACE_CORE_STRING
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -883,7 +935,7 @@ FINISH:
 ShDrvCore::ShWString& ShDrvCore::ShWString::operator+(
 	IN const ShWString& s)
 {
-#if TRACE_LOG_DEPTH & TRACE_CORE
+#if TRACE_LOG_DEPTH & TRACE_CORE_STRING
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -906,7 +958,7 @@ FINISH:
 ShDrvCore::ShWString& ShDrvCore::ShWString::operator+=(
 	IN PCWSTR s)
 {
-#if TRACE_LOG_DEPTH & TRACE_CORE
+#if TRACE_LOG_DEPTH & TRACE_CORE_STRING
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
@@ -929,7 +981,7 @@ FINISH:
 ShDrvCore::ShWString& ShDrvCore::ShWString::operator+=(
 	IN const ShWString& s)
 {
-#if TRACE_LOG_DEPTH & TRACE_CORE
+#if TRACE_LOG_DEPTH & TRACE_CORE_STRING
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
