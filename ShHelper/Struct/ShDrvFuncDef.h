@@ -900,27 +900,45 @@ ZwQuerySystemInformation(
 	IN SYSTEM_INFORMATION_CLASS SystemInformationClass,
 	OUT PVOID SystemInformation,
 	IN ULONG SystemInformationLength,
-	OUT PULONG ReturnLength OPTIONAL
-);
+	OUT PULONG ReturnLength OPTIONAL);
 
 NTSYSAPI PIMAGE_NT_HEADERS NTAPI
 RtlImageNtHeader(
-	IN PVOID ModuleAddress
-);
+	IN PVOID ModuleAddress);
 
 NTSYSAPI PVOID NTAPI
 RtlImageDirectoryEntryToData(
 	IN PVOID BaseAddress,
 	IN BOOLEAN MappedAsImage,
 	IN USHORT Directory,
-	OUT PULONG Size
-);
+	OUT PULONG Size);
 
 NTSYSAPI PVOID NTAPI
 RtlFindExportedRoutineByName(
 	IN PVOID ImageBase,
-	IN PCHAR RoutineName
-);
+	IN PCHAR RoutineName);
+
+NTSYSAPI NTSTATUS NTAPI ObReferenceObjectByName(
+	IN PUNICODE_STRING ObjectName,
+	IN ULONG Attributes,
+	IN PACCESS_STATE PassedAccessState OPTIONAL,
+	IN ACCESS_MASK DesiredAccess OPTIONAL,
+	IN POBJECT_TYPE ObjectType,
+	IN KPROCESSOR_MODE AccessMode,
+	IN OUT PVOID ParseContext OPTIONAL,
+	OUT PVOID* Object);
+
+//======================================================
+// Variables
+//======================================================
+NTSYSAPI LIST_ENTRY   PsLoadedModuleList;
+NTSYSAPI ERESOURCE    PsLoadedModuleResource;
+
+NTSYSAPI POBJECT_TYPE IoDriverObjectType;
+NTSYSAPI POBJECT_TYPE IoDeviceObjectType;
+NTSYSAPI POBJECT_TYPE LpcPortObjectType;
+NTSYSAPI POBJECT_TYPE MmSectionObjectType;
+
 
 EXTERN_C_END
 #endif // !_SHDRVFUNCDEF_H_

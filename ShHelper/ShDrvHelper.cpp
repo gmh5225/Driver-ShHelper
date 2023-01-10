@@ -40,7 +40,7 @@ NTSTATUS DriverEntry(
 #endif
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_SUCCESS;
-	PHYSICAL_ADDRESS Physical;
+
 	for (auto i = 0; i < IRP_MJ_MAXIMUM_FUNCTION; i++) { DriverObject->MajorFunction[i] = ShDrvMjFunction::DispatchRoutine; }
 	DriverObject->DriverUnload = HelperFinalize;
 
@@ -76,7 +76,6 @@ NTSTATUS DriverEntry(
 	ShDrvExample::ProcessTest32((HANDLE)2584);
 	ShDrvExample::SocketTest("192.168.0.3", "Hello?name=Shh0ya", "", "", GET);
 	ShDrvExample::SocketTest("192.168.0.3", "Hello", "", "Name=Shh0ya", POST);
-
 
 FINISH:
 	PRINT_ELAPSED;

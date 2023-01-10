@@ -43,6 +43,13 @@ namespace ShDrvCore {
 		IN PVOID Object,
 		IN POBJECT_TYPE ObjectType);
 
+	POBJECT_TYPE GetObjectType(IN SH_OBJECT_TYPE ObjectType);
+
+	NTSTATUS GetObjectByObjectName(
+		IN SH_OBJECT_TYPE ObjectType,
+		IN PSTR Name,
+		OUT PVOID* Object);
+
 	NTSTATUS SetWriteProtection(
 		IN  BOOLEAN bDisable,
 		OUT PKIRQL Irql);

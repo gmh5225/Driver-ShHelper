@@ -50,6 +50,16 @@ typedef enum _SH_POOL_TYPE {
 	AllPoolTypeCount
 }SH_POOL_TYPE, *PSH_POOL_TYPE;
 
+typedef enum _SH_OBJECT_TYPE {
+	ProcessObjectType = 0,
+	ThreadObjectType,
+	FileObjectType,
+	DriverObjectType,
+	DeviceObjectType,
+	PortObjectType,
+	SectionObjectType
+}SH_OBJECT_TYPE, *PSH_OBJECT_TYPE;
+
 typedef enum _SH_THREAD_STATE {
 	ThreadReady = 0,
 	ThreadRunning,

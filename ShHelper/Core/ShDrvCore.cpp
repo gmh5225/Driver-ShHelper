@@ -244,6 +244,7 @@ BOOLEAN ShDrvCore::IsValidObject(
 	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
+	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return FALSE; }
 
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
@@ -260,6 +261,131 @@ BOOLEAN ShDrvCore::IsValidObject(
 FINISH:
 	PRINT_ELAPSED;
 	return Result;
+}
+
+/**
+* @brief Get object type
+* @param[in] SH_OBJECT_TYPE `ObjectType`
+* @return If succeeds, return value is nonzero
+* @author Shh0ya @date 2023-01-10
+*/
+POBJECT_TYPE ShDrvCore::GetObjectType(
+	IN SH_OBJECT_TYPE ObjectType)
+{
+#if TRACE_LOG_DEPTH & TRACE_CORE_BASE
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
+#endif
+#endif
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	POBJECT_TYPE Type = nullptr;
+
+	switch (ObjectType)
+	{
+	case ProcessObjectType:
+	{
+		Type = *PsProcessType;
+		break;
+	}
+	case ThreadObjectType:
+	{
+		Type = *PsThreadType;
+		break;
+	}
+	case FileObjectType:
+	{
+		Type = *IoFileObjectType;
+		break;
+	}
+	case DriverObjectType:
+	{
+		Type = IoDriverObjectType;
+		break;
+	}
+	case DeviceObjectType:
+	{
+		Type = IoDeviceObjectType;
+		break;
+	}
+	case PortObjectType:
+	{
+		Type = LpcPortObjectType;
+		break;
+	}
+	case SectionObjectType:
+	{
+		Type = MmSectionObjectType;
+		break;
+	}
+	default:
+	{
+		Type = nullptr;
+		break;
+	}
+	}
+
+FINISH:
+	PRINT_ELAPSED;
+	return Type;
+}
+
+/**
+* @brief ObReferenceObjectByName
+* @param[in] SH_OBJECT_TYPE `ObjectType`
+* @param[in] PSTR `Name`
+* @param[out] PVOID* `Object`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2023-01-10
+*/
+NTSTATUS ShDrvCore::GetObjectByObjectName(
+	IN SH_OBJECT_TYPE ObjectType, 
+	IN PSTR Name, 
+	OUT PVOID* Object)
+{
+#if TRACE_LOG_DEPTH & TRACE_CORE_BASE
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
+#endif
+#endif
+	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
+
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	UNICODE_STRING NameString = { 0, };
+	POBJECT_TYPE Type = nullptr;
+	if (Name == nullptr || Object == nullptr) { ERROR_END }
+
+	NameString.Buffer = reinterpret_cast<PWSTR>(ALLOC_POOL(UNICODE_POOL));
+	if(NameString.Buffer == nullptr) { ERROR_END }
+	
+	Status = ShDrvUtil::StringToUnicode(Name, &NameString);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	Type = GetObjectType(ObjectType);
+	if (Type == nullptr) { ERROR_END }
+
+	Status = ObReferenceObjectByName(
+		&NameString,
+		OBJ_KERNEL_HANDLE | OBJ_CASE_INSENSITIVE,
+		nullptr,
+		0,
+		Type,
+		KernelMode,
+		nullptr,
+		Object);
+	if(!NT_SUCCESS(Status)) { ERROR_END }
+
+	ObDereferenceObject(*Object);
+
+FINISH:
+	FREE_POOL(NameString.Buffer);
+	PRINT_ELAPSED;
+	return Status;
 }
 
 /**
