@@ -9,6 +9,7 @@
  * @copyright the GNU General Public License v3
  */
 
+
 EXTERN_C_START
 
 NTSTATUS DriverEntry(IN PDRIVER_OBJECT DriverObject, IN PUNICODE_STRING RegistryPath);
