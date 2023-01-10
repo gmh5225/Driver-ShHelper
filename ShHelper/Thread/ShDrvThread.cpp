@@ -9,6 +9,16 @@
  * @copyright the GNU General Public License v3
  */
 
+
+ /**
+ * @brief Create the system thread
+ * @param[in] KSTART_ROUTINE `Routine`
+ * @param[in] PVOID `Context`
+ * @param[out] PSH_THREAD_INFORMATION `ThreadInformation`
+ * @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+ * @author Shh0ya @date 2022-12-30
+ * @see ShDrvThread::StopThreadRoutine
+ */
 NTSTATUS ShDrvThread::StartThreadRoutine(
     IN KSTART_ROUTINE Routine, 
     IN PVOID Context, 
@@ -18,7 +28,7 @@ NTSTATUS ShDrvThread::StartThreadRoutine(
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
@@ -57,6 +67,13 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Terminate the system thread
+* @param[in] PSH_THREAD_INFORMATION `ThreadInformation`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-30
+* @see ShDrvThread::StartThreadRoutine, ShDrvThread::WaitTerminate
+*/
 NTSTATUS ShDrvThread::StopThreadRoutine(
     IN PSH_THREAD_INFORMATION ThreadInformation)
 {
@@ -64,7 +81,7 @@ NTSTATUS ShDrvThread::StopThreadRoutine(
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
@@ -85,6 +102,13 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Wait for the exit status of the thread
+* @param[in] PSH_THREAD_INFORMATION `ThreadInformation`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2022-12-30
+* @see ShDrvThread::StopThreadRoutine
+*/
 NTSTATUS ShDrvThread::WaitTerminate(
     IN PSH_THREAD_INFORMATION ThreadInformation)
 {
@@ -92,7 +116,7 @@ NTSTATUS ShDrvThread::WaitTerminate(
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
@@ -122,7 +146,7 @@ FINISH:
 VOID ShDrvThread::TestThread(IN PVOID StartContext)
 {
 	auto ThreadInformation = reinterpret_cast<PSH_THREAD_INFORMATION>(&g_Variables->SystemThreadInfo1);
-	while (true)
+	while (TRUE)
 	{
 		if (ThreadInformation->State == ThreadTerminating) { break; }
 	}

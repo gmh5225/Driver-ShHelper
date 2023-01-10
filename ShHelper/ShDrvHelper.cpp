@@ -35,12 +35,12 @@ NTSTATUS DriverEntry(
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_SUCCESS;
-
+	PHYSICAL_ADDRESS Physical;
 	for (auto i = 0; i < IRP_MJ_MAXIMUM_FUNCTION; i++) { DriverObject->MajorFunction[i] = ShDrvMjFunction::DispatchRoutine; }
 	DriverObject->DriverUnload = HelperFinalize;
 
@@ -70,14 +70,13 @@ NTSTATUS DriverEntry(
 		ERROR_END
 	}
 
-	/*
 	ShDrvExample::MemoryScanTest();
 	ShDrvExample::PeTest((HANDLE)6752, (HANDLE)2584);
 	ShDrvExample::ProcessTest((HANDLE)6752);
 	ShDrvExample::ProcessTest32((HANDLE)2584);
-	ShDrvExample::SocketTest("192.168.0.3","Hello?name=Shh0ya","","", GET);
-	ShDrvExample::SocketTest("192.168.0.3","Hello", "", "Name=Shh0ya", POST);
-	*/
+	ShDrvExample::SocketTest("192.168.0.3", "Hello?name=Shh0ya", "", "", GET);
+	ShDrvExample::SocketTest("192.168.0.3", "Hello", "", "Name=Shh0ya", POST);
+
 
 FINISH:
 	PRINT_ELAPSED;
@@ -98,7 +97,7 @@ VOID HelperFinalize(
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	SAVE_CURRENT_COUNTER;
@@ -107,6 +106,8 @@ VOID HelperFinalize(
 	CallbackFinalize();
 
 	SharedMemoryFinalize();
+
+	ShSocketAPI::WskCleanup();
 
 	if (g_Variables->DeviceObject != nullptr)
 	{
@@ -148,7 +149,7 @@ NTSTATUS DriverInitialize()
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	SAVE_CURRENT_COUNTER;
@@ -217,7 +218,7 @@ NTSTATUS InitializeOffset_Unsafe()
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	
@@ -1195,7 +1196,7 @@ NTSTATUS DeviceInitialize(
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 
@@ -1233,7 +1234,7 @@ NTSTATUS SetFltRegistry()
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 
@@ -1279,7 +1280,7 @@ NTSTATUS MiniFilterInitialize(
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 
@@ -1389,7 +1390,7 @@ NTSTATUS ObCallbackInitialize(
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 
@@ -1436,7 +1437,7 @@ NTSTATUS NotifyRoutineInitialize()
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 
@@ -1475,7 +1476,7 @@ VOID CallbackFinalize()
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	SAVE_CURRENT_COUNTER;
@@ -1501,7 +1502,7 @@ VOID MiniFilterUnload()
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	SAVE_CURRENT_COUNTER;
@@ -1523,7 +1524,7 @@ VOID SharedMemoryFinalize()
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	SAVE_CURRENT_COUNTER;
@@ -1789,7 +1790,7 @@ VOID ShDrvExample::SocketTest(
 	StringCopy(SendData.Path, Path);
 	StringCopy(SendData.Url, Url);
 	StringCopy(SendData.PostData, PostData);
-	RtlStringCchPrintfA(SendData.ConetentLength, NTSTRSAFE_MAX_LENGTH, "%d", StringLength(SendData.PostData));
+	RtlStringCchPrintfA(SendData.ConetentLength, NTSTRSAFE_MAX_LENGTH, "%lld", StringLength(SendData.PostData));
 
 	ShSocketAPI::WskStartup();
 

@@ -27,7 +27,7 @@ PVOID ShDrvCore::GetKernelBaseAddress(
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 
@@ -85,7 +85,7 @@ NTSTATUS ShDrvCore::GetSystemModuleInformation(
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
@@ -161,7 +161,7 @@ NTSTATUS ShDrvCore::GetSystemModuleInformationEx(
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
@@ -241,7 +241,7 @@ BOOLEAN ShDrvCore::IsValidObject(
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 
@@ -278,7 +278,7 @@ NTSTATUS ShDrvCore::SetWriteProtection(
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 
@@ -329,7 +329,7 @@ BOOLEAN ShDrvCore::IsSessionAddress(
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	SAVE_CURRENT_COUNTER;
@@ -362,7 +362,7 @@ BOOLEAN ShDrvCore::IsSessionAddressEx(
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	SAVE_CURRENT_COUNTER;
@@ -399,7 +399,7 @@ BOOLEAN ShDrvCore::IsSessionAddressEx2(
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	SAVE_CURRENT_COUNTER;
@@ -438,7 +438,7 @@ NTSTATUS ShDrvCore::AttachSessionProcess(
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	SAVE_CURRENT_COUNTER;
@@ -468,7 +468,7 @@ VOID ShDrvCore::DetachSessionProcess(
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	SAVE_CURRENT_COUNTER;
@@ -491,7 +491,7 @@ ShDrvCore::ShString::ShString()
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	SAVE_CURRENT_COUNTER;
@@ -511,7 +511,7 @@ ShDrvCore::ShString::ShString(
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	SAVE_CURRENT_COUNTER;
@@ -536,7 +536,7 @@ ShDrvCore::ShString::~ShString()
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	SAVE_CURRENT_COUNTER;
@@ -556,7 +556,7 @@ BOOLEAN ShDrvCore::ShString::IsEqual(
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	SAVE_CURRENT_COUNTER;
@@ -577,7 +577,7 @@ LONG ShDrvCore::ShString::IsContains(
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	SAVE_CURRENT_COUNTER;
@@ -630,7 +630,7 @@ ShDrvCore::ShString& ShDrvCore::ShString::operator=(
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	SAVE_CURRENT_COUNTER;
@@ -658,7 +658,7 @@ ShDrvCore::ShString& ShDrvCore::ShString::operator+(
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	SAVE_CURRENT_COUNTER;
@@ -681,7 +681,7 @@ ShDrvCore::ShString& ShDrvCore::ShString::operator+(
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	SAVE_CURRENT_COUNTER;
@@ -704,7 +704,7 @@ ShDrvCore::ShString& ShDrvCore::ShString::operator+=(
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	SAVE_CURRENT_COUNTER;
@@ -727,7 +727,7 @@ ShDrvCore::ShString& ShDrvCore::ShString::operator+=(
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	SAVE_CURRENT_COUNTER;
@@ -749,7 +749,7 @@ ShDrvCore::ShWString::ShWString()
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	SAVE_CURRENT_COUNTER;
@@ -769,7 +769,7 @@ ShDrvCore::ShWString::ShWString(
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	SAVE_CURRENT_COUNTER;
@@ -794,7 +794,7 @@ ShDrvCore::ShWString::~ShWString()
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	SAVE_CURRENT_COUNTER;
@@ -814,7 +814,7 @@ BOOLEAN ShDrvCore::ShWString::IsEqual(
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	SAVE_CURRENT_COUNTER;
@@ -835,7 +835,7 @@ LONG ShDrvCore::ShWString::IsContains(
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	SAVE_CURRENT_COUNTER;
@@ -888,7 +888,7 @@ ShDrvCore::ShWString& ShDrvCore::ShWString::operator=(
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	SAVE_CURRENT_COUNTER;
@@ -916,7 +916,7 @@ ShDrvCore::ShWString& ShDrvCore::ShWString::operator+(
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	SAVE_CURRENT_COUNTER;
@@ -939,7 +939,7 @@ ShDrvCore::ShWString& ShDrvCore::ShWString::operator+(
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	SAVE_CURRENT_COUNTER;
@@ -962,7 +962,7 @@ ShDrvCore::ShWString& ShDrvCore::ShWString::operator+=(
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	SAVE_CURRENT_COUNTER;
@@ -985,7 +985,7 @@ ShDrvCore::ShWString& ShDrvCore::ShWString::operator+=(
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	SAVE_CURRENT_COUNTER;

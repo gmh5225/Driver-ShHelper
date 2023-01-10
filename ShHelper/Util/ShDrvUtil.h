@@ -253,7 +253,7 @@ entry.AsUInt = EntryAddress.AsUInt; TableBase = entry.PageFrameNumber << 12;
 #if _CLANG
 		TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-		TraceLog(__FUNCDNAME__, __FUNCTION__);
+		TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 		if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
@@ -294,7 +294,7 @@ entry.AsUInt = EntryAddress.AsUInt; TableBase = entry.PageFrameNumber << 12;
 #if _CLANG
 		TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-		TraceLog(__FUNCDNAME__, __FUNCTION__);
+		TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 		SAVE_CURRENT_COUNTER;

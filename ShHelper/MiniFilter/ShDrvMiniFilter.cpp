@@ -138,7 +138,7 @@ NTSTATUS ShMiniFilter::MiniFilterUnload(
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	SAVE_CURRENT_COUNTER;
@@ -180,7 +180,7 @@ NTSTATUS ShMiniFilter::MiniFilterConnect(
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	SAVE_CURRENT_COUNTER;
@@ -209,7 +209,7 @@ NTSTATUS ShMiniFilter::MiniFilterMessage(
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	SAVE_CURRENT_COUNTER;
@@ -269,7 +269,7 @@ NTSTATUS ShMiniFilter::SendFilterMessage(
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
@@ -288,7 +288,7 @@ VOID ShMiniFilter::MiniFilterDisconnect(
 #if _CLANG
 	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-	TraceLog(__FUNCDNAME__, __FUNCTION__);
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 	SAVE_CURRENT_COUNTER;

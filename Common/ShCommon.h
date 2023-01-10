@@ -172,6 +172,9 @@ namespace ShCommon {
 	}
 }
 
+//======================================================
+// IOCTL CODE
+//======================================================
 #define REQ_AAAA_BBBB          0x1000000
 #define IOCTL_AAAA_BBBB        CTL_CODE(FILE_DEVICE_UNKNOWN, REQ_AAAA_BBBB, METHOD_BUFFERED, FILE_ANY_ACCESS)
 #define REQ_CCCC_DDDD          0x1000001

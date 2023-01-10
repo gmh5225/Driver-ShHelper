@@ -74,7 +74,7 @@ namespace ShDrvCore {
 #if _CLANG
 		TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-		TraceLog(__FUNCDNAME__, __FUNCTION__);
+		TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 		if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return STATUS_UNSUCCESSFUL; }
@@ -93,7 +93,7 @@ namespace ShDrvCore {
 #if _CLANG
 		TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-		TraceLog(__FUNCDNAME__, __FUNCTION__);
+		TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 		if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return nullptr; }
@@ -113,7 +113,7 @@ namespace ShDrvCore {
 #if _CLANG
 		TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
 #else
-		TraceLog(__FUNCDNAME__, __FUNCTION__);
+		TraceLog(__FILE__, __FUNCTION__, __LINE__);
 #endif
 #endif
 		if (KeGetCurrentIrql() > DISPATCH_LEVEL) { return; }

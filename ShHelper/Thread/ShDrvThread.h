@@ -14,6 +14,10 @@ typedef struct _SH_THREAD_INFORMATION {
 	SH_THREAD_STATE State;
 }SH_THREAD_INFORMATION, * PSH_THREAD_INFORMATION;
 
+/**
+* @brief System thread utility
+* @author Shh0ya @date 2022-12-30
+*/
 namespace ShDrvThread {
 	NTSTATUS StartThreadRoutine(
 		IN KSTART_ROUTINE Routine,

@@ -50,7 +50,7 @@
 * @author Shh0ya @date 2022-12-27
 * @see TRACE_LOG, TRACE_OFF, TRACE_ALL ...
 */
-#define TRACE_LOG_DEPTH (TRACE_OFF)
+#define TRACE_LOG_DEPTH (TRACE_ALL &~ TRACE_CALLBACK &~ TRACE_UTIL_STRING)
 
 #if CHECK_ELAPSED & TRACE_LOG
     #if _CLANG
@@ -72,7 +72,11 @@ LARGE_INTEGER Frequency = { 0, };\
 LARGE_INTEGER CurrentCounter = KeQueryPerformanceCounter(&Frequency)
 
 #if TRACE_LOG
+#if _CLANG
 #define TraceLog(func, file)  DbgPrintEx( DPFLTR_SYSTEM_ID,DPFLTR_ERROR_LEVEL, "[SH_TRACE] => %s (%s)\n", func, file)
+#else
+#define TraceLog(file, func, line)  DbgPrintEx( DPFLTR_SYSTEM_ID,DPFLTR_ERROR_LEVEL, "[SH_TRACE] => %s %s (%d)\n",file, func, line)
+#endif
 #else
 #define TraceLog(...)
 #endif
