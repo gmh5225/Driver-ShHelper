@@ -928,6 +928,10 @@ NTSYSAPI NTSTATUS NTAPI ObReferenceObjectByName(
 	IN OUT PVOID ParseContext OPTIONAL,
 	OUT PVOID* Object);
 
+NTSYSAPI NTSTATUS NTAPI PsReferenceProcessFilePointer(
+	IN PEPROCESS Process,
+	OUT PFILE_OBJECT* OutFileObject);
+
 //======================================================
 // Variables
 //======================================================

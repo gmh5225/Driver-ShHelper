@@ -171,13 +171,19 @@ namespace ShDrvUtil {
 
 	NTSTATUS StringToUnicode(
 		IN PSTR Source,
-		OUT PUNICODE_STRING Dest
-	);
+		OUT PUNICODE_STRING Dest);
 
 	NTSTATUS WStringToAnsiString(
 		IN  PWSTR Source,
-		OUT PANSI_STRING Dest
-	);
+		OUT PANSI_STRING Dest);
+
+	NTSTATUS StringToWString(
+		IN PSTR Source,
+		OUT PWSTR Dest);
+
+	NTSTATUS WStringToString(
+		IN PWSTR Source,
+		OUT PSTR Dest);
 
 	SIZE_T StringLengthA(IN PSTR Source);
 	SIZE_T StringLengthW(IN PWSTR Source);
@@ -217,12 +223,16 @@ entry.AsUInt = EntryAddress.AsUInt; TableBase = entry.PageFrameNumber << 12;
 	NTSTATUS GetPhysicalAddressEx(
 		IN PVOID VirtualAddress,
 		IN KPROCESSOR_MODE Mode,
-		OUT PPHYSICAL_ADDRESS PhysicalAddress);
+		OUT PPHYSICAL_ADDRESS PhysicalAddress,
+		IN SH_PAGING_TYPE RequestType = Type_Physical,
+		OUT PSH_PAGING_TYPE EntryType = nullptr);
 
 	static NTSTATUS GetPhysicalAddressInternal(
 		IN CR3* Cr3,
 		IN PVOID VirtualAddress,
-		OUT PPHYSICAL_ADDRESS PhysicalAddress);
+		OUT PPHYSICAL_ADDRESS PhysicalAddress,
+		IN SH_PAGING_TYPE RequestType = Type_Physical,
+		OUT PSH_PAGING_TYPE EntryType = nullptr);
 
 	static NTSTATUS GetPagingStructureEntry(
 		IN ULONG64 TableBase,

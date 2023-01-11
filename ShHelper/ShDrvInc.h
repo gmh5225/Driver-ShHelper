@@ -13,6 +13,7 @@
 
 #define TRACE_LOG     1 /**< Trace log on/off */
 #define DEBUG_LOG     1 /**< Debug log on/off */
+#define ERROR_LOG     1 /**< Error log on/off */
 #define CHECK_ELAPSED 0 /**< Elapsed time log on/off */
 
 #define TRACE_OFF            0x00000000
@@ -50,7 +51,9 @@
 * @author Shh0ya @date 2022-12-27
 * @see TRACE_LOG, TRACE_OFF, TRACE_ALL ...
 */
-#define TRACE_LOG_DEPTH (TRACE_ALL &~ TRACE_CALLBACK &~ TRACE_UTIL_STRING)
+//#define TRACE_LOG_DEPTH (TRACE_ALL &~ TRACE_CALLBACK &~ TRACE_UTIL_STRING)
+#define TRACE_LOG_DEPTH (TRACE_OFF)
+
 
 #if CHECK_ELAPSED & TRACE_LOG
     #if _CLANG
@@ -83,15 +86,19 @@ LARGE_INTEGER CurrentCounter = KeQueryPerformanceCounter(&Frequency)
 
 #if DEBUG_LOG
 #define Log(...)       DbgPrintEx( DPFLTR_SYSTEM_ID,DPFLTR_ERROR_LEVEL, "[SH_LOG] " __VA_ARGS__ ); PlainLog("\n")
-#define ErrLog(...)    DbgPrintEx( DPFLTR_SYSTEM_ID, DPFLTR_ERROR_LEVEL, "[SH_ERR] " __VA_ARGS__ ); PlainLog("\n")
 #define PlainLog(...)  DbgPrintEx( DPFLTR_SYSTEM_ID,DPFLTR_ERROR_LEVEL, __VA_ARGS__ )
 #define DetailLog(...) DbgPrintEx( DPFLTR_SYSTEM_ID,DPFLTR_ERROR_LEVEL, "\t\t[*] " __VA_ARGS__ ); PlainLog("\n")
-#define NtErrLog(Caller, Status) ErrLog("%s : 0x%X", Caller, Status)
 #else
 #define Log(...)
-#define ErrLog(...)
 #define PlainLog(...)
 #define DetailLog(...)
+#endif
+
+#if ERROR_LOG
+#define ErrLog(...)    DbgPrintEx( DPFLTR_SYSTEM_ID, DPFLTR_ERROR_LEVEL, "[SH_ERR] " __VA_ARGS__ ); PlainLog("\n")
+#define NtErrLog(Caller, Status) ErrLog("%s : 0x%X", Caller, Status)
+#else
+#define ErrLog(...)
 #define NtErrLog(...)
 #endif
 

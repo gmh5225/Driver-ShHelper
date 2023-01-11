@@ -608,6 +608,81 @@ FINISH:
 	return;
 }
 
+/**
+* @brief Check write protection
+* @param[in] PVOID `Address`
+* @param[in] KPROCESSOR_MODE `Mode`
+* @author Shh0ya @date 2023-01-11
+*/
+NTSTATUS ShDrvCore::IsWritableMemory(
+	IN PVOID Address, 
+	IN KPROCESSOR_MODE Mode)
+{
+#if TRACE_LOG_DEPTH & TRACE_CORE_MEMORY
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
+#endif
+#endif
+	auto Status = STATUS_INVALID_PARAMETER;
+	PHYSICAL_ADDRESS LastEntry = { 0, };
+	SH_PAGING_TYPE ReturnType = Type_None;
+	PDPTE_1GB_64 Pdpte = { 0, };
+	PDE_2MB_64 Pde = { 0, };
+	PTE_64 Pte = { 0, };
+
+	if(Address == nullptr) { ERROR_END }
+
+	Status = ShDrvUtil::GetPhysicalAddressEx(Address, Mode, &LastEntry, Type_LastEntry, &ReturnType);
+	if(!NT_SUCCESS(Status)) { ERROR_END }
+	
+	if (ReturnType == Type_None || ReturnType == Type_Physical) { Status = STATUS_INVALID_PARAMETER; ERROR_END }
+
+	Status = STATUS_ACCESS_DENIED;
+	switch (ReturnType)
+	{
+	case Type_Pdpte:
+	{
+		Pdpte.AsUInt = LastEntry.QuadPart;
+		if (Pdpte.Write == 1)
+		{
+			Status = STATUS_SUCCESS;
+		}
+		break;
+	}
+
+	case Type_Pde:
+	{
+		Pde.AsUInt = LastEntry.QuadPart;
+		if (Pde.Write == 1)
+		{
+			Status = STATUS_SUCCESS;
+		}
+		break;
+	}
+
+	case Type_Pte:
+	{
+		Pte.AsUInt = LastEntry.QuadPart;
+		if (Pte.Write == 1)
+		{
+			Status = STATUS_SUCCESS;
+		}
+		break;
+	}
+
+	default:
+	{
+		break;
+	}
+	}
+	
+FINISH:
+	PRINT_ELAPSED;
+	return Status;
+}
+
 void __cdecl operator delete(void* p) { ShDrvCore::Delete(p); p = nullptr; };
 void __cdecl operator delete(void* p, unsigned __int64) { ShDrvCore::Delete(p); p = nullptr; };
 

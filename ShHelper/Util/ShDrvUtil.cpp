@@ -114,10 +114,16 @@ NTSTATUS ShDrvUtil::StringCopyA(
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
 	SAVE_CURRENT_COUNTER;
-	auto Status = STATUS_SUCCESS;
-	Status = RtlStringCchCopyA(Dest, NTSTRSAFE_MAX_LENGTH, Source);
+	auto Status = STATUS_INVALID_PARAMETER;
 
+	if (Dest == nullptr || Source == nullptr) { ERROR_END }
+
+	Status = ShDrvCore::IsWritableMemory(Dest, KernelMode);
 	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	Status = RtlStringCchCopyA(Dest, NTSTRSAFE_MAX_LENGTH, Source);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
 FINISH:
 	PRINT_ELAPSED;
 	return Status;
@@ -146,10 +152,15 @@ NTSTATUS ShDrvUtil::StringCopyW(
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
 	SAVE_CURRENT_COUNTER;
-	auto Status = STATUS_SUCCESS;
-	Status = RtlStringCchCopyW(Dest, NTSTRSAFE_MAX_LENGTH, Source);
-	
+	auto Status = STATUS_INVALID_PARAMETER;
+	if (Dest == nullptr || Source == nullptr) { ERROR_END }
+
+	Status = ShDrvCore::IsWritableMemory(Dest, KernelMode);
 	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	Status = RtlStringCchCopyW(Dest, NTSTRSAFE_MAX_LENGTH, Source);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
 FINISH:
 	PRINT_ELAPSED;
 	return Status;
@@ -179,7 +190,12 @@ NTSTATUS ShDrvUtil::StringNCopyA(
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
 	SAVE_CURRENT_COUNTER;
-	auto Status = STATUS_SUCCESS;
+	auto Status = STATUS_INVALID_PARAMETER;
+	if (Dest == nullptr || Source == nullptr || Size == 0) { ERROR_END }
+	
+	Status = ShDrvCore::IsWritableMemory(Dest + Size, KernelMode);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
 	Status = RtlStringCchCopyNA(Dest, NTSTRSAFE_MAX_LENGTH, Source, Size + 1);
 	if (!NT_SUCCESS(Status)) { ERROR_END }
 
@@ -212,7 +228,12 @@ NTSTATUS ShDrvUtil::StringNCopyW(
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
 	SAVE_CURRENT_COUNTER;
-	auto Status = STATUS_SUCCESS;
+	auto Status = STATUS_INVALID_PARAMETER;
+	if (Dest == nullptr || Source == nullptr || Size == 0) { ERROR_END }
+
+	Status = ShDrvCore::IsWritableMemory(Dest + Size, KernelMode);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
 	Status = RtlStringCchCopyNW(Dest, NTSTRSAFE_MAX_LENGTH, Source, Size + 1);
 	if(!NT_SUCCESS(Status)) { ERROR_END }
 	Dest[Size + 1] = '\x00';
@@ -245,7 +266,12 @@ NTSTATUS ShDrvUtil::StringConcatenateA(
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
 	SAVE_CURRENT_COUNTER;
-	auto Status = STATUS_SUCCESS;
+	auto Status = STATUS_INVALID_PARAMETER;
+	if (Dest == nullptr || Source == nullptr) { ERROR_END }
+
+	Status = ShDrvCore::IsWritableMemory(Dest, KernelMode);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
 	Status = RtlStringCchCatA(Dest, NTSTRSAFE_MAX_LENGTH, Source);
 	
 	if (!NT_SUCCESS(Status)) { ERROR_END }
@@ -277,9 +303,12 @@ NTSTATUS ShDrvUtil::StringConcatenateW(
 	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
 
 	SAVE_CURRENT_COUNTER;
-	auto Status = STATUS_SUCCESS;
+	auto Status = STATUS_INVALID_PARAMETER;
+	if (Dest == nullptr || Source == nullptr) { ERROR_END }
+	Status = ShDrvCore::IsWritableMemory(Dest, KernelMode);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
 	Status = RtlStringCchCatW(Dest, NTSTRSAFE_MAX_LENGTH, Source);
-	
 	if (!NT_SUCCESS(Status)) { ERROR_END }
 FINISH:
 	PRINT_ELAPSED;
@@ -313,6 +342,9 @@ NTSTATUS ShDrvUtil::StringToUnicode(
 	ANSI_STRING SourceString = { 0, };
 
 	if (Source == nullptr || Dest == nullptr) { ERROR_END }
+
+	Status = ShDrvCore::IsWritableMemory(Dest, KernelMode);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
 
 	RtlInitAnsiString(&SourceString, Source);
 	
@@ -355,6 +387,9 @@ NTSTATUS ShDrvUtil::WStringToAnsiString(
 	if (Source == nullptr || Dest == nullptr) { ERROR_END }
 	if (Dest->Buffer == nullptr) { ERROR_END }
 
+	Status = ShDrvCore::IsWritableMemory(Dest, KernelMode);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
 	RtlSecureZeroMemory(Dest->Buffer, STR_MAX_LENGTH);
 	RtlInitUnicodeString(&SourceString, Source);
 
@@ -364,6 +399,78 @@ NTSTATUS ShDrvUtil::WStringToAnsiString(
 	if (!NT_SUCCESS(Status)) { ERROR_END }
 
 FINISH:
+	PRINT_ELAPSED;
+	return Status;
+}
+
+NTSTATUS ShDrvUtil::StringToWString(
+	IN PSTR Source, 
+	OUT PWSTR Dest)
+{
+#if TRACE_LOG_DEPTH & TRACE_UTIL_STRING
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
+#endif
+#endif
+	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
+
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	UNICODE_STRING UnicodeString = { 0, };
+
+	if (Source == nullptr || Dest == nullptr) { ERROR_END }
+
+	Status = ShDrvCore::IsWritableMemory(Dest, KernelMode);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	UnicodeString.Buffer = reinterpret_cast<PWSTR>(ALLOC_POOL(UNICODE_POOL));
+
+	Status = StringToUnicode(Source, &UnicodeString);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	Status = StringNCopyW(Dest, UnicodeString.Buffer, UnicodeString.Length);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+FINISH:
+	FREE_POOL(UnicodeString.Buffer);
+	PRINT_ELAPSED;
+	return Status;
+}
+
+NTSTATUS ShDrvUtil::WStringToString(
+	IN PWSTR Source, 
+	OUT PSTR Dest)
+{
+#if TRACE_LOG_DEPTH & TRACE_UTIL_STRING
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
+#endif
+#endif
+	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
+
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	ANSI_STRING AnsiString = { 0, };
+
+	if (Source == nullptr || Dest == nullptr) { ERROR_END }
+
+	Status = ShDrvCore::IsWritableMemory(Dest, KernelMode);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	AnsiString.Buffer = reinterpret_cast<PSTR>(ALLOC_POOL(ANSI_POOL));
+
+	Status = WStringToAnsiString(Source, &AnsiString);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	Status = StringCopyN(Dest, AnsiString.Buffer, AnsiString.Length);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+FINISH:
+	FREE_POOL(AnsiString.Buffer);
 	PRINT_ELAPSED;
 	return Status;
 }
@@ -604,6 +711,8 @@ FINISH:
 * @param[in] PVOID `VirtualAddress`
 * @param[in] KPROCESSOR_MODE `Mode`
 * @param[out] PPHYSICAL_ADDRESS `PhysicalAddress`
+* @param[in] SH_PAGING_TYPE `RequestType`
+* @param[out] PSH_PAGING_TYPE `EntryType`
 * @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
 * @author Shh0ya @date 2022-12-27
 * @see ShDrvUtil::GetPhysicalAddress, ShDrvUtil::GetPhysicalAddressInternal
@@ -611,7 +720,9 @@ FINISH:
 NTSTATUS ShDrvUtil::GetPhysicalAddressEx(
 	IN PVOID VirtualAddress, 
 	IN KPROCESSOR_MODE Mode, 
-	OUT PPHYSICAL_ADDRESS PhysicalAddress )
+	OUT PPHYSICAL_ADDRESS PhysicalAddress,
+	IN SH_PAGING_TYPE RequestType,
+	OUT PSH_PAGING_TYPE EntryType)
 {
 #if TRACE_LOG_DEPTH & TRACE_UTIL_CORE
 #if _CLANG
@@ -623,22 +734,28 @@ NTSTATUS ShDrvUtil::GetPhysicalAddressEx(
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 	CR3 Cr3 = { 0, };
+	if (VirtualAddress == nullptr || PhysicalAddress == nullptr) { ERROR_END }
+	if (EntryType == nullptr && RequestType == Type_LastEntry) { ERROR_END }
+
 	switch (Mode)
 	{
 	case KernelMode:
 	{
 		Cr3.AsUInt = g_Variables->SystemDirBase;
-		Status = GetPhysicalAddressInternal(&Cr3, VirtualAddress, PhysicalAddress);
+		Status = GetPhysicalAddressInternal(&Cr3, VirtualAddress, PhysicalAddress, RequestType, EntryType);
+		if (!NT_SUCCESS(Status)) { ERROR_END }
 		break;
 	}
 	case UserMode:
 	{
 		Cr3.AsUInt = __readcr3();
-		Status = GetPhysicalAddressInternal(&Cr3, VirtualAddress, PhysicalAddress);
+		Status = GetPhysicalAddressInternal(&Cr3, VirtualAddress, PhysicalAddress, RequestType, EntryType);
+		if (!NT_SUCCESS(Status)) { ERROR_END }
 		break;
 	}
 	}
 
+FINISH:
 	PRINT_ELAPSED;
 	return Status;
 }
@@ -649,6 +766,8 @@ NTSTATUS ShDrvUtil::GetPhysicalAddressEx(
 * @param[in] CR3* `Cr3`
 * @param[in] PVOID `VirtualAddress`
 * @param[out] PPHYSICAL_ADDRESS `PhysicalAddress`
+* @param[in] SH_PAGING_TYPE `RequestType`
+* @param[out] PSH_PAGING_TYPE `EntryType`
 * @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
 * @author Shh0ya @date 2022-12-27
 * @see ShDrvUtil::GetPhysicalAddressEx
@@ -656,7 +775,9 @@ NTSTATUS ShDrvUtil::GetPhysicalAddressEx(
 NTSTATUS ShDrvUtil::GetPhysicalAddressInternal(
 	IN  CR3* Cr3, 
 	IN  PVOID VirtualAddress, 
-	OUT PPHYSICAL_ADDRESS PhysicalAddress )
+	OUT PPHYSICAL_ADDRESS PhysicalAddress,
+	IN SH_PAGING_TYPE RequestType,
+	OUT PSH_PAGING_TYPE EntryType)
 {
 #if TRACE_LOG_DEPTH & TRACE_UTIL_CORE
 #if _CLANG
@@ -684,8 +805,7 @@ NTSTATUS ShDrvUtil::GetPhysicalAddressInternal(
 	ULONG64 TableBase = 0;
 
 	if (Cr3 == nullptr || VirtualAddress == nullptr || PhysicalAddress == nullptr) { ERROR_END }
-
-	
+	if(EntryType == nullptr && RequestType == Type_LastEntry) { ERROR_END }
 
 	Cr0.AsUInt = __readcr0();
 	if(Cr0.AsUInt == 0) { Status = STATUS_UNSUCCESSFUL; ERROR_END }
@@ -704,35 +824,72 @@ NTSTATUS ShDrvUtil::GetPhysicalAddressInternal(
 	PAGING_TRAVERSE(Pml4e, Pml4e);
 
 	PAGING_TRAVERSE(PdPte, PdPte);
+	if (RequestType == Type_Pdpte)
+	{
+		PhysicalAddress->QuadPart = PdPte.AsUInt;
+		Status = STATUS_SUCCESS;
+		END
+	}
+
 	if (PdPte.LargePage == 1)
 	{
 		PDPTE_1GB_64 PdPte1Gb = { 0, };
 		LINEAR_ADDRESS_PDPTE_1GB FinalLinearAddress = { 0, };
 		FinalLinearAddress.AsUInt = LinearAddress.AsUInt;
 		PdPte1Gb.AsUInt = PdPte.AsUInt;
+		Status = STATUS_SUCCESS;
+		if (RequestType == Type_LastEntry) 
+		{ 
+			PhysicalAddress->QuadPart = PdPte1Gb.AsUInt;
+			*EntryType = Type_Pdpte;
+			END
+		}
+
 		PhysicalAddress->QuadPart = PdPte1Gb.AsUInt & PDPTE_1GB_64_PAGE_FRAME_NUMBER_FLAG;
 		PhysicalAddress->QuadPart += FinalLinearAddress.FinalPhysical;
-		Status = STATUS_SUCCESS;
-		END;
+		if (RequestType == Type_Pde || RequestType == Type_Pte) { PhysicalAddress->QuadPart = 0; Status = STATUS_INVALID_PARAMETER; }
+
+		END
 	}
 
 	PAGING_TRAVERSE(Pde, Pde);
+	if (RequestType == Type_Pde)
+	{
+		PhysicalAddress->QuadPart = Pde.AsUInt;
+		Status = STATUS_SUCCESS;
+		END
+	}
+
 	if (Pde.LargePage == 1)
 	{
 		PDE_2MB_64 Pde2Mb = { 0, };
 		LINEAR_ADDRESS_PDE_2MB FinalLinearAddress = { 0, };
 		FinalLinearAddress.AsUInt = LinearAddress.AsUInt;
 		Pde2Mb.AsUInt = Pde.AsUInt;
+		Status = STATUS_SUCCESS;
+		if (RequestType == Type_LastEntry)
+		{
+			PhysicalAddress->QuadPart = Pde2Mb.AsUInt;
+			*EntryType = Type_Pde;
+			END
+		}
 		PhysicalAddress->QuadPart = Pde2Mb.AsUInt & PDE_2MB_64_PAGE_FRAME_NUMBER_FLAG;
 		PhysicalAddress->QuadPart += FinalLinearAddress.FinalPhysical;
-		Status = STATUS_SUCCESS;
-		END;
+		if (RequestType == Type_Pte) { PhysicalAddress->QuadPart = 0; Status = STATUS_INVALID_PARAMETER; }
+		END
 	}
 
 	PAGING_TRAVERSE(Pte, Pte);
+	Status = STATUS_SUCCESS;
+	if (RequestType == Type_Pte || RequestType == Type_LastEntry)
+	{
+		PhysicalAddress->QuadPart = Pte.AsUInt;
+		if (EntryType != nullptr) { *EntryType = Type_Pte; }
+		END;
+	}
 	PhysicalAddress->QuadPart = Pte.AsUInt & PTE_64_PAGE_FRAME_NUMBER_FLAG;
 	PhysicalAddress->QuadPart += LinearAddress.FinalPhysical;
-	Status = STATUS_SUCCESS;
+	
 
 FINISH:
 	PRINT_ELAPSED;

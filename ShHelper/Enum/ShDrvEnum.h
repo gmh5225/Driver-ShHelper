@@ -60,6 +60,15 @@ typedef enum _SH_OBJECT_TYPE {
 	SectionObjectType
 }SH_OBJECT_TYPE, *PSH_OBJECT_TYPE;
 
+typedef enum _SH_PAGING_TYPE {
+	Type_None = 0,
+	Type_Physical,
+	Type_Pdpte,
+	Type_Pde,
+	Type_Pte,
+	Type_LastEntry
+}SH_PAGING_TYPE, *PSH_PAGING_TYPE;
+
 typedef enum _SH_THREAD_STATE {
 	ThreadReady = 0,
 	ThreadRunning,

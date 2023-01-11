@@ -72,6 +72,10 @@ namespace ShDrvCore {
 	//======================================================
 	// System memory core
 	//======================================================
+	NTSTATUS IsWritableMemory(
+		IN PVOID Address, 
+		IN KPROCESSOR_MODE Mode);
+
 	template <typename T>
 	NTSTATUS AllocatePool(
 		IN SIZE_T Size,

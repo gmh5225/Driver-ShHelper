@@ -41,6 +41,9 @@ NTSTATUS DriverEntry(
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_SUCCESS;
 
+	ShDrvProcess* Process = nullptr;
+	PSTR DestBuff = nullptr;
+
 	for (auto i = 0; i < IRP_MJ_MAXIMUM_FUNCTION; i++) { DriverObject->MajorFunction[i] = ShDrvMjFunction::DispatchRoutine; }
 	DriverObject->DriverUnload = HelperFinalize;
 
@@ -69,10 +72,10 @@ NTSTATUS DriverEntry(
 		ShDrvPoolManager::Finalize();
 		ERROR_END
 	}
-
+	
 	ShDrvExample::MemoryScanTest();
-	ShDrvExample::PeTest((HANDLE)6752, (HANDLE)2584);
-	ShDrvExample::ProcessTest((HANDLE)6752);
+	ShDrvExample::PeTest((HANDLE)9848, (HANDLE)2584);
+	ShDrvExample::ProcessTest((HANDLE)9848);
 	ShDrvExample::ProcessTest32((HANDLE)2584);
 	ShDrvExample::SocketTest("192.168.0.3", "Hello?name=Shh0ya", "", "", GET);
 	ShDrvExample::SocketTest("192.168.0.3", "Hello", "", "Name=Shh0ya", POST);
@@ -1618,9 +1621,10 @@ VOID ShDrvExample::ProcessTest(
 	IN HANDLE ProcessId)
 {
 	PlainLog("======================== Process Sample(x64) =======================\n");
-
+	
 	auto Process = new(ShDrvProcess);
 	PVOID* Result = nullptr;
+	PSTR LinkName = reinterpret_cast<PSTR>(ALLOC_POOL(ANSI_POOL));
 	if (NT_SUCCESS(Process->Initialize(ProcessId)))
 	{
 
@@ -1642,6 +1646,12 @@ VOID ShDrvExample::ProcessTest(
 		Log("Original : %X, After : %X", ReadMagic, AfterMagic);
 		Process->WriteProcessMemory(LdrEntry.DllBase, 2, &ReadMagic, RW_Physical);
 		Log("%p %X", LdrEntry.DllBase, LdrEntry.SizeOfImage);
+
+		//======================================================
+        // Process Link Name
+        //======================================================
+		NTSTATUS Status = Process->GetProcessLinkName(LinkName);
+		Log("Link Name : %s", LinkName);
 
 		//======================================================
 		// Process memory scan 64
@@ -1678,6 +1688,7 @@ VOID ShDrvExample::ProcessTest(
 	}
 	delete(Process);
 	FREE_POOL(Result);
+	FREE_POOL(LinkName);
 }
 
 VOID ShDrvExample::ProcessTest32(

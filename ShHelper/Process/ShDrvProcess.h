@@ -76,6 +76,8 @@ public:
 		IN ULONG Size, 
 		OUT PSH_SHARED_INFORMATION SharedData);
 
+	NTSTATUS GetProcessLinkName(OUT PSTR LinkName);
+
 	PEPROCESS GetProcess() { return Process; }
 
 private:

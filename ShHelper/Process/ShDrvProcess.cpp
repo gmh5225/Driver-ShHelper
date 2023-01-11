@@ -42,6 +42,7 @@ NTSTATUS ShDrvProcess::Initialize(
 	this->ProcessLock = ADD_OFFSET(this->Process, GET_GLOBAL_OFFSET(EPROCESS, ProcessLock), EX_PUSH_LOCK*);
 	this->ProcessId = ProcessId;
 	this->bAttached = FALSE;
+	this->bAttachedEx = FALSE;
 	RtlSecureZeroMemory(&this->ApcState, sizeof(KAPC_STATE));
 	this->ProcessDirBase = ADD_OFFSET(Process, DIR_BASE_OFFSET, PULONG64);
 	this->OldCr3 = 0;
@@ -517,6 +518,88 @@ FINISH:
 	Detach();
 	PRINT_ELAPSED;
 	return Result;
+}
+
+/**
+* @brief Get the process link name
+* @param[out] PSTR `LinkName`
+* @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
+* @author Shh0ya @date 2023-01-11
+*/
+NTSTATUS ShDrvProcess::GetProcessLinkName(
+	OUT PSTR LinkName)
+{
+#if TRACE_LOG_DEPTH & TRACE_PROCESS
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
+#endif
+#endif
+	if (KeGetCurrentIrql() != PASSIVE_LEVEL) { return STATUS_UNSUCCESSFUL; }
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	PFILE_OBJECT FileObject = nullptr;
+	HANDLE DeviceHandle = nullptr;
+	HANDLE FileHandle = nullptr;
+	OBJECT_ATTRIBUTES ObjectAttrib = { 0, };
+	IO_STATUS_BLOCK IoOpenStatus = { 0, };
+	IO_STATUS_BLOCK IoQueryStatus = { 0, };
+	OBJECT_NAME_INFORMATION ObjectNameInformation = { 0, };
+	FILE_INTERNAL_INFORMATION FileInformation = { 0, };
+	PFILE_LINKS_INFORMATION FileLinkInfomration = nullptr;
+	ULONG ReturnLength = 0;
+	
+	if (LinkName == nullptr || Process == nullptr) { ERROR_END }
+
+	Status = PsReferenceProcessFilePointer(Process, &FileObject);
+	if(!NT_SUCCESS(Status)) { ERROR_END }
+	
+	Status = IoQueryFileInformation(
+		FileObject, 
+		FileInternalInformation, 
+		sizeof(FILE_INTERNAL_INFORMATION), 
+		&FileInformation, 
+		&ReturnLength);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	Status = ObOpenObjectByPointer(
+		FileObject->DeviceObject, 
+		OBJ_KERNEL_HANDLE | OBJ_CASE_INSENSITIVE, 
+		nullptr, 
+		0, 
+		nullptr, 
+		KernelMode, 
+		&DeviceHandle);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	ObjectNameInformation.Name.MaximumLength = ObjectNameInformation.Name.Length = 8;
+	ObjectNameInformation.Name.Buffer = reinterpret_cast<PWSTR>(&FileInformation.IndexNumber);
+	InitializeObjectAttributes(
+		&ObjectAttrib, 
+		(PUNICODE_STRING)&ObjectNameInformation, 
+		OBJ_KERNEL_HANDLE | OBJ_CASE_INSENSITIVE, 
+		DeviceHandle, 
+		nullptr);
+
+	Status = ZwOpenFile(&FileHandle, GENERIC_READ, &ObjectAttrib, &IoOpenStatus, FILE_SHARE_READ, FILE_OPEN_BY_FILE_ID | FILE_NON_DIRECTORY_FILE);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	Status = ShDrvCore::AllocatePool<PFILE_LINKS_INFORMATION>(sizeof(FILE_LINKS_INFORMATION) + STR_MAX_LENGTH, &FileLinkInfomration);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	Status = ZwQueryInformationFile(FileHandle, &IoQueryStatus, FileLinkInfomration, STR_MAX_LENGTH, FileHardLinkInformation);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	Status = ShDrvUtil::WStringToString(FileLinkInfomration->Entry.FileName, LinkName);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+FINISH:
+	if (DeviceHandle != nullptr) { ZwClose(DeviceHandle); }
+	if (FileHandle != nullptr) { ZwClose(FileHandle); }
+	FREE_POOLEX(FileLinkInfomration);
+	PRINT_ELAPSED;
+	return Status;
 }
 
 
