@@ -77,8 +77,8 @@ NTSTATUS DriverEntry(
 	ShDrvExample::PeTest((HANDLE)9848, (HANDLE)2584);
 	ShDrvExample::ProcessTest((HANDLE)9848);
 	ShDrvExample::ProcessTest32((HANDLE)2584);
-	ShDrvExample::SocketTest("192.168.0.3", "Hello?name=Shh0ya", "", "", GET);
-	ShDrvExample::SocketTest("192.168.0.3", "Hello", "", "Name=Shh0ya", POST);
+	/*ShDrvExample::SocketTest("192.168.0.3", "Hello?name=Shh0ya", "", "", GET);
+	ShDrvExample::SocketTest("192.168.0.3", "Hello", "", "Name=Shh0ya", POST);*/
 
 FINISH:
 	PRINT_ELAPSED;

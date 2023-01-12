@@ -19,87 +19,16 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ShDrvHelper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ShDrvInc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Util\ShDrvUtil.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Memory\ShDrvMemory.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Struct\ShDrvStruct.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Struct\ShDrvUndocStruct.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Enum\ShDrvEnum.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Enum\ShDrvUndocEnum.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Struct\ShDrvFuncDef.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PoolManager\ShDrvPoolManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Pe\ShDrvPe.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\ShDrvCore.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Struct\ShDrvIntel.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Process\ShDrvProcess.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Memory\ShDrvMemoryScanner.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Thread\ShDrvThread.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MiniFilter\ShDrvMiniFilter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Callbacks\ShDrvCallbacks.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Interface\ShDrvInterface.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Socket\ShDrvSocket.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="ShDrvHelper.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Util\ShDrvUtil.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Memory\ShDrvMemory.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PoolManager\ShDrvPoolManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Pe\ShDrvPe.cpp">
+    <ClCompile Include="Callbacks\ShDrvCallbacks.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Core\ShDrvCore.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Process\ShDrvProcess.cpp">
+    <ClCompile Include="Interface\ShDrvInterface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Memory\ShDrvMemory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Memory\ShDrvMemoryScanner.cpp">
@@ -108,10 +37,13 @@
     <ClCompile Include="MiniFilter\ShDrvMiniFilter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Callbacks\ShDrvCallbacks.cpp">
+    <ClCompile Include="Pe\ShDrvPe.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Interface\ShDrvInterface.cpp">
+    <ClCompile Include="PoolManager\ShDrvPoolManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Process\ShDrvProcess.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Socket\ShDrvSocket.cpp">
@@ -120,5 +52,73 @@
     <ClCompile Include="Thread\ShDrvThread.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Util\ShDrvUtil.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ShDrvHelper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Callbacks\ShDrvCallbacks.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ShDrvCore.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Enum\ShDrvEnum.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Enum\ShDrvUndocEnum.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Interface\ShDrvInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Memory\ShDrvMemory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Memory\ShDrvMemoryScanner.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MiniFilter\ShDrvMiniFilter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Pe\ShDrvPe.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PoolManager\ShDrvPoolManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Process\ShDrvProcess.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Socket\ShDrvSocket.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Struct\ShDrvFuncDef.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Struct\ShDrvIntel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Struct\ShDrvStruct.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Struct\ShDrvUndocStruct.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Thread\ShDrvThread.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Util\ShDrvUtil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ShDrvHelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ShDrvInc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
