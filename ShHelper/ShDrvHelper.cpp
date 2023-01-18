@@ -1848,17 +1848,17 @@ VOID ShDrvExample::SsdtHooking()
 	Status = Ssdt->Initialize();
 	if(!NT_SUCCESS(Status)) { ERROR_END }
 
+	SSDT_HOOK(Ssdt, NtQuerySystemInformation);
 	SSDT_HOOK(Ssdt, NtQueryInformationProcess);
 	SSDT_HOOK(Ssdt, NtQueryInformationThread);
-	SSDT_HOOK(Ssdt, NtQueryObject);
-	SSDT_HOOK(Ssdt, NtQuerySystemInformation);
 	SSDT_HOOK(Ssdt, NtSetInformationThread);
-	SSDT_HOOK(Ssdt, NtClose);
+	SSDT_HOOK(Ssdt, NtQueryObject);
 	SSDT_HOOK(Ssdt, NtDuplicateObject);
 	SSDT_HOOK(Ssdt, NtGetContextThread);
 	SSDT_HOOK(Ssdt, NtSetContextThread);
 	SSDT_HOOK(Ssdt, NtSystemDebugControl);
 	SSDT_HOOK(Ssdt, NtCreateThreadEx);
+	SSDT_HOOK(Ssdt, NtClose);
 
 	if (!NT_SUCCESS(Status)) { SsdtHookRoutine::UnHookAll(); ERROR_END }
 
