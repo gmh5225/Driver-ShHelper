@@ -4,6 +4,7 @@
 #define PACK_START(n)    __pragma(pack(push, n))
 #define PACK_END         __pragma(pack(pop))
 #define WARN_DISABLE(n)  __pragma(warning(disable,n))
+#define BREAK            __debugbreak()
 
 #define SH_TAG 'PLHS'
 

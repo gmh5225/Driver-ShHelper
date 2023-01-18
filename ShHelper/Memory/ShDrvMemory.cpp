@@ -167,7 +167,7 @@ PVOID ShDrvMemory::GetMappedPhysicalAddress(
 	PHYSICAL_ADDRESS HighAddress = { 0, };
 	PHYSICAL_ADDRESS SkipBytes = { 0, };
 
-	if(Size == 0 || Mdl == nullptr) { ERROR_END }
+	if(Size <= 0 || Mdl == nullptr) { ERROR_END }
 
 	HighAddress.QuadPart = MAXULONG64;
 	TargetMdl = MmAllocatePagesForMdlEx(LowAddress, HighAddress, SkipBytes, Size, MmCached, MM_ALLOCATE_NO_WAIT);
@@ -230,7 +230,7 @@ PVOID ShDrvMemory::GetMappedVirtualAddress(
 	auto Status = STATUS_INVALID_PARAMETER;
 	PVOID Result = nullptr;
 	PMDL TargetMdl = nullptr;
-	if(Address == nullptr || Mdl == nullptr || Size == 0 ) { ERROR_END }
+	if(Address == nullptr || Mdl == nullptr || Size <= 0 ) { ERROR_END }
 	
 	TargetMdl = IoAllocateMdl(Address, Size, FALSE, FALSE, nullptr);
 	if(TargetMdl == nullptr) { ERROR_END }
@@ -547,7 +547,7 @@ NTSTATUS ShDrvMemory::SafeCopyMemory(
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 
-	if(Source == nullptr || Size == 0 || Dest == nullptr) { ERROR_END }
+	if(Source == nullptr || Size <= 0 || Dest == nullptr) { ERROR_END }
 	if(MmIsAddressValid(Source) == FALSE || MmIsAddressValid(Dest) == FALSE) { ERROR_END }
 
 	Status = STATUS_SUCCESS;
@@ -618,7 +618,7 @@ NTSTATUS ShDrvMemory::SafeCopyMemoryInternal(
 	PMDL  Mdl = nullptr;
 	PVOID MappingAddress = nullptr;
 
-	if (Source == nullptr || Size == 0 || Dest == nullptr) { ERROR_END }
+	if (Source == nullptr || Size <= 0 || Dest == nullptr) { ERROR_END }
 	if (MmIsAddressValid(Source) == FALSE || MmIsAddressValid(Dest) == FALSE) { ERROR_END }
 
 	Mdl = IoAllocateMdl(Dest, Size, FALSE, FALSE, nullptr);

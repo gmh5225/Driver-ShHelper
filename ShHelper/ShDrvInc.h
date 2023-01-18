@@ -31,17 +31,20 @@
 #define TRACE_CORE_BASE      0x00000080
 #define TRACE_CORE_MEMORY    0x00000100
 #define TRACE_CORE_STRING    0x00000200
-#define TRACE_CORE_ALL       (TRACE_CORE_BASE | TRACE_CORE_MEMORY | TRACE_CORE_STRING)
+#define TRACE_CORE_SSDT      0x00000400
+#define TRACE_CORE_ALL       (TRACE_CORE_BASE | TRACE_CORE_MEMORY | TRACE_CORE_STRING | TRACE_CORE_SSDT)
 
-#define TRACE_PE             0x00000400
-#define TRACE_PROCESS        0x00000800 
-#define TRACE_MEMSCAN        0x00001000 
-#define TRACE_MINIFILTER     0x00002000
-#define TRACE_CALLBACK       0x00004000
-#define TRACE_NOTIFY         0x00008000
-#define TRACE_INTERFACE      0x00010000
-#define TRACE_SOCKET         0x00020000
-#define TRACE_SYSTEM_THREAD  0x00040000
+#define TRACE_HOOK           0x00000800
+
+#define TRACE_PE             0x00001000
+#define TRACE_PROCESS        0x00002000 
+#define TRACE_MEMSCAN        0x00004000 
+#define TRACE_MINIFILTER     0x00008000
+#define TRACE_CALLBACK       0x00010000
+#define TRACE_NOTIFY         0x00020000
+#define TRACE_INTERFACE      0x00040000
+#define TRACE_SOCKET         0x00080000
+#define TRACE_SYSTEM_THREAD  0x00100000
 
 #define TRACE_ALL            0xFFFFFFFF
 
@@ -52,7 +55,7 @@
 * @see TRACE_LOG, TRACE_OFF, TRACE_ALL ...
 */
 //#define TRACE_LOG_DEPTH (TRACE_ALL &~ TRACE_CALLBACK &~ TRACE_UTIL_STRING)
-#define TRACE_LOG_DEPTH (TRACE_OFF)
+#define TRACE_LOG_DEPTH (TRACE_OFF )
 
 
 #if CHECK_ELAPSED & TRACE_LOG
@@ -125,6 +128,7 @@ LARGE_INTEGER CurrentCounter = KeQueryPerformanceCounter(&Frequency)
 #include <Struct/ShDrvFuncDef.h>
 #include <Struct/ShDrvStruct.h>
 
+#include <Core/ShDrvHook.h>
 #include <Core/ShDrvCore.h>
 #include <PoolManager/ShDrvPoolManager.h>
 

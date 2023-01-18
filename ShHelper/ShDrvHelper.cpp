@@ -14,11 +14,12 @@ PSH_GLOBAL_OFFSETS       g_Offsets;   /**< Global offsets data */
 PSH_POOL_INFORMATION     g_Pools;     /**< Global pool manager */
 PSH_GLOBAL_CALLBACKS     g_Callbacks; /**< Global callback manager */
 PSH_GLOBAL_SOCKETS       g_Sockets;   /**< Global socket manager */
+PSH_GLOBAL_HOOK_DATA     g_HookData;  /**< Global ssdt hook data */
 
-
-// LLVM is not support
-//#pragma alloc_text("INIT", DriverEntry)
-
+#ifdef _CLANG
+#else
+#pragma alloc_text("INIT", DriverEntry)
+#endif
 /**
 * @brief Driver Entry
 * @details Initialize global variable and major functions
@@ -40,9 +41,6 @@ NTSTATUS DriverEntry(
 #endif
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_SUCCESS;
-
-	ShDrvProcess* Process = nullptr;
-	PSTR DestBuff = nullptr;
 
 	for (auto i = 0; i < IRP_MJ_MAXIMUM_FUNCTION; i++) { DriverObject->MajorFunction[i] = ShDrvMjFunction::DispatchRoutine; }
 	DriverObject->DriverUnload = HelperFinalize;
@@ -72,13 +70,16 @@ NTSTATUS DriverEntry(
 		ShDrvPoolManager::Finalize();
 		ERROR_END
 	}
-	
+
 	ShDrvExample::MemoryScanTest();
 	ShDrvExample::PeTest((HANDLE)9848, (HANDLE)2584);
 	ShDrvExample::ProcessTest((HANDLE)9848);
 	ShDrvExample::ProcessTest32((HANDLE)2584);
 	/*ShDrvExample::SocketTest("192.168.0.3", "Hello?name=Shh0ya", "", "", GET);
 	ShDrvExample::SocketTest("192.168.0.3", "Hello", "", "Name=Shh0ya", POST);*/
+	ShDrvExample::SsdtHooking();
+	
+	Log("Success driver load");
 
 FINISH:
 	PRINT_ELAPSED;
@@ -104,6 +105,8 @@ VOID HelperFinalize(
 #endif
 	SAVE_CURRENT_COUNTER;
 	UNICODE_STRING LinkName = { 0, };
+
+	SsdtHookRoutine::UnHookAll();
 
 	CallbackFinalize();
 
@@ -170,6 +173,7 @@ NTSTATUS DriverInitialize()
 	GET_GLOBAL_POOL(g_Offsets, GLOBAL_OFFSETS);
 	GET_GLOBAL_POOL(g_Callbacks, GLOBAL_CALLBACKS);
 	GET_GLOBAL_POOL(g_Sockets, GLOBAL_SOCKETS);
+	GET_GLOBAL_POOL(g_HookData, GLOBAL_HOOK_DATA);
 
 	g_Sockets->Dispatch.Version = MAKE_WSK_VERSION(1, 0);
 
@@ -1782,6 +1786,8 @@ VOID ShDrvExample::SocketTest(
 	IN PCSTR PostData, 
 	IN SH_REQUEST_METHOD Method)
 {
+	PlainLog("======================== Socket(Kernel) Sample =======================\n");
+
 	PWSK_SOCKET Socket = nullptr;
 	SH_SOCKET_SEND SendData = { 0, };
 	SH_SOCKET_RECV RecvData = { 0, };
@@ -1830,4 +1836,32 @@ VOID ShDrvExample::SocketTest(
 	FREE_POOL(SendData.Optional);
 	FREE_POOL(SendData.PostData);
 	FREE_POOL(SendData.ConetentLength);
+}
+
+VOID ShDrvExample::SsdtHooking()
+{
+	PlainLog("======================== SSDT Hook Sample =======================\n");
+
+	auto Status = STATUS_INVALID_PARAMETER;
+	auto Ssdt = new(ShDrvSSDT);
+	
+	Status = Ssdt->Initialize();
+	if(!NT_SUCCESS(Status)) { ERROR_END }
+
+	SSDT_HOOK(Ssdt, NtQueryInformationProcess);
+	SSDT_HOOK(Ssdt, NtQueryInformationThread);
+	SSDT_HOOK(Ssdt, NtQueryObject);
+	SSDT_HOOK(Ssdt, NtQuerySystemInformation);
+	SSDT_HOOK(Ssdt, NtSetInformationThread);
+	SSDT_HOOK(Ssdt, NtClose);
+	SSDT_HOOK(Ssdt, NtDuplicateObject);
+	SSDT_HOOK(Ssdt, NtGetContextThread);
+	SSDT_HOOK(Ssdt, NtSetContextThread);
+	SSDT_HOOK(Ssdt, NtSystemDebugControl);
+	SSDT_HOOK(Ssdt, NtCreateThreadEx);
+
+	if (!NT_SUCCESS(Status)) { SsdtHookRoutine::UnHookAll(); ERROR_END }
+
+FINISH:
+	delete(Ssdt);
 }

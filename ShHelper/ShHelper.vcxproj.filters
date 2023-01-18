@@ -58,6 +58,9 @@
     <ClCompile Include="ShDrvHelper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Core\ShDrvHook.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Callbacks\ShDrvCallbacks.h">
@@ -118,6 +121,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ShDrvInc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ShDrvHook.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

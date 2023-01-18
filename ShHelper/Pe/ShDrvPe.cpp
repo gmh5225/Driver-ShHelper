@@ -161,9 +161,9 @@ ULONG ShDrvPe::GetExportCountByName()
 	if (ExportDirectory == nullptr) { END }
 
 	Attach();
-	LOCK_SHARED(ProcessLock, PushLock);
+	if (ProcessLock != nullptr) { LOCK_SHARED(ProcessLock, PushLock); }
 	Result = ExportDirectory->NumberOfNames;
-	UNLOCK_SHARED(ProcessLock, PushLock);
+	if (ProcessLock != nullptr) { UNLOCK_SHARED(ProcessLock, PushLock); }
 
 FINISH:
 	Detach();
@@ -195,7 +195,7 @@ ULONG64 ShDrvPe::GetAddressByExport(
 	if (ExportDirectory == nullptr) { END }
 
 	Attach();
-	LOCK_SHARED(ProcessLock, PushLock);
+	if (ProcessLock != nullptr) { LOCK_SHARED(ProcessLock, PushLock); }
 
 	auto AddressOfName = ADD_OFFSET(ImageBase, ExportDirectory->AddressOfNames, PULONG);
 	auto AddressOfOrdinals = ADD_OFFSET(ImageBase, ExportDirectory->AddressOfNameOrdinals, PUSHORT);
@@ -209,7 +209,7 @@ ULONG64 ShDrvPe::GetAddressByExport(
 			break;
 		}
 	}
-	UNLOCK_SHARED(ProcessLock, PushLock);
+	if (ProcessLock != nullptr) { UNLOCK_SHARED(ProcessLock, PushLock); }
 FINISH:
 	Detach();
 	PRINT_ELAPSED;
@@ -302,6 +302,59 @@ FINISH:
 }
 
 /**
+* @brief Get the section base address and section size
+* @details Get the base address and section size of the section to which the target address belongs
+* @param[in] PVOID `TargetAddress`
+* @param[out] PULONG `SectionSize`
+* @return If succeeds, return value is nonzero
+* @author Shh0ya @date 2023-01-18
+*/
+PVOID ShDrvPe::GetSectionInformationByMemory(
+	IN PVOID TargetAddress, 
+	OUT PULONG SectionSize)
+{
+#if TRACE_LOG_DEPTH & TRACE_PE
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
+#endif
+#endif
+
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	ULONG SectionCount = 0;
+	PIMAGE_SECTION_HEADER SectionHeader = nullptr;
+	PVOID Result = nullptr;
+	PVOID StartAddress = nullptr;
+	PVOID EndAddress = nullptr;
+
+	if (TargetAddress == nullptr || SectionSize == nullptr) { ERROR_END }
+
+	SectionHeader = GetSectionHeader();
+	SectionCount = GetSectionCount();
+	for (auto i = 0; i < SectionCount; i++)
+	{
+		StartAddress = nullptr;
+		EndAddress = nullptr;
+
+		StartAddress = ADD_OFFSET(ImageBase,SectionHeader[i].VirtualAddress, PVOID);
+		EndAddress = ADD_OFFSET(StartAddress, SectionHeader[i].Misc.VirtualSize, PVOID);
+
+		if (StartAddress < TargetAddress && TargetAddress < EndAddress)
+		{
+			Result = StartAddress;
+			InterlockedExchange((LONG*)SectionSize, SectionHeader[i].Misc.VirtualSize);
+			break;
+		}
+	}
+
+FINISH:
+	PRINT_ELAPSED;
+	return Result;
+}
+
+/**
 * @brief Instance initializer internal
 * @details Initialize PE instance
 * @return If succeeds, return `STATUS_SUCCESS`, if fails `NTSTATUS` value, not `STATUS_SUCCESS`
@@ -322,13 +375,13 @@ NTSTATUS ShDrvPe::InitializeEx()
 	auto Status = STATUS_SUCCESS;
 	ULONG ReturnSize = 0;
 	Attach();
-	LOCK_SHARED(ProcessLock, PushLock);
+	if (ProcessLock != nullptr) { LOCK_SHARED(ProcessLock, PushLock); }
 
 	if (MmIsAddressValid(ImageBase) == FALSE)
 	{
 		if (Process == PsInitialSystemProcess)
 		{
-			UNLOCK_SHARED(ProcessLock, PushLock);
+			if (ProcessLock != nullptr) { UNLOCK_SHARED(ProcessLock, PushLock); }
 			Detach();
 			Process = ShDrvUtil::GetProcessByImageFileName("csrss.exe");
 			ProcessLock = ADD_OFFSET(Process, GET_GLOBAL_OFFSET(EPROCESS, ProcessLock), EX_PUSH_LOCK*);
@@ -338,7 +391,7 @@ NTSTATUS ShDrvPe::InitializeEx()
 				ERROR_END
 			}
 			Attach();
-			LOCK_SHARED(ProcessLock, PushLock);
+			if (ProcessLock != nullptr) { LOCK_SHARED(ProcessLock, PushLock); }
 			if (MmIsAddressValid(ImageBase) == FALSE) { Status = STATUS_UNSUCCESSFUL; ERROR_END }
 		}
 		else
@@ -385,7 +438,7 @@ NTSTATUS ShDrvPe::InitializeEx()
 	ExportDirectory = reinterpret_cast<PIMAGE_EXPORT_DIRECTORY>(RtlImageDirectoryEntryToData(ImageBase, TRUE, IMAGE_DIRECTORY_ENTRY_EXPORT, &ReturnSize));
 
 FINISH:
-	UNLOCK_SHARED(ProcessLock, PushLock);
+	if (ProcessLock != nullptr) { UNLOCK_SHARED(ProcessLock, PushLock); }
 	Detach();
 	PRINT_ELAPSED;
 	return Status;

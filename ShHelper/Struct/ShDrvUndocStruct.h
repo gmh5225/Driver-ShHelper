@@ -260,6 +260,7 @@ namespace UNDOC_SYSTEM {
 		PULONG ServiceCounterTableBase;
 		ULONG64 NumberOfServices;
 		PUCHAR ParamTableBase;
+#define SYSTEM_SERVICE_DESCRIPTOR_TABLE_SIZE sizeof(UNDOC_SYSTEM::SYSTEM_SERVICE_DESCRIPTOR_TABLE)
 	} SYSTEM_SERVICE_DESCRIPTOR_TABLE, * PSYSTEM_SERVICE_DESCRIPTOR_TABLE;
 
 	//======================================================
@@ -268,6 +269,7 @@ namespace UNDOC_SYSTEM {
 	typedef struct _RTL_AVL_TREE
 	{
 		struct _RTL_BALANCED_NODE* Root;
+#define RTL_AVL_TREE_SIZE sizeof(UNDOC_SYSTEM::RTL_AVL_TREE)
 	}RTL_AVL_TREE, * PRTL_AVL_TREE;
 }
 

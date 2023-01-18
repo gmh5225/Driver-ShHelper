@@ -8,6 +8,8 @@
  * @copyright the GNU General Public License v3
  */
 
+using namespace ShDrvFuncDef;
+
 /**
 * @brief Get the base address from kernel module
 * @details Get the base address in a way that match the method
@@ -540,7 +542,7 @@ BOOLEAN ShDrvCore::IsSessionAddressEx2(
 		if (!NT_SUCCESS(Status)) { ERROR_END }
 
 		Result = MmIsAddressValid(Address);
-		if (Result == FALSE) { Log("this %p", Address); }
+		if (Result == FALSE) { Status = STATUS_ACCESS_VIOLATION; ERROR_END }
 		DetachSessionProcess(&ApcState);
 	}
 
@@ -683,6 +685,81 @@ FINISH:
 	return Status;
 }
 
+/**
+* @brief Check executable protection
+* @param[in] PVOID `Address`
+* @param[in] KPROCESSOR_MODE `Mode`
+* @author Shh0ya @date 2023-01-11
+*/
+NTSTATUS ShDrvCore::IsExecutableMemory(
+	IN PVOID Address, 
+	IN KPROCESSOR_MODE Mode)
+{
+#if TRACE_LOG_DEPTH & TRACE_CORE_MEMORY
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
+#endif
+#endif
+	auto Status = STATUS_INVALID_PARAMETER;
+	PHYSICAL_ADDRESS LastEntry = { 0, };
+	SH_PAGING_TYPE ReturnType = Type_None;
+	PDPTE_1GB_64 Pdpte = { 0, };
+	PDE_2MB_64 Pde = { 0, };
+	PTE_64 Pte = { 0, };
+
+	if (Address == nullptr) { ERROR_END }
+
+	Status = ShDrvUtil::GetPhysicalAddressEx(Address, Mode, &LastEntry, Type_LastEntry, &ReturnType);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	if (ReturnType == Type_None || ReturnType == Type_Physical) { Status = STATUS_INVALID_PARAMETER; ERROR_END }
+
+	Status = STATUS_ACCESS_DENIED;
+	switch (ReturnType)
+	{
+	case Type_Pdpte:
+	{
+		Pdpte.AsUInt = LastEntry.QuadPart;
+		if (Pdpte.ExecuteDisable == 0)
+		{
+			Status = STATUS_SUCCESS;
+		}
+		break;
+	}
+
+	case Type_Pde:
+	{
+		Pde.AsUInt = LastEntry.QuadPart;
+		if (Pde.ExecuteDisable == 0)
+		{
+			Status = STATUS_SUCCESS;
+		}
+		break;
+	}
+
+	case Type_Pte:
+	{
+		Pte.AsUInt = LastEntry.QuadPart;
+		if (Pte.ExecuteDisable == 0)
+		{
+			Status = STATUS_SUCCESS;
+		}
+		break;
+	}
+
+	default:
+	{
+		break;
+	}
+	}
+
+FINISH:
+	PRINT_ELAPSED;
+	return Status;
+}
+
 void __cdecl operator delete(void* p) { ShDrvCore::Delete(p); p = nullptr; };
 void __cdecl operator delete(void* p, unsigned __int64) { ShDrvCore::Delete(p); p = nullptr; };
 
@@ -794,7 +871,7 @@ LONG ShDrvCore::ShString::IsContains(
 	if (StartIndex > 0) { Original = &Buffer[StartIndex]; }
 	if (StartIndex == 0) { Original = Buffer; }
 
-	if(Source.Length > Original.Length || Source.Length == 0 || StartIndex < 0) { ERROR_END }
+	if(Source.Length > Original.Length || Source.Length <= 0 || StartIndex < 0) { ERROR_END }
 	if (Source.Length == Original.Length)
 	{
 		Result = IsEqual(Source) ? 0 : NOT_CONTAINS;
@@ -1052,7 +1129,7 @@ LONG ShDrvCore::ShWString::IsContains(
 	if (StartIndex > 0) { Original = &Buffer[StartIndex]; }
 	if (StartIndex == 0) { Original = Buffer; }
 
-	if (Source.Length > Original.Length || Source.Length == 0 || StartIndex < 0) { ERROR_END }
+	if (Source.Length > Original.Length || Source.Length <= 0 || StartIndex < 0) { ERROR_END }
 	if (Source.Length == Original.Length)
 	{
 		Result = IsEqual(Source) ? 0 : NOT_CONTAINS;
@@ -1200,4 +1277,295 @@ ShDrvCore::ShWString& ShDrvCore::ShWString::operator+=(
 FINISH:
 	PRINT_ELAPSED;
 	return *this;
+}
+
+NTSTATUS ShDrvSSDT::Initialize()
+{
+#if TRACE_LOG_DEPTH & TRACE_CORE_SSDT
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
+#endif
+#endif
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	PEPROCESS ProcessObject = nullptr;
+	UNDOC_PEB::LDR_DATA_TABLE_ENTRY LdrData = { 0, };
+	
+	Status = InitializeEx();
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	this->Process = new(ShDrvProcess);
+
+	ProcessObject = ShDrvUtil::GetProcessByImageFileName("csrss.exe");
+	if (ProcessObject == nullptr) { ERROR_END }
+	
+	Status = ((ShDrvProcess*)this->Process)->Initialize(ProcessObject);
+	if(!NT_SUCCESS(Status)) { ERROR_END }
+	
+	Status = ((ShDrvProcess*)this->Process)->GetProcessModuleInformation("ntdll.dll", &LdrData);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	this->Pe = new(PeParser);
+
+	Status = ((PeParser*)this->Pe)->Initialize(LdrData.DllBase, ProcessObject);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	Status = ShDrvCore::AllocatePool<PUCHAR>(SSDT_HOOK_SHELL_SIZE + 1, &ShellBytes);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+FINISH:
+	PRINT_ELAPSED;
+	return Status;
+}
+
+int ShDrvSSDT::GetSyscallNumber(
+	IN PCSTR RoutineName)
+{
+#if TRACE_LOG_DEPTH & TRACE_CORE_SSDT
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
+#endif
+#endif
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	PVOID TargetAddress = nullptr;
+	PUCHAR ReadBuffer = nullptr;
+	int Result = -1;
+	if (Process == nullptr || Pe == nullptr || RoutineName == nullptr) { ERROR_END }
+
+	TargetAddress = reinterpret_cast<PVOID>(((PeParser*)this->Pe)->GetAddressByExport(RoutineName));
+	if(TargetAddress == nullptr) { ERROR_END }
+
+	ReadBuffer = reinterpret_cast<PUCHAR>(ALLOC_POOL(NONE_SPECIAL));
+	if(ReadBuffer == nullptr) { ERROR_END }
+	
+	Status = ((ShDrvProcess*)this->Process)->ReadProcessMemory(TargetAddress, 8, ReadBuffer, RW_MDL);
+	if(!NT_SUCCESS(Status)) { ERROR_END }
+
+	if(ReadBuffer[3] != 0xB8) { ERROR_END }
+	
+	RtlCopyMemory(&Result, &ReadBuffer[4], 4);
+
+FINISH:
+	FREE_POOL(ReadBuffer);
+	PRINT_ELAPSED;
+	return Result;
+}
+
+PULONG ShDrvSSDT::GetSsdtEntry(
+	IN PCSTR RoutineName)
+{
+#if TRACE_LOG_DEPTH & TRACE_CORE_SSDT
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
+#endif
+#endif
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	PULONG Result = nullptr;
+	int Index = 0;
+	if (Process == nullptr || Pe == nullptr || RoutineName == nullptr) { ERROR_END }
+	if(SSDT == nullptr) { ERROR_END }
+	
+	Index = GetSyscallNumber(RoutineName);
+	if(Index == SSDT_ERROR) { ERROR_END }
+
+	if(Index > SSDT->NumberOfServices - 1) { ERROR_END }
+
+	Result = &ServiceTable[Index];
+
+FINISH:
+	PRINT_ELAPSED;
+	return Result;
+}
+
+NTSTATUS ShDrvSSDT::Hook(
+	IN PCSTR RoutineName,
+	IN PVOID HookFunction,
+	IN SH_HOOK_TARGET Target)
+{
+#if TRACE_LOG_DEPTH & TRACE_CORE_SSDT
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
+#endif
+#endif
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	ULONG ChangeValue = 0;
+	ULONG SectionSize = 0;
+	PVOID BaseAddress = nullptr;
+	PULONG TargetEntry = nullptr;
+	PVOID TargetAddress = nullptr;
+	PSH_SSDT_HOOK_ENTRY HookEntry = nullptr;
+	PVOID CodeCaveAddress = nullptr;
+
+	if(RoutineName == nullptr || HookFunction == nullptr) { ERROR_END }
+	if (ServiceTable == nullptr) { ERROR_END }
+
+	TargetEntry = GetSsdtEntry(RoutineName);
+	if(TargetEntry == nullptr) { ERROR_END }
+
+	TargetAddress = GetRoutineAddress<PVOID>(RoutineName);
+	if (TargetEntry == nullptr) { ERROR_END }
+
+	BaseAddress = ShDrvUtil::GetSectionInformationByAddress(TargetAddress, &SectionSize);
+	if (BaseAddress == nullptr) { ERROR_END }
+
+	HookEntry = reinterpret_cast<PSH_SSDT_HOOK_ENTRY>(ShDrvHook::GetHookEntry(Hook_SSDT, Target));
+	if (HookEntry == nullptr) { ERROR_END }
+
+	CodeCaveAddress = ShDrvHook::GetCodeCaveAddress(BaseAddress, SectionSize, 0xC, &HookEntry->CodeCaveByte);
+	if(CodeCaveAddress == nullptr) { ERROR_END }
+
+	Status = MakeShell(HookFunction);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	Status = ShDrvHook::CodePatch(CodeCaveAddress, ShellBytes, SSDT_HOOK_SHELL_SIZE);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	HookEntry->SsdtEntry = TargetEntry;
+	HookEntry->CodeCaveAddress = CodeCaveAddress;
+	HookEntry->OriginalAddress = TargetAddress;
+	HookEntry->OriginalValue = *TargetEntry;
+
+	ChangeValue = (SUB_OFFSET(CodeCaveAddress, (ULONG64)ServiceTable, ULONG) << 4) | (*TargetEntry & 0xF) ;
+
+	Status = ShDrvMemory::WriteMemory(TargetEntry, sizeof(ULONG), &ChangeValue, RW_MDL);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+FINISH:
+	PRINT_ELAPSED;
+	return Status;
+}
+
+NTSTATUS SsdtHookRoutine::UnHook(
+	IN SH_HOOK_TARGET Target)
+{
+#if TRACE_LOG_DEPTH & TRACE_CORE_SSDT
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
+#endif
+#endif
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	auto Entry = &g_HookData->SsdtEntry[Target];
+	UCHAR OriginalCode[SSDT_HOOK_SHELL_SIZE] = { 0, };
+	if (Entry->bUsed == FALSE) { END }
+	if (Entry->CodeCaveAddress == nullptr || Entry->SsdtEntry == nullptr) { ERROR_END }
+	if (Entry->CodeCaveByte == 0 || Entry->OriginalValue == 0) { ERROR_END }
+
+	Status = ShDrvMemory::WriteMemory(Entry->SsdtEntry, sizeof(ULONG), &Entry->OriginalValue, RW_MDL);
+	if(!NT_SUCCESS(Status)) { ERROR_END }
+
+	RtlFillBytes(OriginalCode, SSDT_HOOK_SHELL_SIZE, Entry->CodeCaveByte);
+
+	Status = ShDrvHook::CodePatch(Entry->CodeCaveAddress, OriginalCode, SSDT_HOOK_SHELL_SIZE);
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+FINISH:
+	PRINT_ELAPSED;
+	return Status;
+}
+
+NTSTATUS SsdtHookRoutine::UnHookAll()
+{
+#if TRACE_LOG_DEPTH & TRACE_CORE_SSDT
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
+#endif
+#endif
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	
+	for (auto i = 0; i < HookTarget_MAX_COUNT; i++)
+	{
+		UnHook((SH_HOOK_TARGET)i);
+	}
+
+FINISH:
+	PRINT_ELAPSED;
+	return Status;
+}
+
+NTSTATUS ShDrvSSDT::MakeShell(
+	IN PVOID HookFunction)
+{
+#if TRACE_LOG_DEPTH & TRACE_CORE_SSDT
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
+#endif
+#endif
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	if(HookFunction == nullptr || ShellBytes == nullptr) { ERROR_END }
+
+	Status = ShDrvCore::IsExecutableMemory(HookFunction, KernelMode);
+	if(!NT_SUCCESS(Status)) { ERROR_END }
+
+	ShellBytes[0] = 0x48;
+	ShellBytes[1] = 0xB8;
+	RtlCopyMemory(&ShellBytes[2], &HookFunction, sizeof(PVOID));
+	ShellBytes[10] = 0x50;
+	ShellBytes[11] = 0xC3;
+
+	Status = STATUS_SUCCESS;
+FINISH:
+	PRINT_ELAPSED;
+	return Status;
+}
+
+NTSTATUS ShDrvSSDT::InitializeEx()
+{
+#if TRACE_LOG_DEPTH & TRACE_CORE_SSDT
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
+#endif
+#endif
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	PVOID ScanResult = nullptr;
+	PVOID ShadowInstruction = nullptr;
+	MemoryScanner* Scanner = nullptr;
+
+	Scanner = new(MemoryScanner);
+
+	Status = Scanner->Initialize(g_Variables->SystemBaseAddress, ".text");
+	if(!NT_SUCCESS(Status)) { ERROR_END }
+	
+	Status = Scanner->MakePattern("4C 8D 15 ?? ?? ?? ?? 4C 8D 1D ?? ?? ?? ?? F7");
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	Status = Scanner->Scan();
+	if (!NT_SUCCESS(Status)) { ERROR_END }
+
+	ScanResult = *Scanner->GetScanResult();
+	if(ScanResult == nullptr) { ERROR_END }
+
+	ShadowInstruction = ADD_OFFSET(ScanResult, 7, PVOID);
+	this->SSDT = ShCommon::GetAbsFromInstruction<PSYSTEM_SERVICE_DESCRIPTOR_TABLE>(ShadowInstruction, 3, 4);
+	if (this->SSDT == nullptr || MmIsAddressValid(SSDT) == false) { Status = STATUS_UNSUCCESSFUL; ERROR_END }
+
+	this->ServiceTable = this->SSDT->ServiceTableBase;
+	if(this->ServiceTable == nullptr || MmIsAddressValid(ServiceTable) == false) { Status = STATUS_UNSUCCESSFUL; ERROR_END }
+
+FINISH:
+	delete(Scanner);
+	PRINT_ELAPSED;
+	return Status;
 }

@@ -147,7 +147,7 @@ NTSTATUS ShSocketAPI::Request(
 	SendData->Port = SendData->Port ? SendData->Port : 80;
 	
 	IPv4Address = Inet_Addr(SendData->IPv4Address);
-	if (IPv4Address == 0) { ERROR_END }
+	if (IPv4Address <= 0) { ERROR_END }
 
 	LocalAddress.sin_family = AF_INET;
 	LocalAddress.sin_addr.s_addr = INADDR_ANY;
@@ -360,7 +360,7 @@ NTSTATUS ShSocketAPI::WskBufferInitialize(
 
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
-	if (Buffer == nullptr || Size == 0 || WskBuffer == nullptr) { ERROR_END }
+	if (Buffer == nullptr || Size <= 0 || WskBuffer == nullptr) { ERROR_END }
 	
 	WskBuffer->Offset = 0;
 	WskBuffer->Length = Size;
@@ -645,7 +645,7 @@ NTSTATUS ShSocketAPI::Send(
 	WSK_BUF WskBuffer = { 0, };
 	PWSK_PROVIDER_CONNECTION_DISPATCH ConnectionDispatch = nullptr;
 
-	if (Socket == nullptr || Buffer == nullptr || SentBytes == nullptr || Size == 0) { ERROR_END }
+	if (Socket == nullptr || Buffer == nullptr || SentBytes == nullptr || Size <= 0) { ERROR_END }
 	if (g_Sockets->State != Initialized) { Status = STATUS_UNSUCCESSFUL; ERROR_END }
 
 	ConnectionDispatch = (PWSK_PROVIDER_CONNECTION_DISPATCH)Socket->Dispatch;
@@ -714,7 +714,7 @@ NTSTATUS ShSocketAPI::Recv(
 	WSK_BUF WskBuffer = { 0, };
 	PWSK_PROVIDER_CONNECTION_DISPATCH ConnectionDispatch = nullptr;
 
-	if (Socket == nullptr || Buffer == nullptr || ReceivedBytes == nullptr || Size == 0) { ERROR_END }
+	if (Socket == nullptr || Buffer == nullptr || ReceivedBytes == nullptr || Size <= 0) { ERROR_END }
 	if (g_Sockets->State != Initialized) { Status = STATUS_UNSUCCESSFUL; ERROR_END }
 
 	ConnectionDispatch = (PWSK_PROVIDER_CONNECTION_DISPATCH)Socket->Dispatch;

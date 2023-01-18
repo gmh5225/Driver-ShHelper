@@ -382,7 +382,7 @@ ULONG ShDrvProcess::MemoryScan(
 	auto Status = STATUS_INVALID_PARAMETER;
 	ULONG ResultCount = 0;
 	MemoryScanner* Scanner = nullptr;
-	if(Address == nullptr || Size == 0 || Result == nullptr) { ERROR_END }
+	if(Address == nullptr || Size <= 0 || Result == nullptr) { ERROR_END }
 
 	if (ShDrvMemory::IsUserMemorySpace(Address) == FALSE) { ERROR_END }
 	Scanner = new(MemoryScanner);
@@ -488,7 +488,7 @@ PVOID ShDrvProcess::SetSharedMemory(
 	PVOID MappedPhysical = nullptr;
 	PMDL PhysicalMdl = nullptr;
 	PMDL VirtualMdl = nullptr;
-	if(Size == 0 || SharedData == nullptr) { ERROR_END }
+	if(Size <= 0 || SharedData == nullptr) { ERROR_END }
 
 	Attach();
 
@@ -811,7 +811,7 @@ NTSTATUS ShDrvProcess::AttachEx(
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 	if(MmIsAddressValid(ProcessDirBase) == FALSE || bAttached == TRUE || bAttachedEx == TRUE) { ERROR_END }
-	if(*ProcessDirBase == 0) { ERROR_END }
+	if(*ProcessDirBase <= 0) { ERROR_END }
 
 	OldCr3 = __readcr3();
 
@@ -887,7 +887,7 @@ NTSTATUS ShDrvProcess::DetachEx(
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
 	if (MmIsAddressValid(ProcessDirBase) == FALSE || Process == nullptr || bAttachedEx == FALSE) { ERROR_END }
-	if (*ProcessDirBase == 0) { ERROR_END }
+	if (*ProcessDirBase <= 0) { ERROR_END }
 
 	if (bExclusive) { UNLOCK_EXCLUSIVE(ProcessLock, PushLock); }
 	else { UNLOCK_SHARED(ProcessLock, PushLock); }

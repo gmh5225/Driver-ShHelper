@@ -261,14 +261,65 @@ typedef struct _SH_GLOBAL_SOCKETS {
 PACK_END
 
 /********************************************************************************************
+* SSDT Hook structure
+********************************************************************************************/
+PACK_START(1)
+/**
+* @brief Global ssdt hook structure
+* @author Shh0ya @date 2023-01-17
+*/
+#define MAX_HOOK_ENTRY_COUNT 0x10
+#define SSDT_HOOK_SHELL_SIZE 0x0C
+
+typedef struct _SH_SSDT_HOOK_ENTRY {
+	BOOLEAN bUsed;
+	PULONG SsdtEntry;
+	ULONG OriginalValue;
+	PVOID OriginalAddress;
+	UCHAR CodeCaveByte;
+	PVOID CodeCaveAddress;
+#define SH_SSDT_HOOK_ENTRY_SIZE sizeof(SH_SSDT_HOOK_ENTRY)
+}SH_SSDT_HOOK_ENTRY, * PSH_SSDT_HOOK_ENTRY;
+
+typedef struct _SH_CODE_HOOK_ENTRY {
+	BOOLEAN bUsed;
+	PUCHAR OriginalBytes;
+	PVOID OriginalAddress;
+#define SH_CODE_HOOK_ENTRY_SIZE sizeof(SH_CODE_HOOK_ENTRY)
+}SH_CODE_HOOK_ENTRY, *PSH_CODE_HOOK_ENTRY;
+
+typedef struct _SH_VTABLE_HOOK_ENTRY {
+	BOOLEAN bUsed;
+	PVOID OriginalValue;
+	PVOID OriginalAddress;
+#define SH_VTABLE_HOOK_ENTRY_SIZE sizeof(SH_VTABLE_HOOK_ENTRY)
+}SH_VTABLE_HOOK_ENTRY, *PSH_VTABLE_HOOK_ENTRY;
+
+typedef struct _SH_EPT_HOOK_ENTRY {
+	BOOLEAN bUsed;
+	EPT_PTE* EntryAddress;
+	EPT_PTE OriginalEntry;
+#define SH_EPT_HOOK_ENTRY_SIZE sizeof(SH_EPT_HOOK_ENTRY)
+}SH_EPT_HOOK_ENTRY, *PSH_EPT_HOOK_ENTRY;
+
+typedef struct _SH_GLOBAL_HOOK_DATA {
+	SH_CODE_HOOK_ENTRY CodeEntry[HookTarget_MAX_COUNT];
+	SH_VTABLE_HOOK_ENTRY VtableEntry[HookTarget_MAX_COUNT];
+	SH_SSDT_HOOK_ENTRY SsdtEntry[HookTarget_MAX_COUNT];
+	SH_EPT_HOOK_ENTRY EptEntry[HookTarget_MAX_COUNT];
+#define SH_GLOBAL_HOOK_DATA_SIZE sizeof(SH_GLOBAL_HOOK_DATA)
+}SH_GLOBAL_HOOK_DATA, * PSH_GLOBAL_HOOK_DATA;
+PACK_END
+
+/********************************************************************************************
 * Extern global variable
 ********************************************************************************************/
-
 extern PSH_GLOBAL_ROUTINES      g_Routines;
 extern PSH_GLOBAL_VARIABLES     g_Variables;
 extern PSH_GLOBAL_OFFSETS       g_Offsets;
 extern PSH_POOL_INFORMATION     g_Pools;
 extern PSH_GLOBAL_CALLBACKS     g_Callbacks;
 extern PSH_GLOBAL_SOCKETS       g_Sockets;
+extern PSH_GLOBAL_HOOK_DATA     g_HookData;
 
 #endif // !_SHDRVSTRUCT_H_

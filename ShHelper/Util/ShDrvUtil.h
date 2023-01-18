@@ -216,6 +216,10 @@ entry.AsUInt = EntryAddress.AsUInt; TableBase = entry.PageFrameNumber << 12;
 
 	PEPROCESS GetProcessByImageFileName(IN PCSTR ProcessName);
 
+	PVOID GetSectionInformationByAddress(
+		IN PVOID Address, 
+		OUT PULONG SectionSize);
+
 	NTSTATUS GetPhysicalAddress(
 		IN PVOID VirtualAddress,
 		OUT PPHYSICAL_ADDRESS PhysicalAddress);

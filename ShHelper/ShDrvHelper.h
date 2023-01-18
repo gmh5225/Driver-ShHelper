@@ -39,6 +39,7 @@ namespace ShDrvExample {
 	VOID ProcessTest32(IN HANDLE ProcessId32);
 	VOID MemoryScanTest();
 	VOID SocketTest(IN PCSTR IPv4Address, IN PCSTR Path, IN PCSTR Url, IN PCSTR PostData, IN SH_REQUEST_METHOD Method);
+	VOID SsdtHooking();
 }
 
 

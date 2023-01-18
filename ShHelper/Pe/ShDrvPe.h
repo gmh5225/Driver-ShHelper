@@ -94,15 +94,22 @@ public:
 	ULONG64       GetAddressByExport(IN PCSTR RoutineName);
 	PVOID         GetSectionVirtualAddress(IN PCSTR SectionName);
 	ULONG64       GetSectionSize(IN PCSTR SectionName);
+	
+	PVOID GetSectionInformationByMemory(
+		IN PVOID TargetAddress,
+		OUT PULONG SectionSize);
 
 private:
 	NTSTATUS InitializeEx();
 	VOID Attach() {
-		KeStackAttachProcess(Process, &ApcState);
-		bAttached = TRUE;
+		if (Process != nullptr)
+		{
+			KeStackAttachProcess(Process, &ApcState);
+			bAttached = TRUE;
+		}
 	}
 	VOID Detach() {
-		if (bAttached)
+		if (bAttached == TRUE)
 		{
 			KeUnstackDetachProcess(&ApcState);
 			bAttached = FALSE;

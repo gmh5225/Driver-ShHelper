@@ -51,7 +51,7 @@
     <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
     <ConfigurationType>Driver</ConfigurationType>
     <DriverType>WDM</DriverType>
-    <Driver_SpectreMitigation>Spectre</Driver_SpectreMitigation>
+    <Driver_SpectreMitigation>false</Driver_SpectreMitigation>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_LLVM|x64'" Label="Configuration">
     <TargetVersion>Windows10</TargetVersion>
@@ -59,7 +59,7 @@
     <PlatformToolset>LLVM-MSVC_v143_KernelMode</PlatformToolset>
     <ConfigurationType>Driver</ConfigurationType>
     <DriverType>WDM</DriverType>
-    <Driver_SpectreMitigation>Spectre</Driver_SpectreMitigation>
+    <Driver_SpectreMitigation>false</Driver_SpectreMitigation>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" Label="Configuration">
     <TargetVersion>Windows10</TargetVersion>
@@ -99,7 +99,8 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <OutDir>$(SolutionDir)bin\</OutDir>
-    <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
+    <Inf2CatUseLocalTime>
+    </Inf2CatUseLocalTime>
     <TimeStampServer>http://timestamp.verisign.com/scripts/timstamp.dll</TimeStampServer>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_LLVM|x64'">
@@ -138,13 +139,14 @@
     </DriverSign>
     <ClCompile>
       <AdditionalIncludeDirectories>$(SolutionDir)$(ProjectName)\;$(SolutionDir)Common\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
       <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
     <Link>
-      <EntryPointSymbol>DriverEntry</EntryPointSymbol>
+      <EntryPointSymbol>GsDriverEntry</EntryPointSymbol>
       <AdditionalDependencies>fltmgr.lib;netio.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <TreatLinkerWarningAsErrors>false</TreatLinkerWarningAsErrors>
+      <Version />
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release_LLVM|x64'">
@@ -153,7 +155,7 @@
     </DriverSign>
     <ClCompile>
       <AdditionalIncludeDirectories>$(SolutionDir)$(ProjectName)\;$(SolutionDir)Common\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
       <TreatWarningAsError>false</TreatWarningAsError>
       <PreprocessorDefinitions>_CLANG;_WIN64;_AMD64_;AMD64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
@@ -169,6 +171,7 @@
   <ItemGroup>
     <ClCompile Include="Callbacks\ShDrvCallbacks.cpp" />
     <ClCompile Include="Core\ShDrvCore.cpp" />
+    <ClCompile Include="Core\ShDrvHook.cpp" />
     <ClCompile Include="Interface\ShDrvInterface.cpp" />
     <ClCompile Include="Memory\ShDrvMemory.cpp" />
     <ClCompile Include="Memory\ShDrvMemoryScanner.cpp" />
@@ -184,6 +187,7 @@
   <ItemGroup>
     <ClInclude Include="Callbacks\ShDrvCallbacks.h" />
     <ClInclude Include="Core\ShDrvCore.h" />
+    <ClInclude Include="Core\ShDrvHook.h" />
     <ClInclude Include="Enum\ShDrvEnum.h" />
     <ClInclude Include="Enum\ShDrvUndocEnum.h" />
     <ClInclude Include="Interface\ShDrvInterface.h" />

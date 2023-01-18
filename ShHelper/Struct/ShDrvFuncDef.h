@@ -673,6 +673,32 @@ namespace ShDrvFuncDef {
 			IN PVOID ThreadInformation,
 			IN ULONG ThreadInformationLength);
 
+		typedef NTSTATUS(NTAPI* NtCreateThreadEx_t)(
+			OUT HANDLE ThreadHandle,
+			IN ACCESS_MASK DesiredAccess,
+			IN PVOID ObjectAttributes,
+			IN HANDLE ProcessHandle,
+			IN PVOID StartAddress,
+			IN PVOID Parameter,
+			IN ULONG Flags,
+			IN SIZE_T StackZeroBits,
+			IN SIZE_T SizeOfStackCommit,
+			IN SIZE_T SizeOfStackReserve,
+			OUT PVOID BytesBuffer);
+		
+		typedef NTSTATUS(NTAPI* ZwCreateThreadEx_t)(
+			OUT HANDLE ThreadHandle,
+			IN ACCESS_MASK DesiredAccess,
+			IN PVOID ObjectAttributes,
+			IN HANDLE ProcessHandle,
+			IN PVOID StartAddress,
+			IN PVOID Parameter,
+			IN ULONG Flags,
+			IN SIZE_T StackZeroBits,
+			IN SIZE_T SizeOfStackCommit,
+			IN SIZE_T SizeOfStackReserve,
+			OUT PVOID BytesBuffer);
+
 		typedef NTSTATUS(NTAPI* NtOpenThread_t)(
 			OUT PHANDLE ThreadHandle,
 			IN ACCESS_MASK DesiredAccess,
@@ -684,6 +710,22 @@ namespace ShDrvFuncDef {
 			IN ACCESS_MASK DesiredAccess,
 			IN POBJECT_ATTRIBUTES ObjectAttributes,
 			IN PCLIENT_ID ClientId);
+
+		typedef NTSTATUS(NTAPI* NtGetContextThread_t)(
+			IN HANDLE ThreadHandle,
+			OUT PCONTEXT Context);
+
+		typedef NTSTATUS(NTAPI* ZwGetContextThread_t)(
+			IN HANDLE ThreadHandle,
+			OUT PCONTEXT Context);
+
+		typedef NTSTATUS(NTAPI* NtSetContextThread_t)(
+			IN HANDLE ThreadHandle,
+			IN PCONTEXT Context);
+
+		typedef NTSTATUS(NTAPI* ZwSetContextThread_t)(
+			IN HANDLE ThreadHandle,
+			IN PCONTEXT Context);
 
 		//======================================================
 		// NtZw Process Virtual Memory
@@ -866,6 +908,42 @@ namespace ShDrvFuncDef {
 			IN ULONG OpenOptions);
 
 		//======================================================
+		// NtZw Object
+		//======================================================
+
+		typedef NTSTATUS(NTAPI* NtQueryObject_t)(
+			IN HANDLE Handle,
+			IN OBJECT_INFORMATION_CLASS ObjectInformationClass,
+			OUT PVOID ObjectInformation,
+			IN ULONG ObjectInformationLength,
+			OUT PULONG ReturnLength);
+
+		typedef NTSTATUS(NTAPI* ZwQueryObject_t)(
+			IN HANDLE Handle,
+			IN OBJECT_INFORMATION_CLASS ObjectInformationClass,
+			OUT PVOID ObjectInformation,
+			IN ULONG ObjectInformationLength,
+			OUT PULONG ReturnLength);
+
+		typedef NTSTATUS(NTAPI* NtDuplicateObject_t)(
+			IN HANDLE SourceProcessHandle,
+			IN HANDLE SourceHandle,
+			IN HANDLE TargetProcessHandle,
+			OUT PHANDLE TargetHandle,
+			IN ACCESS_MASK DesiredAcccess,
+			IN ULONG HandleAttributes,
+			IN ULONG Options);
+
+		typedef NTSTATUS(NTAPI* ZwDuplicateObject_t)(
+			IN HANDLE SourceProcessHandle,
+			IN HANDLE SourceHandle,
+			IN HANDLE TargetProcessHandle,
+			OUT PHANDLE TargetHandle,
+			IN ACCESS_MASK DesiredAcccess,
+			IN ULONG HandleAttributes,
+			IN ULONG Options);
+
+		//======================================================
 		// NtZw Close
 		//======================================================
 
@@ -874,6 +952,27 @@ namespace ShDrvFuncDef {
 
 		typedef NTSTATUS(NTAPI* ZwClose_t)(
 			IN HANDLE Handle);
+
+		//======================================================
+        // NtZw Etc
+        //======================================================
+
+		typedef NTSTATUS(NTAPI* NtSystemDebugControl_t)(
+			IN SYSDBG_COMMAND Command,
+			IN PVOID InputBuffer,
+			IN ULONG InputBufferLength,
+			OUT PVOID OutBuffer,
+			IN ULONG OutBufferLength,
+			OUT PULONG ReturnLength);
+
+		typedef NTSTATUS(NTAPI* ZwSystemDebugControl_t)(
+			IN SYSDBG_COMMAND Command,
+			IN PVOID InputBuffer,
+			IN ULONG InputBufferLength,
+			OUT PVOID OutBuffer,
+			IN ULONG OutBufferLength,
+			OUT PULONG ReturnLength);
+
 	}
 
 	//======================================================

@@ -191,7 +191,7 @@ NTSTATUS ShDrvUtil::StringNCopyA(
 
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
-	if (Dest == nullptr || Source == nullptr || Size == 0) { ERROR_END }
+	if (Dest == nullptr || Source == nullptr || Size <= 0) { ERROR_END }
 	
 	Status = ShDrvCore::IsWritableMemory(Dest + Size, KernelMode);
 	if (!NT_SUCCESS(Status)) { ERROR_END }
@@ -229,7 +229,7 @@ NTSTATUS ShDrvUtil::StringNCopyW(
 
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_INVALID_PARAMETER;
-	if (Dest == nullptr || Source == nullptr || Size == 0) { ERROR_END }
+	if (Dest == nullptr || Source == nullptr || Size <= 0) { ERROR_END }
 
 	Status = ShDrvCore::IsWritableMemory(Dest + Size, KernelMode);
 	if (!NT_SUCCESS(Status)) { ERROR_END }
@@ -669,6 +669,37 @@ FINISH:
 	return Process;
 }
 
+PVOID ShDrvUtil::GetSectionInformationByAddress(IN PVOID Address, OUT PULONG SectionSize)
+{
+#if TRACE_LOG_DEPTH & TRACE_UTIL_CORE
+#if _CLANG
+	TraceLog(__PRETTY_FUNCTION__, __FUNCTION__);
+#else
+	TraceLog(__FILE__, __FUNCTION__, __LINE__);
+#endif
+#endif
+	if (KeGetCurrentIrql() > APC_LEVEL) { return nullptr; }
+
+	SAVE_CURRENT_COUNTER;
+	auto Status = STATUS_INVALID_PARAMETER;
+	PVOID Result = nullptr;
+	PeParser* Pe = nullptr;
+	if (Address == nullptr || SectionSize == nullptr) { ERROR_END }
+
+	Pe = new(PeParser);
+
+	Status = Pe->Initialize(g_Variables->SystemBaseAddress, PsInitialSystemProcess);
+	if(!NT_SUCCESS(Status)) { ERROR_END }
+
+	Result = Pe->GetSectionInformationByMemory(Address, SectionSize);
+	if (Result == nullptr) { Status = STATUS_UNSUCCESSFUL; ERROR_END }
+
+FINISH:
+	delete(Pe);
+	PRINT_ELAPSED;
+	return Result;
+}
+
 /**
 * @brief Get the physical address
 * @details Get the physical address corresponding to a virtual address. using `MmGetPhysicalAddress`
@@ -696,7 +727,7 @@ NTSTATUS ShDrvUtil::GetPhysicalAddress(
 	PHYSICAL_ADDRESS Result = { 0, };
 	if(VirtualAddress == nullptr || PhysicalAddress == nullptr) { ERROR_END }
 	Result = MmGetPhysicalAddress(VirtualAddress);
-	if (Result.QuadPart == 0) { Status = STATUS_UNSUCCESSFUL; }
+	if (Result.QuadPart <= 0) { Status = STATUS_UNSUCCESSFUL; }
 
 	PhysicalAddress->QuadPart = Result.QuadPart;
 
@@ -808,9 +839,9 @@ NTSTATUS ShDrvUtil::GetPhysicalAddressInternal(
 	if(EntryType == nullptr && RequestType == Type_LastEntry) { ERROR_END }
 
 	Cr0.AsUInt = __readcr0();
-	if(Cr0.AsUInt == 0) { Status = STATUS_UNSUCCESSFUL; ERROR_END }
+	if(Cr0.AsUInt <= 0) { Status = STATUS_UNSUCCESSFUL; ERROR_END }
 	Cr4.AsUInt = __readcr4();
-	if (Cr4.AsUInt == 0) { Status = STATUS_UNSUCCESSFUL; ERROR_END }
+	if (Cr4.AsUInt <= 0) { Status = STATUS_UNSUCCESSFUL; ERROR_END }
 
 	if (Cr0.PagingEnable == 0) { Status = STATUS_NOT_SUPPORTED; ERROR_END }
 	LinearAddress.AsUInt = reinterpret_cast<ULONG64>(VirtualAddress);

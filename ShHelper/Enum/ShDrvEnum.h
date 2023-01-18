@@ -40,6 +40,7 @@ typedef enum _SH_POOL_TYPE {
 	GLOBAL_OFFSETS   = 2,
 	GLOBAL_CALLBACKS = 3,
 	GLOBAL_SOCKETS   = 4,
+	GLOBAL_HOOK_DATA = 5,
 
 	GlobalPoolTypeCount,
 
@@ -105,5 +106,28 @@ typedef enum _SH_REQUEST_METHOD {
 	GET = 0,
 	POST
 }SH_REQUEST_METHOD,*PSH_REQUEST_METHOD;
+
+typedef enum _SH_HOOK_METHOD {
+	Hook_CodePatch = 0,
+	Hook_VTable,
+	Hook_SSDT,
+	Hook_EPT
+}SH_HOOK_METHOD, *PSH_HOOK_METHOD;
+
+typedef enum _SH_HOOK_TARGET {
+	HookTarget_NtQuerySystemInformation = 0,
+	HookTarget_NtQueryInformationProcess = 1,
+	HookTarget_NtQueryInformationThread = 2,
+	HookTarget_NtSetInformationThread =3,
+	HookTarget_NtQueryObject = 4,
+	HookTarget_NtClose = 5,
+	HookTarget_NtDuplicateObject = 6,
+	HookTarget_NtGetContextThread = 7,
+	HookTarget_NtSetContextThread = 8,
+	HookTarget_NtSystemDebugControl = 9,
+	HookTarget_NtCreateThreadEx = 10,
+
+	HookTarget_MAX_COUNT
+}SH_HOOK_TARGET, *PSH_HOOK_TARGET;
 
 #endif // !_SHDRVENUM_H_
