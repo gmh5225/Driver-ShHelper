@@ -61,6 +61,9 @@
     <ClCompile Include="Core\ShDrvHook.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="HyperVisor\ShDrvVmm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Callbacks\ShDrvCallbacks.h">
@@ -126,5 +129,16 @@
     <ClInclude Include="Core\ShDrvHook.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="HyperVisor\ShDrvVmm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <MASM Include="Asm\ShDrvHv.asm">
+      <Filter>Source Files</Filter>
+    </MASM>
+    <MASM Include="Asm\ShDrvHvContext.asm">
+      <Filter>Source Files</Filter>
+    </MASM>
   </ItemGroup>
 </Project>

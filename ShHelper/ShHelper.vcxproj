@@ -84,6 +84,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -172,6 +173,7 @@
     <ClCompile Include="Callbacks\ShDrvCallbacks.cpp" />
     <ClCompile Include="Core\ShDrvCore.cpp" />
     <ClCompile Include="Core\ShDrvHook.cpp" />
+    <ClCompile Include="HyperVisor\ShDrvVmm.cpp" />
     <ClCompile Include="Interface\ShDrvInterface.cpp" />
     <ClCompile Include="Memory\ShDrvMemory.cpp" />
     <ClCompile Include="Memory\ShDrvMemoryScanner.cpp" />
@@ -190,6 +192,7 @@
     <ClInclude Include="Core\ShDrvHook.h" />
     <ClInclude Include="Enum\ShDrvEnum.h" />
     <ClInclude Include="Enum\ShDrvUndocEnum.h" />
+    <ClInclude Include="HyperVisor\ShDrvVmm.h" />
     <ClInclude Include="Interface\ShDrvInterface.h" />
     <ClInclude Include="Memory\ShDrvMemory.h" />
     <ClInclude Include="Memory\ShDrvMemoryScanner.h" />
@@ -207,7 +210,12 @@
     <ClInclude Include="Thread\ShDrvThread.h" />
     <ClInclude Include="Util\ShDrvUtil.h" />
   </ItemGroup>
+  <ItemGroup>
+    <MASM Include="Asm\ShDrvHv.asm" />
+    <MASM Include="Asm\ShDrvHvContext.asm" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets" />
   </ImportGroup>
 </Project>

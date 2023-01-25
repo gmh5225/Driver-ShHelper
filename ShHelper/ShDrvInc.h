@@ -144,6 +144,7 @@ LARGE_INTEGER CurrentCounter = KeQueryPerformanceCounter(&Frequency)
 #include <Thread/ShDrvThread.h>
 #include <Callbacks/ShDrvCallbacks.h>
 #include <MiniFilter/ShDrvMiniFilter.h>
+#include <HyperVisor/ShDrvVmm.h>
 
 #include <Interface/ShDrvInterface.h>
 

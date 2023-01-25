@@ -84,7 +84,7 @@ NTSTATUS DriverEntry(
 	ShDrvExample::ProcessTest32((HANDLE)5568);*/
 	/*ShDrvExample::SocketTest("192.168.0.3", "Hello?name=Shh0ya", "", "", GET);
 	ShDrvExample::SocketTest("192.168.0.3", "Hello", "", "Name=Shh0ya", POST);*/
-	ShDrvExample::SsdtHooking(); // unsafe, only test
+	//ShDrvExample::SsdtHooking(); // unsafe, only test
 
 	Status = STATUS_SUCCESS;
 
