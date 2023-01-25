@@ -31,6 +31,58 @@
 //#define WINDOWS_11_21H2 22000
 //#define WINDOWS_11_22H2 22621
 
+#define PROCESS_TERMINATE                  (0x0001)  
+#define PROCESS_CREATE_THREAD              (0x0002)  
+#define PROCESS_SET_SESSIONID              (0x0004)  
+#define PROCESS_VM_OPERATION               (0x0008)  
+#define PROCESS_VM_READ                    (0x0010)  
+#define PROCESS_VM_WRITE                   (0x0020)  
+#define PROCESS_DUP_HANDLE                 (0x0040)  
+#define PROCESS_CREATE_PROCESS             (0x0080)  
+#define PROCESS_SET_QUOTA                  (0x0100)  
+#define PROCESS_SET_INFORMATION            (0x0200)  
+#define PROCESS_QUERY_INFORMATION          (0x0400)  
+#define PROCESS_SUSPEND_RESUME             (0x0800)  
+#define PROCESS_QUERY_LIMITED_INFORMATION  (0x1000)  
+#define PROCESS_SET_LIMITED_INFORMATION    (0x2000)  
+#if (NTDDI_VERSION >= NTDDI_VISTA)
+#define PROCESS_ALL_ACCESS        (STANDARD_RIGHTS_REQUIRED | SYNCHRONIZE | \
+                                   0xFFFF)
+#else
+#define PROCESS_ALL_ACCESS        (STANDARD_RIGHTS_REQUIRED | SYNCHRONIZE | \
+                                   0xFFF)
+#endif
+
+#define THREAD_TERMINATE                 (0x0001)  
+#define THREAD_SUSPEND_RESUME            (0x0002)  
+#define THREAD_GET_CONTEXT               (0x0008)  
+#define THREAD_SET_CONTEXT               (0x0010)  
+#define THREAD_QUERY_INFORMATION         (0x0040)  
+#define THREAD_SET_INFORMATION           (0x0020)  
+#define THREAD_SET_THREAD_TOKEN          (0x0080)
+#define THREAD_IMPERSONATE               (0x0100)
+#define THREAD_DIRECT_IMPERSONATION      (0x0200)
+// begin_wdm
+#define THREAD_SET_LIMITED_INFORMATION   (0x0400)  // winnt
+#define THREAD_QUERY_LIMITED_INFORMATION (0x0800)  // winnt
+#define THREAD_RESUME                    (0x1000)  // winnt
+#if (NTDDI_VERSION >= NTDDI_VISTA)
+#define THREAD_ALL_ACCESS         (STANDARD_RIGHTS_REQUIRED | SYNCHRONIZE | \
+                                   0xFFFF)
+#else
+#define THREAD_ALL_ACCESS         (STANDARD_RIGHTS_REQUIRED | SYNCHRONIZE | \
+                                   0x3FF)
+#endif
+
+#define THREAD_CREATE_FLAGS_CREATE_SUSPENDED        0x00000001
+#define THREAD_CREATE_FLAGS_SUPPRESS_DLLMAINS       0x00000002
+#define THREAD_CREATE_FLAGS_HIDE_FROM_DEBUGGER      0x00000004
+#define THREAD_CREATE_FLAGS_HAS_SECURITY_DESCRIPTOR 0x00000010
+#define THREAD_CREATE_FLAGS_ACCESS_CHECK_IN_TARGET  0x00000020
+#define THREAD_CREATE_FLAGS_INITIAL_THREAD          0x00000080
+
+#define OBJ_PROTECT_CLOSE 0x1
+
 namespace UNDOC_SYSTEM {
 	//======================================================
 	// System Basic Information (SystemBasicInformation, ...)
@@ -264,6 +316,40 @@ namespace UNDOC_SYSTEM {
 	} SYSTEM_SERVICE_DESCRIPTOR_TABLE, * PSYSTEM_SERVICE_DESCRIPTOR_TABLE;
 
 	//======================================================
+	// Object Type Information
+	//======================================================
+	typedef struct _OBJECT_TYPE_INFORMATION {
+		UNICODE_STRING TypeName;
+		ULONG TotalNumberOfObjects;
+		ULONG TotalNumberOfHandles;
+		ULONG TotalPagedPoolUsage;
+		ULONG TotalNonpagedPoolUsage;
+		ULONG TotalNamePoolUsage;
+		ULONG TotalHandleTableUsage;
+		ULONG HighWaterNumberOfObjects;
+		ULONG HighWaterNumberOfHandles;
+		ULONG HighWaterPagedPoolUsage;
+		ULONG HighWaterNonPagedPoolUsage;
+		ULONG HighWaterNamePoolUsage;
+		ULONG HighWaterHandleTableUsage;
+		ULONG InvalidAttributes;
+		GENERIC_MAPPING GenericMapping;
+		ULONG ValidAccessMask;
+		BOOLEAN SecurityRequired;
+		BOOLEAN MaintainHandleCount;
+		UCHAR TypeIndex;
+		ULONG PoolType;
+		ULONG DefaultPagedPoolCharge;
+		ULONG DefaultNonPagedPoolCharge;
+#define OBJECT_TYPE_INFORMATION_SIZE sizeof(UNDOC_SYSTEM::OBJECT_TYPE_INFORMATION)
+	}OBJECT_TYPE_INFORMATION, *POBJECT_TYPE_INFORMATION;
+
+	typedef struct _OBJECT_TYPES_INFORMATION {
+		ULONG NumberOfTypes;
+		OBJECT_TYPE_INFORMATION ObjectType[1];
+#define OBJECT_TYPES_INFORMATION_SIZE sizeof(OBJECT_TYPES_INFORMATION)
+	}OBJECT_TYPES_INFORMATION, *POBJECT_TYPES_INFORMATION;
+	//======================================================
 	// Avl tree
 	//======================================================
 	typedef struct _RTL_AVL_TREE
@@ -389,5 +475,85 @@ PACK_END
 	}EWOW64PROCESS, * PEWOW64PROCESS;
 }
 
+namespace UNDOC_WINNT {
+#define CONTEXT_DEBUG_REGISTER_ONLY 0x10
 
+#define WOW64_CONTEXT_i386      0x00010000    // this assumes that i386 and
+#define WOW64_CONTEXT_i486      0x00010000    // i486 have identical context records
+
+#define WOW64_CONTEXT_CONTROL               (WOW64_CONTEXT_i386 | 0x00000001L) // SS:SP, CS:IP, FLAGS, BP
+#define WOW64_CONTEXT_INTEGER               (WOW64_CONTEXT_i386 | 0x00000002L) // AX, BX, CX, DX, SI, DI
+#define WOW64_CONTEXT_SEGMENTS              (WOW64_CONTEXT_i386 | 0x00000004L) // DS, ES, FS, GS
+#define WOW64_CONTEXT_FLOATING_POINT        (WOW64_CONTEXT_i386 | 0x00000008L) // 387 state
+#define WOW64_CONTEXT_DEBUG_REGISTERS       (WOW64_CONTEXT_i386 | 0x00000010L) // DB 0-3,6,7
+#define WOW64_CONTEXT_EXTENDED_REGISTERS    (WOW64_CONTEXT_i386 | 0x00000020L) // cpu specific extensions
+
+#define WOW64_CONTEXT_FULL      (WOW64_CONTEXT_CONTROL | WOW64_CONTEXT_INTEGER | WOW64_CONTEXT_SEGMENTS)
+
+#define WOW64_CONTEXT_ALL       (WOW64_CONTEXT_CONTROL | WOW64_CONTEXT_INTEGER | WOW64_CONTEXT_SEGMENTS | \
+                                 WOW64_CONTEXT_FLOATING_POINT | WOW64_CONTEXT_DEBUG_REGISTERS | \
+                                 WOW64_CONTEXT_EXTENDED_REGISTERS)
+
+#define WOW64_CONTEXT_XSTATE                (WOW64_CONTEXT_i386 | 0x00000040L)
+
+#define WOW64_CONTEXT_EXCEPTION_ACTIVE      0x08000000
+#define WOW64_CONTEXT_SERVICE_ACTIVE        0x10000000
+#define WOW64_CONTEXT_EXCEPTION_REQUEST     0x40000000
+#define WOW64_CONTEXT_EXCEPTION_REPORTING   0x80000000
+
+#define WOW64_SIZE_OF_80387_REGISTERS      80
+
+#define WOW64_MAXIMUM_SUPPORTED_EXTENSION     512
+
+	typedef struct _WOW64_FLOATING_SAVE_AREA {
+		DWORD   ControlWord;
+		DWORD   StatusWord;
+		DWORD   TagWord;
+		DWORD   ErrorOffset;
+		DWORD   ErrorSelector;
+		DWORD   DataOffset;
+		DWORD   DataSelector;
+		UCHAR    RegisterArea[WOW64_SIZE_OF_80387_REGISTERS];
+		DWORD   Cr0NpxState;
+	} WOW64_FLOATING_SAVE_AREA;
+	typedef WOW64_FLOATING_SAVE_AREA* PWOW64_FLOATING_SAVE_AREA;
+
+	typedef struct _WOW64_CONTEXT {
+		DWORD ContextFlags;
+
+		DWORD   Dr0;
+		DWORD   Dr1;
+		DWORD   Dr2;
+		DWORD   Dr3;
+		DWORD   Dr6;
+		DWORD   Dr7;
+
+		WOW64_FLOATING_SAVE_AREA FloatSave;
+
+		DWORD   SegGs;
+		DWORD   SegFs;
+		DWORD   SegEs;
+		DWORD   SegDs;
+
+		DWORD   Edi;
+		DWORD   Esi;
+		DWORD   Ebx;
+		DWORD   Edx;
+		DWORD   Ecx;
+		DWORD   Eax;
+
+		DWORD   Ebp;
+		DWORD   Eip;
+		DWORD   SegCs;              // MUST BE SANITIZED
+		DWORD   EFlags;             // MUST BE SANITIZED
+		DWORD   Esp;
+		DWORD   SegSs;
+
+		UCHAR    ExtendedRegisters[WOW64_MAXIMUM_SUPPORTED_EXTENSION];
+
+	} WOW64_CONTEXT;
+	typedef WOW64_CONTEXT* PWOW64_CONTEXT;
+
+
+};
 #endif // !_SHDRVUNDOCSTRUCT_H_

@@ -95,8 +95,50 @@ VOID NotifyRoutines::ProcessNotifyRoutine(
 #endif
 #endif
 	SAVE_CURRENT_COUNTER;
+	
+	auto Process = ShDrvUtil::GetProcessByProcessId(ProcessId);
+	auto ProcessName = g_Routines->PsGetProcessImageFileName(Process);
 
+	if (Create == TRUE)
+	{
+		if (StringCompare(ProcessName, DEBUGGER_x32dbg) == TRUE)
+		{
+			g_DebuggerProcess32 = Process;
+			END
+		}
 
+		else if (StringCompare(ProcessName, DEBUGGER_x64dbg) == TRUE)
+		{
+			g_DebuggerProcess64 = Process;
+			END
+		}
+
+		else if (StringCompare(ProcessName, DEBUGGEE_PROCESS) == TRUE)
+		{
+			g_TargetProcess = Process;
+			END
+		}
+	}
+	else
+	{
+		if (StringCompare(ProcessName, DEBUGGER_x32dbg) == TRUE)
+		{
+			g_DebuggerProcess32 = nullptr;
+			END
+		}
+
+		else if (StringCompare(ProcessName, DEBUGGER_x64dbg) == TRUE)
+		{
+			g_DebuggerProcess64 = nullptr;
+			END
+		}
+
+		else if (StringCompare(ProcessName, DEBUGGEE_PROCESS) == TRUE)
+		{
+			g_TargetProcess = nullptr;
+			END
+		}
+	}
 
 FINISH:
 	PRINT_ELAPSED;

@@ -363,6 +363,20 @@ namespace UNDOC_ENUM {
 	} REDEF_VIRTUAL_MEMORY_INFORMAITION_CLASS, *PREDEF_VIRTUAL_MEMORY_INFORMAITION_CLASS;
 
 	//======================================================
+	// Object Information Class
+	//======================================================
+	typedef enum _REDEF_OBJECT_INFORMATION_CLASS {
+		ObjectBasicInformation = 0,
+		ObjectNameInformation = 1,
+		ObjectTypeInformation = 2,
+		ObjectTypesInformation = 3,
+		ObjectHandleFlagInformation = 4,
+		ObjectSessionInformation = 5,
+		ObjectSessionObjectInformation = 6,
+		MaxObjectInfoClass
+	} REDEF_OBJECT_INFORMATION_CLASS, *PREDEF_OBJECT_INFORMATION_CLASS;
+
+	//======================================================
 	// APC environment
 	//======================================================
 	typedef enum _KAPC_ENVIRONMENT

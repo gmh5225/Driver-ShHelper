@@ -16,6 +16,11 @@ PSH_GLOBAL_CALLBACKS     g_Callbacks; /**< Global callback manager */
 PSH_GLOBAL_SOCKETS       g_Sockets;   /**< Global socket manager */
 PSH_GLOBAL_HOOK_DATA     g_HookData;  /**< Global ssdt hook data */
 
+PEPROCESS g_DebuggerProcess32; /**< Global debugger process(x32) */
+PEPROCESS g_DebuggerProcess64; /**< Global debugger process(x64) */
+PEPROCESS g_TargetProcess;     /**< Global debuggee process */
+KMUTEX g_CloseMutex;           /**< Global NtClose mutex  */
+
 #ifdef _CLANG
 #else
 #pragma alloc_text("INIT", DriverEntry)
@@ -41,6 +46,8 @@ NTSTATUS DriverEntry(
 #endif
 	SAVE_CURRENT_COUNTER;
 	auto Status = STATUS_SUCCESS;
+	BOOLEAN SystemInfo = TRUE;
+	ULONG ReturnLength = 0;
 
 	for (auto i = 0; i < IRP_MJ_MAXIMUM_FUNCTION; i++) { DriverObject->MajorFunction[i] = ShDrvMjFunction::DispatchRoutine; }
 	DriverObject->DriverUnload = HelperFinalize;
@@ -71,16 +78,17 @@ NTSTATUS DriverEntry(
 		ERROR_END
 	}
 
-	ShDrvExample::MemoryScanTest();
-	ShDrvExample::PeTest((HANDLE)9848, (HANDLE)2584);
-	ShDrvExample::ProcessTest((HANDLE)9848);
-	ShDrvExample::ProcessTest32((HANDLE)2584);
+	/*ShDrvExample::MemoryScanTest();
+	ShDrvExample::PeTest((HANDLE)8564, (HANDLE)5568);
+	ShDrvExample::ProcessTest((HANDLE)8564);
+	ShDrvExample::ProcessTest32((HANDLE)5568);*/
 	/*ShDrvExample::SocketTest("192.168.0.3", "Hello?name=Shh0ya", "", "", GET);
 	ShDrvExample::SocketTest("192.168.0.3", "Hello", "", "Name=Shh0ya", POST);*/
-	ShDrvExample::SsdtHooking();
-	
-	Log("Success driver load");
+	ShDrvExample::SsdtHooking(); // unsafe, only test
 
+	Status = STATUS_SUCCESS;
+
+	Log("Success driver load");
 FINISH:
 	PRINT_ELAPSED;
 	return Status;
@@ -200,6 +208,7 @@ NTSTATUS DriverInitialize()
 	GET_EXPORT_ROUTINE(PsGetProcessImageFileName, Ps);
 	GET_EXPORT_ROUTINE(PsGetProcessPeb, Ps);
 	GET_EXPORT_ROUTINE(PsGetProcessWow64Process, Ps);
+	GET_EXPORT_ROUTINE(PsGetProcessDebugPort, Ps);
 	GET_EXPORT_ROUTINE(ObGetObjectType, Ob);
 	GET_EXPORT_ROUTINE(PsReferenceProcessFilePointer, Ps);
 
@@ -1861,6 +1870,8 @@ VOID ShDrvExample::SsdtHooking()
 	SSDT_HOOK(Ssdt, NtClose);
 
 	if (!NT_SUCCESS(Status)) { SsdtHookRoutine::UnHookAll(); ERROR_END }
+
+	KeInitializeMutex(&g_CloseMutex, 0);
 
 FINISH:
 	delete(Ssdt);
