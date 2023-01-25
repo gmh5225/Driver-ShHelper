@@ -323,14 +323,5 @@ extern PSH_GLOBAL_CALLBACKS     g_Callbacks;
 extern PSH_GLOBAL_SOCKETS       g_Sockets;
 extern PSH_GLOBAL_HOOK_DATA     g_HookData;
 
-#define DEBUGGER_x32dbg  "x32dbg.exe"
-#define DEBUGGER_x64dbg  "x64dbg.exe"
-#define DEBUGGEE_PROCESS "EXE.exe"
-
-extern PEPROCESS g_DebuggerProcess32;
-extern PEPROCESS g_DebuggerProcess64;
-extern PEPROCESS g_TargetProcess;
-extern KMUTEX g_CloseMutex;
-
 
 #endif // !_SHDRVSTRUCT_H_

@@ -124,51 +124,12 @@ NTSTATUS SsdtHookRoutine::Hook_NtQuerySystemInformation(
 	OUT PULONG ReturnLength OPTIONAL)
 {
 	auto Status = STATUS_SUCCESS;
-	PULONG BackReturnLength = nullptr;
 	auto Org_NtQuerySystemInformation =
 		reinterpret_cast<NtZw::NtQuerySystemInformation_t>(g_HookData->SsdtEntry[HookTarget_NtQuerySystemInformation].OriginalAddress);
-
-	if (ReturnLength != nullptr) { BackReturnLength = ReturnLength; }
-
-	Status = Org_NtQuerySystemInformation(
-		SystemInformationClass,
-		SystemInformation,
-		SystemInformationLength,
-		ReturnLength);
 
 	auto ProcessName = g_Routines->PsGetProcessImageFileName(PsGetCurrentProcess());
 	auto Process = ShDrvUtil::GetProcessByProcessId(PsGetCurrentProcessId());
 
-	if(!NT_SUCCESS(Status) || Process != g_TargetProcess) { END }
-	
-	switch (SystemInformationClass)
-	{
-	case SystemKernelDebuggerInformation:
-	{
-		Log("[SystemKernelDebuggerInformation] %p %s", SystemInformation, ProcessName);
-		((PSYSTEM_KERNEL_DEBUGGER_INFORMATION)SystemInformation)->KernelDebuggerEnabled = FALSE;
-		((PSYSTEM_KERNEL_DEBUGGER_INFORMATION)SystemInformation)->KernelDebuggerNotPresent = TRUE;
-		break;
-	}
-
-	case SystemKernelDebuggerInformationEx:
-	{
-		Log("[SystemKernelDebuggerInformationEx] %p %s", SystemInformation, ProcessName);
-		((PSYSTEM_KERNEL_DEBUGGER_INFORMATION_EX)SystemInformation)->DebuggerAllowed = FALSE;
-		((PSYSTEM_KERNEL_DEBUGGER_INFORMATION_EX)SystemInformation)->DebuggerEnabled = FALSE;
-		((PSYSTEM_KERNEL_DEBUGGER_INFORMATION_EX)SystemInformation)->DebuggerPresent = FALSE;
-		break;
-	}
-
-	case SystemKernelDebuggerFlags: // KdIgnoreUmExceptions
-	{
-		Log("[SystemKernelDebuggerFlags] %p %s", SystemInformation, ProcessName);
-		InterlockedExchange8((CHAR*)SystemInformation, 0);
-		break;
-	}
-	}
-
-FINISH:
 	return Status;
 }
 
@@ -180,48 +141,9 @@ NTSTATUS SsdtHookRoutine::Hook_NtQueryInformationProcess(
 	OUT PULONG ReturnLength OPTIONAL)
 {
 	auto Status = STATUS_SUCCESS;
-	PULONG BackReturnLength = nullptr;
 	auto Org_NtQueryInformationProcess =
 		reinterpret_cast<NtZw::NtQueryInformationProcess_t>(g_HookData->SsdtEntry[HookTarget_NtQueryInformationProcess].OriginalAddress);
-	
-	if (ReturnLength != nullptr) { BackReturnLength = ReturnLength; }
 
-	Status = Org_NtQueryInformationProcess(
-		ProcessHandle,
-		ProcessInformationClass,
-		ProcessInformation,
-		ProcessInformationLength,
-		ReturnLength);
-	
-	auto ProcessName = g_Routines->PsGetProcessImageFileName(PsGetCurrentProcess());
-	auto Process = ShDrvUtil::GetProcessByProcessId(PsGetCurrentProcessId());
-
-	if (!NT_SUCCESS(Status) || Process != g_TargetProcess) { END }
-
-	switch (ProcessInformationClass)
-	{
-	case ::ProcessDebugFlags: // NoDebugInherit
-	{
-		Log("[ProcessDebugFlags] %p %s", ProcessInformation, ProcessName);
-		InterlockedExchange((LONG*)ProcessInformation, 0);
-		break;
-	}
-	case ::ProcessDebugPort:
-	{
-		Log("[ProcessDebugPort] %p %s", ProcessInformation, ProcessName);
-		InterlockedExchange64((LONG64*)ProcessInformation, 0);
-		break;
-	}
-	case ::ProcessDebugObjectHandle:
-	{
-		Log("[ProcessDebugObjectHandle] %p %s", ProcessInformation, ProcessName);
-		InterlockedExchange64((LONG64*)ProcessInformation, 0);
-		Status = STATUS_PORT_NOT_SET;
-		break;
-	}
-	}
-
-FINISH:
 	return Status;
 }
 
@@ -239,44 +161,6 @@ NTSTATUS SsdtHookRoutine::Hook_NtQueryInformationThread(
 	auto ProcessName = g_Routines->PsGetProcessImageFileName(PsGetCurrentProcess());
 	auto Process = ShDrvUtil::GetProcessByProcessId(PsGetCurrentProcessId());
 	
-	Status = Org_NtQueryInformationThread(
-		ThreadHandle,
-		ThreadInformationClass,
-		ThreadInformation,
-		ThreadInformationLength,
-		ReturnLength);
-	if(!NT_SUCCESS(Status) || Process != g_TargetProcess) { END }
-
-	switch (ThreadInformationClass)
-	{
-	case ::ThreadHideFromDebugger:
-	{
-		Log("[Get ThreadHideFromDebugger] %p %s", ThreadInformation, ProcessName);
-		InterlockedExchange8((CHAR*)ThreadInformation, TRUE);
-		break;
-	}
-	case ::ThreadWow64Context:
-	{
-		Log("[Get ThreadWow64Context] %p %s", ThreadInformation, ProcessName);
-
-		PWOW64_CONTEXT Wow64Context = 
-			reinterpret_cast<PWOW64_CONTEXT>(ThreadInformation);
-
-		if (Wow64Context->ContextFlags & CONTEXT_DEBUG_REGISTER_ONLY)
-		{
-			Wow64Context->Dr0 = 0;
-			Wow64Context->Dr1 = 0;
-			Wow64Context->Dr2 = 0;
-			Wow64Context->Dr3 = 0;
-			Wow64Context->Dr6 = 0;
-			Wow64Context->Dr7 = 0;
-		}
-		break;
-	}
-	}
-
-
-FINISH:
 	return Status;
 }
 
@@ -293,56 +177,6 @@ NTSTATUS SsdtHookRoutine::Hook_NtSetInformationThread(
 	auto ProcessName = g_Routines->PsGetProcessImageFileName(PsGetCurrentProcess());
 	auto Process = ShDrvUtil::GetProcessByProcessId(PsGetCurrentProcessId());
 
-	if (Process != g_TargetProcess) 
-	{
-		Status = Org_NtSetInformationThread(
-			ThreadHandle, 
-			ThreadInformationClass, 
-			ThreadInformation, 
-			ThreadInformationLength);
-		END 
-	}
-
-
-	switch (ThreadInformationClass)
-	{
-	case ::ThreadHideFromDebugger:
-	{
-		END
-	}
-
-	case ::ThreadWow64Context:
-	{
-		Log("[Set ThreadWow64Context] %p %s", ThreadInformation, ProcessName);
-
-		PWOW64_CONTEXT Wow64Context =
-			reinterpret_cast<PWOW64_CONTEXT>(ThreadInformation);
-		auto BackupContext = Wow64Context->ContextFlags;
-
-		Wow64Context->ContextFlags = BackupContext & ~CONTEXT_DEBUG_REGISTER_ONLY;
-
-		Status = Org_NtSetInformationThread(
-			ThreadHandle,
-			ThreadInformationClass,
-			ThreadInformation,
-			ThreadInformationLength);
-
-		Wow64Context->ContextFlags = BackupContext;
-		break;
-	}
-
-	default:
-	{
-		Status = Org_NtSetInformationThread(
-			ThreadHandle,
-			ThreadInformationClass,
-			ThreadInformation,
-			ThreadInformationLength);
-		break;
-	}
-	}
-
-FINISH:
 	return Status;
 }
 
@@ -359,51 +193,6 @@ NTSTATUS SsdtHookRoutine::Hook_NtQueryObject(
 	auto ProcessName = g_Routines->PsGetProcessImageFileName(PsGetCurrentProcess());
 	auto Process = ShDrvUtil::GetProcessByProcessId(PsGetCurrentProcessId());
 
-	Status = Org_NtQueryObject(
-		Handle,
-		ObjectInformationClass,
-		ObjectInformation,
-		ObjectInformationLength,
-		ReturnLength);
-	if(!NT_SUCCESS(Status) || Process != g_TargetProcess) { END }
-
-	switch (ObjectInformationClass)
-	{
-	case ::ObjectTypeInformation:
-	{
-		Log("[ObjectTypeInformation] %p %s", ObjectInformation, ProcessName);
-
-		auto ObTypeInformation = reinterpret_cast<POBJECT_TYPE_INFORMATION>(ObjectInformation);
-		if (ObTypeInformation->TypeName.Buffer == nullptr || MmIsAddressValid(ObTypeInformation->TypeName.Buffer) == FALSE) { break; }
-		if (ShDrvUtil::StringCompareW(L"DebugObject", ObTypeInformation->TypeName.Buffer) == TRUE)
-		{
-			ObTypeInformation->TotalNumberOfHandles = 0;
-			ObTypeInformation->TotalNumberOfObjects = 0;
-		}
-		break;
-	}
-
-	case ::ObjectTypesInformation:
-	{
-		Log("[ObjectTypesInformation] %p %s", ObjectInformation, ProcessName);
-
-		auto ObTypeInformation = reinterpret_cast<POBJECT_TYPES_INFORMATION>(ObjectInformation);
-		for (auto i = 0; i < ObTypeInformation->NumberOfTypes; i++)
-		{
-			auto Entry = &ObTypeInformation->ObjectType[i];
-			if (Entry == nullptr || MmIsAddressValid(Entry) == FALSE) { continue; }
-			if (Entry->TypeName.Buffer == nullptr || MmIsAddressValid(Entry->TypeName.Buffer) == FALSE) { break; }
-			if (ShDrvUtil::StringCompareW(L"DebugObject", Entry->TypeName.Buffer) == TRUE)
-			{
-				Entry->TotalNumberOfHandles = 0;
-				Entry->TotalNumberOfObjects = 0;
-			}
-		}
-
-	}
-	}
-
-FINISH:
 	return Status;
 }
 
@@ -415,46 +204,6 @@ NTSTATUS SsdtHookRoutine::Hook_NtClose(
 		reinterpret_cast<NtZw::NtClose_t>(g_HookData->SsdtEntry[HookTarget_NtClose].OriginalAddress);
 	auto ProcessName = g_Routines->PsGetProcessImageFileName(PsGetCurrentProcess());
 	auto Process = ShDrvUtil::GetProcessByProcessId(PsGetCurrentProcessId());
-	BOOLEAN GenerateOnClose = FALSE;
-	KPROCESSOR_MODE PreviousMode = ExGetPreviousMode();
-
-	if (Process != g_TargetProcess) { Status = ObCloseHandle(Handle, PreviousMode); return Status; }
-
-	KeWaitForSingleObject(&g_CloseMutex, Executive, KernelMode, FALSE, nullptr);
-	
-	Status = ObQueryObjectAuditingByHandle(Handle, &GenerateOnClose);
-	if (Status != STATUS_INVALID_HANDLE)
-	{
-		if (SH_ROUTINE_CALL(PsGetProcessDebugPort)(Process) != nullptr)
-		{
-			PVOID Object = nullptr;
-			OBJECT_HANDLE_INFORMATION ObHandleInformation = { 0, };
-			
-			Status = ObReferenceObjectByHandle(
-				Handle,
-				0,
-				nullptr,
-				PreviousMode,
-				&Object,
-				&ObHandleInformation);
-			if (Object != nullptr) { ObDereferenceObject(Object); }
-			if(!NT_SUCCESS(Status)) 
-			{ 
-				Status = ObCloseHandle(Handle, PreviousMode);
-				END 
-			}
-			if (ObHandleInformation.HandleAttributes & OBJ_PROTECT_CLOSE) { Status = STATUS_HANDLE_NOT_CLOSABLE; }
-		}
-		else
-		{
-			Status = ObCloseHandle(Handle, PreviousMode);
-		}
-	}
-	else { Status = STATUS_INVALID_HANDLE; }
-
-
-FINISH:
-	KeReleaseMutex(&g_CloseMutex, FALSE);
 	return Status;
 }
 
@@ -473,40 +222,6 @@ NTSTATUS SsdtHookRoutine::Hook_NtDuplicateObject(
 	auto ProcessName = g_Routines->PsGetProcessImageFileName(PsGetCurrentProcess());
 	auto Process = ShDrvUtil::GetProcessByProcessId(PsGetCurrentProcessId());
 
-	if (Process != g_TargetProcess) { END }
-
-	if (SH_ROUTINE_CALL(PsGetProcessDebugPort)(Process) != nullptr &&
-		Options & DUPLICATE_CLOSE_SOURCE)
-	{
-		PVOID Object = nullptr;
-		OBJECT_HANDLE_INFORMATION ObHandleInformation = { 0, };
-		Status = ObReferenceObjectByHandle(
-			SourceHandle,
-			0,
-			nullptr,
-			ExGetPreviousMode(),
-			&Object,
-			&ObHandleInformation);
-		if(!NT_SUCCESS(Status)) { END }
-
-		if (Object != nullptr) { ObDereferenceObject(Object); }
-		if (ObHandleInformation.HandleAttributes & OBJ_PROTECT_CLOSE)
-		{
-			Log("[NtDuplicateObject] %p %s", ObHandleInformation, ProcessName);
-			Options &= ~DUPLICATE_CLOSE_SOURCE;
-		}
-	}
-
-FINISH:
-	Status = Org_NtDuplicateObject(
-		SourceProcessHandle,
-		SourceHandle,
-		TargetProcessHandle,
-		TargetHandle,
-		DesiredAcccess,
-		HandleAttributes,
-		Options);
-
 	return Status;
 }
 
@@ -520,28 +235,6 @@ NTSTATUS SsdtHookRoutine::Hook_NtGetContextThread(
 	auto ProcessName = g_Routines->PsGetProcessImageFileName(PsGetCurrentProcess());
 	auto Process = ShDrvUtil::GetProcessByProcessId(PsGetCurrentProcessId());
 
-	Status = Org_NtGetContextThread(
-		ThreadHandle,
-		Context);
-	if(!NT_SUCCESS(Status) || Process != g_TargetProcess) { END }
-
-	Log("[NtGetContextThread] %p %s", Context, ProcessName);
-
-	if (Context->ContextFlags & CONTEXT_DEBUG_REGISTER_ONLY)
-	{
-		Context->Dr0 = 0;
-		Context->Dr1 = 0;
-		Context->Dr2 = 0;
-		Context->Dr3 = 0;
-		Context->Dr6 = 0;
-		Context->Dr7 = 0;
-		Context->LastBranchFromRip = 0;
-		Context->LastBranchToRip = 0;
-		Context->LastExceptionFromRip = 0;
-		Context->LastExceptionToRip = 0;
-	}
-
-FINISH:
 	return Status;
 }
 
@@ -554,29 +247,6 @@ NTSTATUS SsdtHookRoutine::Hook_NtSetContextThread(
 		reinterpret_cast<NtZw::NtSetContextThread_t>(g_HookData->SsdtEntry[HookTarget_NtSetContextThread].OriginalAddress);
 	auto ProcessName = g_Routines->PsGetProcessImageFileName(PsGetCurrentProcess());
 	auto Process = ShDrvUtil::GetProcessByProcessId(PsGetCurrentProcessId());
-
-	if (Process != g_TargetProcess) { END }
-
-	if (Context->ContextFlags & CONTEXT_DEBUG_REGISTER_ONLY)
-	{
-		Log("[NtSetContextThread] %p %s", Context, ProcessName);
-
-		auto BackupContext = Context->ContextFlags;
-
-		Context->ContextFlags = BackupContext & ~CONTEXT_DEBUG_REGISTER_ONLY;
-
-		Status = Org_NtSetContextThread(
-			ThreadHandle,
-			Context);
-
-		Context->ContextFlags = BackupContext;
-		return Status;
-	}
-
-FINISH:
-	Status = Org_NtSetContextThread(
-		ThreadHandle,
-		Context);
 
 	return Status;
 }
@@ -595,19 +265,7 @@ NTSTATUS SsdtHookRoutine::Hook_NtSystemDebugControl(
 	auto ProcessName = g_Routines->PsGetProcessImageFileName(PsGetCurrentProcess());
 	auto Process = ShDrvUtil::GetProcessByProcessId(PsGetCurrentProcessId());
 
-	if(Process != g_TargetProcess) { END }
-
-	Log("[NtSystemDebugControl] %d %s", Command, ProcessName);
-	return STATUS_DEBUGGER_INACTIVE;
-
-FINISH:
-	return Org_NtSystemDebugControl(
-		Command,
-		InputBuffer,
-		InputBufferLength,
-		OutBuffer,
-		OutBufferLength,
-		ReturnLength);
+	return Status;
 }
 
 NTSTATUS SsdtHookRoutine::Hook_NtCreateThreadEx(
@@ -629,26 +287,6 @@ NTSTATUS SsdtHookRoutine::Hook_NtCreateThreadEx(
 	auto ProcessName = g_Routines->PsGetProcessImageFileName(PsGetCurrentProcess());
 	auto Process = ShDrvUtil::GetProcessByProcessId(PsGetCurrentProcessId());
 
-	if(Process != g_TargetProcess) { END }
-
-	if (Flags & THREAD_CREATE_FLAGS_HIDE_FROM_DEBUGGER)
-	{
-		Log("[NtCreateThreadEx] %p %s", StartAddress, ProcessName);
-		Flags &= ~THREAD_CREATE_FLAGS_HIDE_FROM_DEBUGGER;
-	}
-
-FINISH:
-	return Org_NtCreateThreadEx(
-		ThreadHandle,
-		DesiredAccess,
-		ObjectAttributes,
-		ProcessHandle,
-		StartAddress,
-		Parameter,
-		Flags,
-		StackZeroBits,
-		SizeOfStackCommit,
-		SizeOfStackReserve,
-		BytesBuffer);
+	return Status;
 }
 
